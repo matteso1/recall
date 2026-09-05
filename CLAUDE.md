@@ -8,9 +8,10 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
 - Repo lives in WSL (Ubuntu 24.04) on a Windows 11 machine. League, its local APIs and
   the Rust MSVC toolchain are on the Windows side; Python 3.12 and Node 24 are in WSL.
 - WSL NAT mode: Windows `127.0.0.1` is unreachable from WSL directly. `m0/transport.py`
-  falls back to Windows `curl.exe` via interop. Mirrored networking is configured in
-  `C:\Users\nilsm\.wslconfig` but only takes effect after `wsl --shutdown`; the scripts
-  detect either mode.
+  falls back to Windows `curl.exe` via interop. Mirrored networking was configured in
+  `C:\Users\nilsm\.wslconfig` and activated with `wsl --shutdown` on 2026-09-05; verify
+  with `wslinfo --networking-mode` (expect `mirrored`, doctor then says transport direct).
+  The scripts detect either mode.
 - The League client (`LeagueClientUx.exe`) is often running while working; the LCU is
   reachable then, the Live Client API only during a game (Practice Tool works).
 

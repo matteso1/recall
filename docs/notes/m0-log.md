@@ -17,3 +17,5 @@
 - 30 unit tests green (`python3 -m unittest discover -s m0/tests`). Doctor: LCU pipe OK.
 - Champ select fixture field names checked against `/help` types `ChampSelectSession`,
   `ChampSelectPlayerSelection`, `ChampSelectTimer`, `LolChampSelectLegacyChampSelectAction`.
+- 12:35 `wsl.exe --shutdown` run to activate mirrored networking (at the user's request).
+  Next session: confirm `wslinfo --networking-mode` = mirrored and re-run the doctor.
