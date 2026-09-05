@@ -16,4 +16,6 @@
     why: "Mortal Reminder over LDR: Soraka heals", "Malphite and Ornn both build armor: armor pen earlier"
     matchup: vs Tristana line
   ```
+- 14:27 Release build (opt-level s, LTO, strip) at BelowNormal priority with -j 6 while the user was
+  gaming: 3 m 47 s, 9.6 MB `featherstorm.exe`. Headless probe passes on the release exe as well.
 - Pending: on-screen test with the League client open (user was gaming), Practice Tool dogfood, draft game.
