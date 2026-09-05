@@ -23,7 +23,8 @@
         "resizable": false,
         "shadow": false,
         "focus": false,
-        "visible": true
+        "visible": true,
+        "focusable": false
       }
     ],
     "security": {
@@ -32,6 +33,9 @@
   },
   "bundle": {
     "active": false,
-    "icon": ["icons/icon.ico", "icons/icon.png"]
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png"
+    ]
   }
 }
