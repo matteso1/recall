@@ -3,6 +3,7 @@
 
 mod commands;
 mod poller;
+mod probe;
 mod settings;
 
 use featherstorm_core::champselect::Lobby;
@@ -74,6 +75,9 @@ fn init_logging() {
 fn main() {
     init_logging();
     log::info!("featherstorm {} starting", env!("CARGO_PKG_VERSION"));
+    if std::env::args().any(|a| a == "--probe") {
+        std::process::exit(probe::run());
+    }
 
     let pack = featherstorm_core::pack::load_xayah().expect("data pack");
     let traits = featherstorm_core::pack::load_traits().expect("champion traits");

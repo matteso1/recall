@@ -17,4 +17,9 @@ rsync -a --delete "$REPO/data/pack/" "$FEATHERSTORM_WIN_MIRROR/data/pack/"
 rsync -a --delete "$REPO/m0/tests/fixtures/" --exclude captured "$FEATHERSTORM_WIN_MIRROR/m0/tests/fixtures/"
 cd "$FEATHERSTORM_WIN_MIRROR/overlay/src-tauri"
 echo "[cargo-win] $(wslpath -w "$PWD")  cargo $*" >&2
+if [ -n "${FEATHERSTORM_NICE:-}" ]; then
+    # Gentle mode for when the machine is in use: cargo and its rustc children at BelowNormal priority.
+    ARGS=""; for a in "$@"; do ARGS="$ARGS'$a',"; done; ARGS="${ARGS%,}"
+    exec powershell.exe -NoProfile -NonInteractive -Command "\$p = Start-Process -FilePath 'cargo.exe' -ArgumentList @($ARGS) -NoNewWindow -PassThru; \$p.PriorityClass = 'BelowNormal'; \$p.WaitForExit(); exit \$p.ExitCode"
+fi
 exec cargo.exe "$@"
