@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Featherstorm</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="panel" class="panel">
+    <div class="header" data-tauri-drag-region>
+      <span class="brand" data-tauri-drag-region>FEATHERSTORM</span>
+      <span id="pill" class="pill" data-tauri-drag-region>starting</span>
+      <span class="spacer" data-tauri-drag-region></span>
+      <button id="collapse" class="icon" title="Collapse / expand">–</button>
+      <button id="quit" class="icon" title="Quit Featherstorm">×</button>
+    </div>
+    <div id="body" class="body">
+      <div id="message" class="message">Starting…</div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1236 @@
+{
+ "_about": [
+  "Hand-maintained champion trait tags for the rules engine (design doc 6.1).",
+  "healing = meaningful heal/drain (anti-heal matters); tank = builds armor/HP; lockdown_ult = hard CC that Mercurial/QSS answers;",
+  "assassin = dives the carry; burst/poke = damage pattern; damage = ad|ap|mixed; roles = typical positions.",
+  "Missing champions fall back to Data Dragon class tags. Names are matched case/punctuation-insensitively."
+ ],
+ "champions": {
+  "Aatrox": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "healing": true
+  },
+  "Ahri": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true
+  },
+  "Akali": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "top"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Alistar": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Amumu": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true,
+   "lockdown_ult": true
+  },
+  "Annie": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "utility"
+   ],
+   "burst": true
+  },
+  "Aphelios": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Ashe": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "lockdown_ult": true,
+   "poke": true
+  },
+  "Aurora": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "top"
+   ],
+   "burst": true,
+   "poke": true
+  },
+  "Azir": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ]
+  },
+  "Bard": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true
+  },
+  "Blitzcrank": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "tank": true
+  },
+  "Brand": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "middle"
+   ],
+   "burst": true,
+   "poke": true
+  },
+  "Braum": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "tank": true
+  },
+  "Briar": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "healing": true,
+   "assassin": true
+  },
+  "Caitlyn": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "poke": true
+  },
+  "Camille": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "assassin": true
+  },
+  "Cassiopeia": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ]
+  },
+  "Cho'Gath": {
+   "damage": "ap",
+   "roles": [
+    "top"
+   ],
+   "tank": true
+  },
+  "Corki": {
+   "damage": "mixed",
+   "roles": [
+    "middle",
+    "bottom"
+   ],
+   "poke": true
+  },
+  "Darius": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ]
+  },
+  "Diana": {
+   "damage": "ap",
+   "roles": [
+    "jungle",
+    "middle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Dr. Mundo": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Draven": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Ekko": {
+   "damage": "ap",
+   "roles": [
+    "jungle",
+    "middle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Elise": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "burst": true
+  },
+  "Evelynn": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Ezreal": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "poke": true
+  },
+  "Fiddlesticks": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "healing": true,
+   "burst": true
+  },
+  "Fiora": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "healing": true
+  },
+  "Fizz": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "assassin": true,
+   "burst": true,
+   "lockdown_ult": true
+  },
+  "Galio": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "utility"
+   ],
+   "tank": true
+  },
+  "Garen": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Gnar": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "tank": true
+  },
+  "Gragas": {
+   "damage": "ap",
+   "roles": [
+    "jungle",
+    "top"
+   ],
+   "tank": true,
+   "burst": true
+  },
+  "Graves": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ]
+  },
+  "Gwen": {
+   "damage": "ap",
+   "roles": [
+    "top",
+    "jungle"
+   ]
+  },
+  "Hecarim": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "assassin": true
+  },
+  "Heimerdinger": {
+   "damage": "ap",
+   "roles": [
+    "top",
+    "middle"
+   ],
+   "poke": true
+  },
+  "Hwei": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "utility"
+   ],
+   "burst": true,
+   "poke": true
+  },
+  "Illaoi": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "healing": true
+  },
+  "Irelia": {
+   "damage": "ad",
+   "roles": [
+    "top",
+    "middle"
+   ]
+  },
+  "Ivern": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "shielding": true
+  },
+  "Janna": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "shielding": true,
+   "healing": true
+  },
+  "Jarvan IV": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true
+  },
+  "Jax": {
+   "damage": "mixed",
+   "roles": [
+    "top",
+    "jungle"
+   ]
+  },
+  "Jayce": {
+   "damage": "ad",
+   "roles": [
+    "top",
+    "middle"
+   ],
+   "poke": true
+  },
+  "Jhin": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "poke": true
+  },
+  "Jinx": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "K'Sante": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "tank": true
+  },
+  "Kai'Sa": {
+   "damage": "mixed",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Kalista": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Karma": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "shielding": true,
+   "poke": true
+  },
+  "Karthus": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "burst": true
+  },
+  "Kassadin": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Katarina": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Kayle": {
+   "damage": "mixed",
+   "roles": [
+    "top"
+   ],
+   "healing": true
+  },
+  "Kayn": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "assassin": true,
+   "healing": true
+  },
+  "Kennen": {
+   "damage": "ap",
+   "roles": [
+    "top"
+   ],
+   "burst": true
+  },
+  "Kha'Zix": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "assassin": true
+  },
+  "Kindred": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "healing": true
+  },
+  "Kled": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ]
+  },
+  "Kog'Maw": {
+   "damage": "mixed",
+   "roles": [
+    "bottom"
+   ],
+   "poke": true
+  },
+  "LeBlanc": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Lee Sin": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ]
+  },
+  "Leona": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "tank": true,
+   "lockdown_ult": true
+  },
+  "Lillia": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ]
+  },
+  "Lissandra": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "tank": true,
+   "lockdown_ult": true,
+   "burst": true
+  },
+  "Lucian": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Lulu": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "shielding": true
+  },
+  "Lux": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "middle"
+   ],
+   "shielding": true,
+   "burst": true,
+   "poke": true
+  },
+  "Malphite": {
+   "damage": "ap",
+   "roles": [
+    "top",
+    "utility"
+   ],
+   "tank": true,
+   "burst": true
+  },
+  "Malzahar": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "lockdown_ult": true
+  },
+  "Maokai": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "jungle"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Master Yi": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "assassin": true
+  },
+  "Mel": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true,
+   "poke": true
+  },
+  "Milio": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true,
+   "shielding": true
+  },
+  "Miss Fortune": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "poke": true
+  },
+  "Mordekaiser": {
+   "damage": "ap",
+   "roles": [
+    "top"
+   ],
+   "tank": true,
+   "lockdown_ult": true
+  },
+  "Morgana": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "shielding": true,
+   "lockdown_ult": true
+  },
+  "Naafiri": {
+   "damage": "ad",
+   "roles": [
+    "middle"
+   ],
+   "assassin": true
+  },
+  "Nami": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true
+  },
+  "Nasus": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Nautilus": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "tank": true
+  },
+  "Neeko": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "utility"
+   ],
+   "burst": true
+  },
+  "Nidalee": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "healing": true,
+   "poke": true
+  },
+  "Nilah": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "healing": true
+  },
+  "Nocturne": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "assassin": true
+  },
+  "Nunu & Willump": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Olaf": {
+   "damage": "ad",
+   "roles": [
+    "jungle",
+    "top"
+   ]
+  },
+  "Orianna": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "shielding": true
+  },
+  "Ornn": {
+   "damage": "ap",
+   "roles": [
+    "top"
+   ],
+   "tank": true
+  },
+  "Pantheon": {
+   "damage": "ad",
+   "roles": [
+    "utility",
+    "top",
+    "jungle"
+   ]
+  },
+  "Poppy": {
+   "damage": "ad",
+   "roles": [
+    "utility",
+    "jungle",
+    "top"
+   ],
+   "tank": true
+  },
+  "Pyke": {
+   "damage": "ad",
+   "roles": [
+    "utility"
+   ],
+   "assassin": true
+  },
+  "Qiyana": {
+   "damage": "ad",
+   "roles": [
+    "middle",
+    "jungle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Quinn": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ]
+  },
+  "Rakan": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true,
+   "shielding": true,
+   "lockdown_ult": true
+  },
+  "Rammus": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true
+  },
+  "Rek'Sai": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ]
+  },
+  "Rell": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "tank": true,
+   "lockdown_ult": true
+  },
+  "Renata Glasc": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "shielding": true
+  },
+  "Renekton": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ]
+  },
+  "Rengar": {
+   "damage": "ad",
+   "roles": [
+    "jungle",
+    "top"
+   ],
+   "assassin": true
+  },
+  "Riven": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ]
+  },
+  "Rumble": {
+   "damage": "ap",
+   "roles": [
+    "top",
+    "jungle"
+   ]
+  },
+  "Ryze": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ]
+  },
+  "Samira": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "assassin": true
+  },
+  "Sejuani": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true,
+   "lockdown_ult": true
+  },
+  "Senna": {
+   "damage": "ad",
+   "roles": [
+    "utility",
+    "bottom"
+   ],
+   "healing": true,
+   "poke": true
+  },
+  "Seraphine": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "bottom"
+   ],
+   "healing": true,
+   "shielding": true,
+   "poke": true
+  },
+  "Sett": {
+   "damage": "ad",
+   "roles": [
+    "top",
+    "utility"
+   ],
+   "tank": true
+  },
+  "Shaco": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "assassin": true
+  },
+  "Shen": {
+   "damage": "mixed",
+   "roles": [
+    "top"
+   ],
+   "tank": true,
+   "shielding": true
+  },
+  "Shyvana": {
+   "damage": "mixed",
+   "roles": [
+    "jungle"
+   ]
+  },
+  "Singed": {
+   "damage": "ap",
+   "roles": [
+    "top"
+   ],
+   "tank": true
+  },
+  "Sion": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "tank": true
+  },
+  "Sivir": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ],
+   "shielding": true
+  },
+  "Skarner": {
+   "damage": "mixed",
+   "roles": [
+    "jungle",
+    "top"
+   ],
+   "tank": true,
+   "lockdown_ult": true
+  },
+  "Smolder": {
+   "damage": "mixed",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Sona": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true,
+   "shielding": true
+  },
+  "Soraka": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true
+  },
+  "Swain": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "middle"
+   ],
+   "healing": true
+  },
+  "Sylas": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "healing": true,
+   "burst": true
+  },
+  "Syndra": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true
+  },
+  "Tahm Kench": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "top"
+   ],
+   "tank": true,
+   "shielding": true
+  },
+  "Taliyah": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "jungle"
+   ],
+   "burst": true
+  },
+  "Talon": {
+   "damage": "ad",
+   "roles": [
+    "middle",
+    "jungle"
+   ],
+   "assassin": true,
+   "burst": true
+  },
+  "Taric": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true,
+   "shielding": true
+  },
+  "Teemo": {
+   "damage": "ap",
+   "roles": [
+    "top"
+   ],
+   "poke": true
+  },
+  "Thresh": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "shielding": true
+  },
+  "Tristana": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Trundle": {
+   "damage": "ad",
+   "roles": [
+    "top",
+    "jungle"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Tryndamere": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "healing": true
+  },
+  "Twisted Fate": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true
+  },
+  "Twitch": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Udyr": {
+   "damage": "mixed",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true
+  },
+  "Urgot": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ],
+   "lockdown_ult": true
+  },
+  "Varus": {
+   "damage": "mixed",
+   "roles": [
+    "bottom"
+   ],
+   "poke": true,
+   "lockdown_ult": true
+  },
+  "Vayne": {
+   "damage": "ad",
+   "roles": [
+    "bottom",
+    "top"
+   ]
+  },
+  "Veigar": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true
+  },
+  "Vel'Koz": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "middle"
+   ],
+   "poke": true,
+   "burst": true
+  },
+  "Vex": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true
+  },
+  "Vi": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true
+  },
+  "Viego": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ],
+   "healing": true
+  },
+  "Viktor": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true
+  },
+  "Vladimir": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "top"
+   ],
+   "healing": true,
+   "burst": true
+  },
+  "Volibear": {
+   "damage": "mixed",
+   "roles": [
+    "top",
+    "jungle"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Warwick": {
+   "damage": "ad",
+   "roles": [
+    "jungle",
+    "top"
+   ],
+   "healing": true,
+   "lockdown_ult": true
+  },
+  "Wukong": {
+   "damage": "ad",
+   "roles": [
+    "jungle",
+    "top"
+   ],
+   "tank": true
+  },
+  "Xayah": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Xerath": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "utility"
+   ],
+   "poke": true,
+   "burst": true
+  },
+  "Xin Zhao": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ]
+  },
+  "Yasuo": {
+   "damage": "ad",
+   "roles": [
+    "middle",
+    "top"
+   ],
+   "shielding": true
+  },
+  "Yone": {
+   "damage": "mixed",
+   "roles": [
+    "top",
+    "middle"
+   ]
+  },
+  "Yorick": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ]
+  },
+  "Yuumi": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "healing": true,
+   "shielding": true
+  },
+  "Zac": {
+   "damage": "ap",
+   "roles": [
+    "jungle"
+   ],
+   "tank": true,
+   "healing": true
+  },
+  "Zed": {
+   "damage": "ad",
+   "roles": [
+    "middle"
+   ],
+   "assassin": true,
+   "burst": true,
+   "lockdown_ult": true
+  },
+  "Zeri": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
+   ]
+  },
+  "Ziggs": {
+   "damage": "ap",
+   "roles": [
+    "middle",
+    "bottom"
+   ],
+   "poke": true,
+   "burst": true
+  },
+  "Zilean": {
+   "damage": "ap",
+   "roles": [
+    "utility",
+    "middle"
+   ],
+   "shielding": true
+  },
+  "Zoe": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ],
+   "burst": true,
+   "poke": true
+  },
+  "Zyra": {
+   "damage": "ap",
+   "roles": [
+    "utility"
+   ],
+   "poke": true
+  }
+ }
+}

@@ -15,3 +15,7 @@ Thumbs.db
 
 # raw --dump captures: contain chat tokens and ids; scrub into named fixtures instead
 m0/tests/fixtures/captured/
+
+# Tauri overlay build output (built on the Windows side, see scripts/cargo-win.sh)
+overlay/target/
+overlay/src-tauri/gen/

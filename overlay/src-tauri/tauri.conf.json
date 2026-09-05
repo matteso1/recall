@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Featherstorm",
+  "version": "0.1.0",
+  "identifier": "gg.featherstorm.overlay",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Featherstorm",
+        "width": 380,
+        "height": 300,
+        "minWidth": 200,
+        "minHeight": 40,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "shadow": false,
+        "focus": false,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false,
+    "icon": ["icons/icon.ico", "icons/icon.png"]
+  }
+}
