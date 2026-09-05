@@ -20,13 +20,39 @@ from winenv import ClientNotRunning
 REPO = Path(__file__).resolve().parents[1]
 
 
+def remove_title(title: str) -> int:
+    try:
+        lcu = LCU.connect()
+        summoner_id = lcu.current_summoner()["summonerId"]
+        current = lcu.item_sets(summoner_id)
+        before = [s.get("title") for s in current.get("itemSets", [])]
+        if title not in before:
+            print(f"no item set titled {title!r}; current sets: {before}")
+            return 1
+        lcu.put_item_sets(summoner_id, itemsets.remove(current, title))
+        after = [s.get("title") for s in lcu.item_sets(summoner_id).get("itemSets", [])]
+    except ClientNotRunning as e:
+        print(f"League client not running: {e}")
+        return 1
+    except (ConnectionFailed, LCUError, RuntimeError) as e:
+        print(f"LCU error: {e}")
+        return 1
+    print(f"removed {title!r}; item sets now: {after}")
+    return 0 if title not in after else 1
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--spec", type=Path, default=REPO / "data" / "itemsets" / "xayah.json")
     ap.add_argument("--remove", action="store_true", help="remove the set with this spec's title")
+    ap.add_argument("--remove-title", metavar="TITLE",
+                    help="remove the set with exactly this title (e.g. an old 'OP.GG Xayah') and exit")
     ap.add_argument("--dry-run", action="store_true", help="build and print the set; do not touch the client")
     ap.add_argument("--offline", action="store_true", help="use cached Data Dragon data only")
     args = ap.parse_args(argv)
+
+    if args.remove_title:
+        return remove_title(args.remove_title)
 
     spec = itemsets.load_spec(args.spec)
     items, champs, version = ddragon.load_indexes(offline=args.offline)

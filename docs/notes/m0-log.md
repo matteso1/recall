@@ -29,3 +29,11 @@
   per-item "why" stays in the spec for the overlay. Set re-pushed; check in the next game.
 - op.gg desktop app autostarts from `HKCU\...\Run` (`electron.app.OP.GG`) and used 1.8 GB RAM
   across 9 processes during the game; Overwolf autostarts too. Neither is ours.
+- User confirmed the re-pushed set renders correctly in the shop ("item sets look great").
+  **M0 complete.**
+- At the user's request the op.gg desktop app (2.5.5) and Overwolf (0.309) were uninstalled
+  via their registered uninstallers (Overwolf's needed a UAC elevation through PowerShell
+  `Start-Process -Verb RunAs`; WSL interop cannot launch elevated processes directly).
+  Dangling `Run` entry and leftover AppData folders removed. Backup of the Run key was not
+  taken (the entries pointed at now-deleted executables). The account's "OP.GG Xayah" item
+  set is untouched; `push_itemset.py --remove-title 'OP.GG Xayah'` removes it if wanted.

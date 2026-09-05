@@ -8,7 +8,8 @@ The full design is in [docs/design.md](docs/design.md). Working name, placeholde
 
 ## Status
 
-**M0 - prove the pipe** (started 2026-09-05). Python, stdlib only, no UI.
+**M0 - prove the pipe: complete** (2026-09-05). Python, stdlib only, no UI. Every integration the
+overlay needs was exercised against the real client and a real game.
 
 | Piece | State |
 |---|---|
@@ -43,7 +44,8 @@ All scripts are stdlib-only Python 3.10+. From the repo root:
 python3 m0/doctor.py                 # environment + connectivity report; run this first
 python3 m0/watch_champselect.py      # prints champ select as champs lock in (--dump DIR saves raw JSON)
 python3 m0/watch_live.py             # prints your gold/items/level every 2s once in a game
-python3 m0/push_itemset.py           # pushes data/itemsets/xayah.json into the client (--remove to undo)
+python3 m0/push_itemset.py           # pushes data/itemsets/xayah.json into the client (--remove to undo,
+                                     #   --remove-title 'OP.GG Xayah' to drop another app's set)
 python3 -m unittest discover -s m0/tests -v
 ```
 
