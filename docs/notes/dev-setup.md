@@ -26,7 +26,7 @@ to 127.0.0.1 hits the Linux VM and is refused (confirmed).
    [wsl2]
    networkingMode=mirrored
    ```
-   Written on 2026-09-05; takes effect after `wsl --shutdown` from a Windows terminal
+   Written and activated on 2026-09-05 (`wsl --shutdown` from a Windows terminal
    (this kills every WSL session, including Claude Code). Afterwards
    `wslinfo --networking-mode` prints `mirrored` and 127.0.0.1 is shared both ways.
    Revert by deleting the file. Known caveats: some VPN clients dislike mirrored mode.

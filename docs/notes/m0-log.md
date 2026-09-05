@@ -19,3 +19,5 @@
   `ChampSelectPlayerSelection`, `ChampSelectTimer`, `LolChampSelectLegacyChampSelectAction`.
 - 12:35 `wsl.exe --shutdown` run to activate mirrored networking (at the user's request).
   Next session: confirm `wslinfo --networking-mode` = mirrored and re-run the doctor.
+- 12:41 WSL back up in mirrored mode. Doctor: transport direct, LCU OK without curl.exe.
+  Watchers restarted in the background (`--dump m0/tests/fixtures/captured`).
