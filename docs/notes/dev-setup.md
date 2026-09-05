@@ -34,9 +34,10 @@ to 127.0.0.1 hits the Linux VM and is refused (confirmed).
 ## M1 build setup (settled 2026-09-05)
 - Rust in WSL too (rustup, ~/.cargo) for the brain crate's tests. Cross-checking the Tauri crate
   from WSL fails (`cc-rs: failed to find tool "lib.exe"`), so the shell is Windows-only.
-- Visual Studio Build Tools 2022 with the C++ workload provide `link.exe`; the standalone Rust MSI
-  does not include them. Installed via `vs_BuildTools.exe --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended`
-  (elevated through `Start-Process -Verb RunAs`; the UAC prompt must be clicked on the Windows side).
+- Visual Studio Build Tools 2022 with the C++ workload provide `link.exe` (installed 2026-09-05:
+  MSVC 14.44.35207, Windows SDK 10.0.26100); the standalone Rust MSI does not include them. Installed via `vs_BuildTools.exe --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended`
+  (elevated through `Start-Process -Verb RunAs`; the UAC prompt must be clicked on the Windows side
+  within 120 s or Windows cancels it - it took three tries).
 - `scripts/cargo-win.sh` mirrors `overlay/`, `data/pack/` and the test fixtures to
   `C:\Users\nilsm\code\featherstorm-win` with rsync and runs `cargo.exe` there.
 
