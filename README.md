@@ -59,6 +59,7 @@ Useful flags: `--once` (single poll), `--offline` (cached Data Dragon only),
 
 ```bash
 scripts/cargo-win.sh build --release   # Windows build via a mirrored copy; needs VS Build Tools (C++) on Windows
+scripts/overlay-run.sh                 # launch it; overlay-log.sh / overlay-stop.sh / win-screenshot.sh alongside
 cd overlay && cargo test -p featherstorm-core   # the brain's tests, in WSL
 ```
 

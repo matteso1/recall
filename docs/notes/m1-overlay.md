@@ -43,8 +43,21 @@ back to Data Dragon class tags. Every rule that changes the path pushes one line
 ## Building and running (from WSL)
 ```bash
 scripts/cargo-win.sh build --release      # mirrors overlay/ + data/pack/ to C:\Users\<you>\code\featherstorm-win and builds there
-scripts/cargo-win.sh run                  # dev build + launch
+scripts/overlay-run.sh                    # launch the release exe on Windows (detached)
+scripts/overlay-log.sh 40                 # tail %LOCALAPPDATA%\Featherstorm\featherstorm.log
+scripts/win-screenshot.sh                 # full-DPI screenshot into .screens/ to eyeball the panel from WSL
+scripts/overlay-stop.sh                   # kill it
 ```
+
+## Dogfooding checklist (M1)
+1. Start the overlay with the client open: panel shows "In lobby" and the summoner name.
+2. Practice Tool as Xayah: champ select shows the path, matchup line (none in Practice Tool), the
+   Runes / Spells / Item set buttons; each button turns green with a check when the client accepted it.
+3. In game: NEXT shows the first path item with components, "Buy now" flips to affordable
+   components as gold comes in, bought components get a check, the path line checks off finished
+   items, the skill key flashes on level-up.
+4. Draft game: enemy locks change the path (Soraka -> Mortal Reminder with a `(Soraka)` tag and a why line).
+5. Position survives a restart (settings.json), collapse button shrinks to one line.
 The binary lands in `C:\Users\<you>\code\featherstorm-win\overlay\target\release\featherstorm.exe`.
 Requirements on Windows: Rust MSVC toolchain, Visual Studio Build Tools with the "Desktop development
 with C++" workload (the MSVC linker), WebView2 (ships with Windows 11).
