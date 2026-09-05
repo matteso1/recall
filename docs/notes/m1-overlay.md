@@ -38,11 +38,14 @@ back to Data Dragon class tags. Every rule that changes the path pushes one line
   or live data (2 s), runs the engine, publishes `PanelState` on the `state` event when it changed.
   Flashes the recommended skill for 3.5 s on level-up.
 - `commands.rs`: `get_state`, `import_item_set`, `import_runes`, `import_spells`, `set_collapsed`, `quit`.
+- `probe.rs`: `featherstorm.exe --probe` runs the pipeline once without a window and prints JSON
+  (also saved to `%LOCALAPPDATA%\Featherstorm\probe.json`).
 - `ui/`: plain HTML/CSS/JS, no bundler. `window.__TAURI__` (withGlobalTauri) for events and commands.
 
 ## Building and running (from WSL)
 ```bash
 scripts/cargo-win.sh build --release      # mirrors overlay/ + data/pack/ to C:\Users\<you>\code\featherstorm-win and builds there
+scripts/overlay-probe.sh [debug|release]   # headless pipeline check, no window (Data Dragon, client, engine)
 scripts/overlay-run.sh                    # launch the release exe on Windows (detached)
 scripts/overlay-log.sh 40                 # tail %LOCALAPPDATA%\Featherstorm\featherstorm.log
 scripts/win-screenshot.sh                 # full-DPI screenshot into .screens/ to eyeball the panel from WSL

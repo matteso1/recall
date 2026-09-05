@@ -21,7 +21,9 @@ overlay needs was exercised against the real client and a real game.
 
 **M1 - Xayah overlay: in progress** (started 2026-09-05). Rust workspace in `overlay/`: a
 platform-independent brain crate (`core`, 16 tests, runs in WSL) and a Tauri shell (`src-tauri`)
-built on the Windows side. See [docs/notes/m1-overlay.md](docs/notes/m1-overlay.md).
+built on the Windows side. Builds clean; the headless probe passes on the target machine; the
+on-screen test and the Practice Tool dogfood are next. See [docs/notes/m1-overlay.md](docs/notes/m1-overlay.md)
+and [docs/notes/m1-log.md](docs/notes/m1-log.md).
 
 ## Setup (WSL + Windows)
 

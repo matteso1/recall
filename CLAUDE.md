@@ -20,6 +20,8 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   Build/run the shell on Windows with `scripts/cargo-win.sh build --release` / `scripts/cargo-win.sh run`;
   it mirrors the sources to `C:\Users\nilsm\code\featherstorm-win`. Never build from the WSL path.
 - The Tauri crate cannot be type-checked from WSL (needs MSVC `lib.exe`), so keep logic in `core`.
+- `scripts/overlay-probe.sh` runs the exe headless (`--probe`): use it before any on-screen test, and
+  whenever the user may be gaming (see the shared-machine rule: no windows/League/screenshots then).
 - Never hold a `std::sync::Mutex` guard across an `.await` (clone out, then await).
 - The data pack (`data/pack/*.json`) is embedded with `include_str!`; a pack change needs a rebuild.
 
