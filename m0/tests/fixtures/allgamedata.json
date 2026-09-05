@@ -1,0 +1,1013 @@
+{
+ "activePlayer": {
+  "abilities": {
+   "E": {
+    "abilityLevel": 0,
+    "displayName": "Bladecaller",
+    "id": "XayahE",
+    "rawDescription": "",
+    "rawDisplayName": ""
+   },
+   "Passive": {
+    "displayName": "Clean Cuts",
+    "id": "XayahPassive",
+    "rawDescription": "",
+    "rawDisplayName": ""
+   },
+   "Q": {
+    "abilityLevel": 1,
+    "displayName": "Double Daggers",
+    "id": "XayahQ",
+    "rawDescription": "",
+    "rawDisplayName": ""
+   },
+   "R": {
+    "abilityLevel": 0,
+    "displayName": "Featherstorm",
+    "id": "XayahR",
+    "rawDescription": "",
+    "rawDisplayName": ""
+   },
+   "W": {
+    "abilityLevel": 0,
+    "displayName": "Deadly Plumage",
+    "id": "XayahW",
+    "rawDescription": "",
+    "rawDisplayName": ""
+   }
+  },
+  "championStats": {
+   "abilityHaste": 0.0,
+   "abilityPower": 0.0,
+   "armor": 28.0,
+   "attackDamage": 60.0,
+   "attackRange": 525.0,
+   "attackSpeed": 0.658,
+   "critChance": 0.0,
+   "currentHealth": 630.0,
+   "maxHealth": 630.0,
+   "magicResist": 30.0,
+   "moveSpeed": 330.0,
+   "resourceMax": 340.0,
+   "resourceType": "MANA",
+   "resourceValue": 340.0
+  },
+  "currentGold": 500.0,
+  "fullRunes": {
+   "generalRunes": [],
+   "keystone": {
+    "displayName": "Lethal Tempo",
+    "id": 8008,
+    "rawDescription": "",
+    "rawDisplayName": ""
+   },
+   "primaryRuneTree": {
+    "displayName": "Precision",
+    "id": 8000,
+    "rawDescription": "",
+    "rawDisplayName": ""
+   },
+   "secondaryRuneTree": {
+    "displayName": "Inspiration",
+    "id": 8300,
+    "rawDescription": "",
+    "rawDisplayName": ""
+   },
+   "statRunes": []
+  },
+  "level": 1,
+  "riotId": "matteso#NA1",
+  "riotIdGameName": "matteso",
+  "riotIdTagLine": "NA1",
+  "summonerName": "matteso#NA1",
+  "teamRelativeColors": true
+ },
+ "allPlayers": [
+  {
+   "championName": "Nasus",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Doran's Shield",
+     "itemID": 1054,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1054_Description",
+     "rawDisplayName": "Item_1054_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "TOP",
+   "rawChampionName": "game_character_displayname_Nasus",
+   "rawSkinName": "game_character_skin_displayname_Nasus_0",
+   "respawnTimer": 0.0,
+   "riotId": "TopDog#NA1",
+   "riotIdGameName": "TopDog",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Nasus",
+   "summonerName": "TopDog#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "MonkeyKing",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Scorchclaw Pup",
+     "itemID": 1101,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1101_Description",
+     "rawDisplayName": "Item_1101_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "JUNGLE",
+   "rawChampionName": "game_character_displayname_MonkeyKing",
+   "rawSkinName": "game_character_skin_displayname_MonkeyKing_0",
+   "respawnTimer": 0.0,
+   "riotId": "Monke#NA1",
+   "riotIdGameName": "Monke",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "MonkeyKing",
+   "summonerName": "Monke#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Zed",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Doran's Blade",
+     "itemID": 1055,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1055_Description",
+     "rawDisplayName": "Item_1055_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "MIDDLE",
+   "rawChampionName": "game_character_displayname_Zed",
+   "rawSkinName": "game_character_skin_displayname_Zed_0",
+   "respawnTimer": 0.0,
+   "riotId": "Shadow#NA1",
+   "riotIdGameName": "Shadow",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Zed",
+   "summonerName": "Shadow#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Xayah",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Doran's Blade",
+     "itemID": 1055,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1055_Description",
+     "rawDisplayName": "Item_1055_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "BOTTOM",
+   "rawChampionName": "game_character_displayname_Xayah",
+   "rawSkinName": "game_character_skin_displayname_Xayah_0",
+   "respawnTimer": 0.0,
+   "riotId": "matteso#NA1",
+   "riotIdGameName": "matteso",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Xayah",
+   "summonerName": "matteso#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Rakan",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "World Atlas",
+     "itemID": 3865,
+     "price": 400,
+     "rawDescription": "GeneratedTip_Item_3865_Description",
+     "rawDisplayName": "Item_3865_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 2,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "UTILITY",
+   "rawChampionName": "game_character_displayname_Rakan",
+   "rawSkinName": "game_character_skin_displayname_Rakan_0",
+   "respawnTimer": 0.0,
+   "riotId": "Feathers#NA1",
+   "riotIdGameName": "Feathers",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Rakan",
+   "summonerName": "Feathers#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Tristana",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Doran's Blade",
+     "itemID": 1055,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1055_Description",
+     "rawDisplayName": "Item_1055_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "BOTTOM",
+   "rawChampionName": "game_character_displayname_Tristana",
+   "rawSkinName": "game_character_skin_displayname_Tristana_0",
+   "respawnTimer": 0.0,
+   "riotId": "Boom#NA1",
+   "riotIdGameName": "Boom",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Tristana",
+   "summonerName": "Boom#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Soraka",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "World Atlas",
+     "itemID": 3865,
+     "price": 400,
+     "rawDescription": "GeneratedTip_Item_3865_Description",
+     "rawDisplayName": "Item_3865_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 2,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "UTILITY",
+   "rawChampionName": "game_character_displayname_Soraka",
+   "rawSkinName": "game_character_skin_displayname_Soraka_0",
+   "respawnTimer": 0.0,
+   "riotId": "Banana#NA1",
+   "riotIdGameName": "Banana",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Soraka",
+   "summonerName": "Banana#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Malphite",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Doran's Shield",
+     "itemID": 1054,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1054_Description",
+     "rawDisplayName": "Item_1054_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "TOP",
+   "rawChampionName": "game_character_displayname_Malphite",
+   "rawSkinName": "game_character_skin_displayname_Malphite_0",
+   "respawnTimer": 0.0,
+   "riotId": "Rock#NA1",
+   "riotIdGameName": "Rock",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Malphite",
+   "summonerName": "Rock#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Ornn",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Scorchclaw Pup",
+     "itemID": 1101,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1101_Description",
+     "rawDisplayName": "Item_1101_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "JUNGLE",
+   "rawChampionName": "game_character_displayname_Ornn",
+   "rawSkinName": "game_character_skin_displayname_Ornn_0",
+   "respawnTimer": 0.0,
+   "riotId": "Forge#NA1",
+   "riotIdGameName": "Forge",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Ornn",
+   "summonerName": "Forge#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Thresh",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Doran's Shield",
+     "itemID": 1054,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1054_Description",
+     "rawDisplayName": "Item_1054_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 1
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 1,
+   "position": "MIDDLE",
+   "rawChampionName": "game_character_displayname_Thresh",
+   "rawSkinName": "game_character_skin_displayname_Thresh_0",
+   "respawnTimer": 0.0,
+   "riotId": "Lantern#NA1",
+   "riotIdGameName": "Lantern",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Thresh",
+   "summonerName": "Lantern#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "",
+     "rawDisplayName": ""
+    }
+   },
+   "team": "CHAOS"
+  }
+ ],
+ "events": {
+  "Events": [
+   {
+    "EventID": 0,
+    "EventName": "GameStart",
+    "EventTime": 0.0
+   }
+  ]
+ },
+ "gameData": {
+  "gameMode": "CLASSIC",
+  "gameTime": 65.2,
+  "mapName": "Map11",
+  "mapNumber": 11,
+  "mapTerrain": "Default"
+ }
+}

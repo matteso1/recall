@@ -1,0 +1,42 @@
+{
+  "champion": "Xayah",
+  "role": "bottom",
+  "title": "Featherstorm Xayah",
+  "maps": [],
+  "sortrank": 0,
+  "notes": [
+    "M0 hardcoded set. The path follows docs/design.md section 5.3 (ER -> Greaves -> IE -> Navori -> Mortal Reminder -> GA).",
+    "For reference, op.gg on patch 16.17 lists Yun Tal Wildarrows -> Navori -> IE as the most-picked line (32%) and the ER line second (25%).",
+    "Item and champion names are resolved against Data Dragon at push time; ids are never hardcoded here."
+  ],
+  "skill_order": {
+    "first_four": ["Q", "E", "W", "E"],
+    "max": ["E", "W", "Q"]
+  },
+  "blocks": [
+    {
+      "type": "Starting Items  (skills Q>E>W>E, then max E>W>Q)",
+      "items": ["Doran's Blade", "Health Potion", "Stealth Ward"]
+    }
+  ],
+  "core": [
+    {"item": "Essence Reaver", "why": "mana + haste keeps W up"},
+    {"item": "Berserker's Greaves", "why": "attack speed boots"},
+    {"item": "Infinity Edge", "why": "crit spike"},
+    {"item": "Navori Flickerblade", "why": "W cooldown starts on cast"},
+    {"item": "Mortal Reminder", "why": "swap to LDR if no healing"},
+    {"item": "Guardian Angel", "why": "survive the dive"}
+  ],
+  "component_order": {
+    "Essence Reaver": ["Sheen", "Caulfield's Warhammer", "Cloak of Agility"],
+    "Infinity Edge": ["B. F. Sword", "Pickaxe", "Cloak of Agility"]
+  },
+  "situational": [
+    {"when": "they have healing (Soraka, Yuumi, Aatrox...)", "items": ["Mortal Reminder"]},
+    {"when": "2+ tanks, no healing", "items": ["Lord Dominik's Regards"]},
+    {"when": "lockdown ult (Malzahar, Skarner, Warwick...)", "items": ["Mercurial Scimitar"]},
+    {"when": "assassins / burst", "items": ["Guardian Angel", "Immortal Shieldbow", "Maw of Malmortius"]},
+    {"when": "long fights, sustain", "items": ["Bloodthirster"]}
+  ],
+  "consumables": ["Control Ward", "Farsight Alteration", "Oracle Lens"]
+}

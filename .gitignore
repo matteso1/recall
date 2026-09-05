@@ -1,0 +1,14 @@
+# Data Dragon / patch caches (re-downloaded on demand)
+data/cache/
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Rust / Tauri (M1+)
+target/
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

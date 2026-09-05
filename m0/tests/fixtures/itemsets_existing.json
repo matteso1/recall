@@ -1,0 +1,273 @@
+{
+  "itemSets": [
+    {
+      "associatedChampions": [
+        498
+      ],
+      "associatedMaps": [],
+      "blocks": [
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "1086"
+            },
+            {
+              "count": 1,
+              "id": "2003"
+            },
+            {
+              "count": 1,
+              "id": "2003"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Starter Items - Lv 1~4 Q>E>W>E"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "1055"
+            },
+            {
+              "count": 1,
+              "id": "2003"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Starter Items"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3006"
+            },
+            {
+              "count": 1,
+              "id": "3008"
+            },
+            {
+              "count": 1,
+              "id": "3047"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Boots - Skill Build E>W>Q"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3032"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            },
+            {
+              "count": 1,
+              "id": "3031"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:32.09, Win:58.17"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3508"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            },
+            {
+              "count": 1,
+              "id": "3031"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:24.86, Win:56.20"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3032"
+            },
+            {
+              "count": 1,
+              "id": "3031"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:10.78, Win:60.12"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3032"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            },
+            {
+              "count": 1,
+              "id": "3036"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:7.12, Win:53.42"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3032"
+            },
+            {
+              "count": 1,
+              "id": "3031"
+            },
+            {
+              "count": 1,
+              "id": "3036"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:3.30, Win:57.87"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3032"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            },
+            {
+              "count": 1,
+              "id": "3033"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:2.35, Win:50.98"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3508"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            },
+            {
+              "count": 1,
+              "id": "3036"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:2.23, Win:48.60"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3508"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            },
+            {
+              "count": 1,
+              "id": "3033"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Recommended Builds - Pick:1.60, Win:48.76"
+        },
+        {
+          "hideIfSummonerSpell": "",
+          "items": [
+            {
+              "count": 1,
+              "id": "3032"
+            },
+            {
+              "count": 1,
+              "id": "6675"
+            },
+            {
+              "count": 1,
+              "id": "3031"
+            },
+            {
+              "count": 1,
+              "id": "3508"
+            },
+            {
+              "count": 1,
+              "id": "3036"
+            },
+            {
+              "count": 1,
+              "id": "3033"
+            },
+            {
+              "count": 1,
+              "id": "1038"
+            },
+            {
+              "count": 1,
+              "id": "3095"
+            },
+            {
+              "count": 1,
+              "id": "2523"
+            },
+            {
+              "count": 1,
+              "id": "6676"
+            }
+          ],
+          "showIfSummonerSpell": "",
+          "type": "Core Items"
+        }
+      ],
+      "map": "any",
+      "mode": "any",
+      "preferredItemSlots": [],
+      "sortrank": 1,
+      "startedFrom": "blank",
+      "title": "OP.GG Xayah",
+      "type": "custom",
+      "uid": "8f8a91d6-0b20-477e-8f09-224ac46465a9"
+    }
+  ],
+  "timestamp": 0
+}

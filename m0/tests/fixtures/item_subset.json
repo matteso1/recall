@@ -1,0 +1,1944 @@
+{
+  "type": "item",
+  "version": "16.17.1",
+  "data": {
+    "1001": {
+      "name": "Boots",
+      "description": "<mainText><stats><attention>25</attention> Move Speed</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Slightly increases Move Speed",
+      "into": [
+        "3005",
+        "3047",
+        "3008",
+        "3006",
+        "3009",
+        "3010",
+        "3020",
+        "3111",
+        "3117",
+        "3158"
+      ],
+      "image": {
+        "full": "1001.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 300,
+        "purchasable": true,
+        "total": 300,
+        "sell": 210
+      },
+      "tags": [
+        "Boots"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatMovementSpeedMod": 25
+      }
+    },
+    "1018": {
+      "name": "Cloak of Agility",
+      "description": "<mainText><stats><attention>15%</attention> Critical Strike Chance</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Increases critical strike chance",
+      "into": [
+        "123430",
+        "667666",
+        "3031",
+        "3086",
+        "6670",
+        "3033",
+        "3039",
+        "3508",
+        "3095",
+        "6676"
+      ],
+      "image": {
+        "full": "1018.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 192,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 600,
+        "purchasable": true,
+        "total": 600,
+        "sell": 420
+      },
+      "tags": [
+        "CriticalStrike"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.15
+      }
+    },
+    "1033": {
+      "name": "Null-Magic Mantle",
+      "description": "<mainText><stats><attention>20</attention> Magic Resist</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Slightly increases Magic Resist",
+      "into": [
+        "1057",
+        "3140",
+        "323050",
+        "323190",
+        "3193",
+        "3050",
+        "3001",
+        "3211",
+        "2524",
+        "3155",
+        "3105",
+        "3111",
+        "3190",
+        "4632"
+      ],
+      "image": {
+        "full": "1033.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 0,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 400,
+        "purchasable": true,
+        "total": 400,
+        "sell": 280
+      },
+      "tags": [
+        "SpellBlock"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatSpellBlockMod": 20
+      }
+    },
+    "1036": {
+      "name": "Long Sword",
+      "description": "<mainText><stats><attention>10</attention> Attack Damage</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Slightly increases Attack Damage",
+      "into": [
+        "1053",
+        "4003",
+        "6701",
+        "2015",
+        "2019",
+        "2021",
+        "3077",
+        "6670",
+        "3133",
+        "2517",
+        "323004",
+        "3142",
+        "3004",
+        "2523",
+        "3032",
+        "3035",
+        "3044",
+        "3051",
+        "3155",
+        "6690",
+        "3123",
+        "3134",
+        "6699",
+        "6671",
+        "6692"
+      ],
+      "image": {
+        "full": "1036.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 96,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 350,
+        "purchasable": true,
+        "total": 350,
+        "sell": 245
+      },
+      "tags": [
+        "Damage",
+        "Lane"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 10
+      }
+    },
+    "1037": {
+      "name": "Pickaxe",
+      "description": "<mainText><stats><attention>25</attention> Attack Damage</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Moderately increases Attack Damage",
+      "into": [
+        "667666",
+        "3071",
+        "6333",
+        "3031",
+        "3153",
+        "6701",
+        "2020",
+        "2517",
+        "3087",
+        "6695",
+        "2523",
+        "3053",
+        "3072",
+        "3124",
+        "3181",
+        "3139",
+        "3161",
+        "6029",
+        "6035",
+        "6673",
+        "6676",
+        "6692"
+      ],
+      "image": {
+        "full": "1037.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 144,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 875,
+        "purchasable": true,
+        "total": 875,
+        "sell": 613
+      },
+      "tags": [
+        "Damage"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 25
+      }
+    },
+    "1038": {
+      "name": "B. F. Sword",
+      "description": "<mainText><stats><attention>40</attention> Attack Damage</stats><br><br></mainText>",
+      "colloq": ";bf",
+      "plaintext": "Greatly increases Attack Damage",
+      "into": [
+        "3031",
+        "3026",
+        "3032",
+        "3072",
+        "3095",
+        "4403",
+        "6671"
+      ],
+      "image": {
+        "full": "1038.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 192,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 1300,
+        "purchasable": true,
+        "total": 1300,
+        "sell": 910
+      },
+      "tags": [
+        "Damage"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 40
+      }
+    },
+    "1042": {
+      "name": "Dagger",
+      "description": "<mainText><stats><attention>10%</attention> Attack Speed</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Slightly increases Attack Speed",
+      "into": [
+        "1043",
+        "3086",
+        "2510",
+        "3006",
+        "3046",
+        "3051",
+        "3073",
+        "3131",
+        "3144",
+        "6631",
+        "6675",
+        "6677"
+      ],
+      "image": {
+        "full": "1042.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 336,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 250,
+        "purchasable": true,
+        "total": 250,
+        "sell": 175
+      },
+      "tags": [
+        "AttackSpeed"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "PercentAttackSpeedMod": 0.1
+      }
+    },
+    "1053": {
+      "name": "Vampiric Scepter",
+      "description": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>7%</attention> Life Steal</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Basic attacks restore Health",
+      "from": [
+        "1036"
+      ],
+      "into": [
+        "3153",
+        "3146",
+        "3072",
+        "3074",
+        "3139",
+        "4403"
+      ],
+      "image": {
+        "full": "1053.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 0,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 550,
+        "purchasable": true,
+        "total": 900,
+        "sell": 630
+      },
+      "tags": [
+        "Damage",
+        "LifeSteal"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 15,
+        "PercentLifeStealMod": 0.07
+      },
+      "depth": 2
+    },
+    "1055": {
+      "name": "Doran's Blade",
+      "description": "<mainText><stats><attention>10</attention> Attack Damage<br><attention>80</attention> Health<br><attention>2.5%</attention> Omnivamp</stats><br><br></mainText>",
+      "colloq": ";dblade",
+      "plaintext": "Good starting item for attackers",
+      "image": {
+        "full": "1055.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 96,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 450,
+        "purchasable": true,
+        "total": 450,
+        "sell": 180
+      },
+      "tags": [
+        "Health",
+        "Damage",
+        "LifeSteal",
+        "SpellVamp",
+        "Lane"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatHPPoolMod": 80,
+        "FlatPhysicalDamageMod": 10
+      }
+    },
+    "1083": {
+      "name": "Cull",
+      "description": "<mainText><stats><attention>7</attention> Attack Damage</stats><br><br><passive>Reap</passive><br>Restore <healing>3 Health</healing> <OnHit>On-Hit</OnHit>.<br>Killing minions grants <gold>1 gold</gold>, up to <gold>100</gold>. Reaching the limit grants another <gold>350 gold</gold>.<br></mainText>",
+      "colloq": ";dblade",
+      "plaintext": "Provides damage and Life Steal on hit - Killing minions grant bonus Gold",
+      "image": {
+        "full": "1083.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 336,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 450,
+        "purchasable": true,
+        "total": 450,
+        "sell": 180
+      },
+      "tags": [
+        "Damage",
+        "OnHit",
+        "Lane"
+      ],
+      "maps": {
+        "11": true,
+        "12": false,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 7
+      }
+    },
+    "2003": {
+      "name": "Health Potion",
+      "description": "<mainText><stats></stats><br><br><active>Consume</active><br>Restores <healing>120 Health</healing> over 15 seconds.</mainText>",
+      "colloq": ";",
+      "plaintext": "Consume to restore Health over time",
+      "stacks": 5,
+      "consumed": true,
+      "image": {
+        "full": "2003.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 288,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 50,
+        "purchasable": true,
+        "total": 50,
+        "sell": 20
+      },
+      "tags": [
+        "HealthRegen",
+        "Consumable",
+        "Lane",
+        "Jungle"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {}
+    },
+    "2019": {
+      "name": "Steel Sigil",
+      "description": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>30</attention> Armor</stats><br><br></mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "1029",
+        "1036",
+        "1029"
+      ],
+      "into": [
+        "6333",
+        "6700",
+        "3026"
+      ],
+      "image": {
+        "full": "2019.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 48,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 150,
+        "purchasable": true,
+        "total": 1100,
+        "sell": 770
+      },
+      "tags": [
+        "Armor",
+        "Damage"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatArmorMod": 30,
+        "FlatPhysicalDamageMod": 15
+      },
+      "depth": 2
+    },
+    "2022": {
+      "name": "Glowing Mote",
+      "description": "<mainText><stats><attention>5</attention> Ability Haste</stats><br><br></mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "into": [
+        "2020",
+        "3024",
+        "3133",
+        "3802",
+        "3067",
+        "3057",
+        "3108",
+        "3158",
+        "4642",
+        "6660"
+      ],
+      "image": {
+        "full": "2022.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 192,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 250,
+        "purchasable": true,
+        "total": 250,
+        "sell": 175
+      },
+      "tags": [
+        "CooldownReduction"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {}
+    },
+    "2031": {
+      "name": "Refillable Potion",
+      "description": "<mainText><stats></stats><br><br><active>Active</active> (2 charges)<br>Restores <healing>100 Health</healing> over 12 seconds. <br>Refills upon visiting the shop.</mainText>",
+      "colloq": ";",
+      "plaintext": "Restores Health over time. Refills at shop.",
+      "into": [
+        "2033"
+      ],
+      "image": {
+        "full": "2031.png",
+        "sprite": "item0.png",
+        "group": "item",
+        "x": 240,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 150,
+        "purchasable": true,
+        "total": 150,
+        "sell": 60
+      },
+      "tags": [
+        "HealthRegen",
+        "Consumable",
+        "Active",
+        "Lane",
+        "Jungle"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {}
+    },
+    "2055": {
+      "name": "Control Ward",
+      "description": "<mainText><stats></stats><br><br><active>Consume</active><br>Places a Control Ward that grants vision and reveals enemy Stealth Wards, traps and <keywordStealth>Camouflaged</keywordStealth> enemies.</mainText>",
+      "colloq": "orange;",
+      "plaintext": "Used to disable wards and invisible traps in an area.",
+      "stacks": 2,
+      "consumed": true,
+      "consumeOnFull": true,
+      "image": {
+        "full": "2055.png",
+        "sprite": "item1.png",
+        "group": "item",
+        "x": 48,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 75,
+        "purchasable": true,
+        "total": 75,
+        "sell": 30
+      },
+      "tags": [
+        "Consumable",
+        "Lane",
+        "Stealth",
+        "Vision"
+      ],
+      "maps": {
+        "11": true,
+        "12": false,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {},
+      "effect": {
+        "Effect1Amount": "1",
+        "Effect2Amount": "2"
+      }
+    },
+    "3006": {
+      "name": "Berserker's Greaves",
+      "description": "<mainText><stats><attention>30%</attention> Attack Speed<br><attention>45</attention> Move Speed</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Enhances Move Speed and Attack Speed",
+      "from": [
+        "1001",
+        "1042",
+        "1042"
+      ],
+      "into": [
+        "3172"
+      ],
+      "image": {
+        "full": "3006.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 0,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 300,
+        "purchasable": true,
+        "total": 1100,
+        "sell": 770
+      },
+      "tags": [
+        "AttackSpeed",
+        "Boots"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatMovementSpeedMod": 45,
+        "PercentAttackSpeedMod": 0.3
+      },
+      "depth": 2
+    },
+    "3026": {
+      "name": "Guardian Angel",
+      "description": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>45</attention> Armor</stats><br><br><passive>Rebirth</passive><br>Upon taking lethal damage, restores <healing>50% base Health</healing> and <scaleMana>100% max Mana</scaleMana> after 4 seconds of <keyword>Stasis</keyword>.</mainText>",
+      "colloq": ";ga",
+      "plaintext": "Periodically revives champion upon death",
+      "from": [
+        "2019",
+        "1038"
+      ],
+      "image": {
+        "full": "3026.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 0,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 800,
+        "purchasable": true,
+        "total": 3200,
+        "sell": 1280
+      },
+      "tags": [
+        "Armor",
+        "Damage"
+      ],
+      "maps": {
+        "11": true,
+        "12": false,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatArmorMod": 45,
+        "FlatPhysicalDamageMod": 55
+      },
+      "effect": {
+        "Effect1Amount": "0.5",
+        "Effect2Amount": "4",
+        "Effect3Amount": "300",
+        "Effect4Amount": "1"
+      },
+      "depth": 3
+    },
+    "3031": {
+      "name": "Infinity Edge",
+      "description": "<mainText><stats><attention>75</attention> Attack Damage<br><attention>25%</attention> Critical Strike Chance<br><attention>30%</attention> Critical Strike Damage</stats><br><br></mainText>",
+      "colloq": ";ie",
+      "plaintext": "Massively enhances critical strikes",
+      "from": [
+        "1038",
+        "1037",
+        "1018"
+      ],
+      "image": {
+        "full": "3031.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 48,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 725,
+        "purchasable": true,
+        "total": 3500,
+        "sell": 2450
+      },
+      "tags": [
+        "CriticalStrike",
+        "Damage"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 75
+      },
+      "depth": 2
+    },
+    "3032": {
+      "name": "Yun Tal Wildarrows",
+      "description": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>45%</attention> Attack Speed<br><attention>0%</attention> Critical Strike Chance</stats><br><br><passive>Practice Makes Lethal</passive><br>On-Attack, gain Critical Strike Chance permanently up to 25%.<br><br><passive>Flurry</passive><br>On-Attacking an enemy champion, gain 30% Attack Speed for 6 seconds (30 second cooldown). <br>Attacks reduce this cooldown by 1 second, increased to 2 seconds for Critical Strikes.</mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "1038",
+        "3144",
+        "1036"
+      ],
+      "image": {
+        "full": "3032.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 96,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 750,
+        "purchasable": true,
+        "total": 3000,
+        "sell": 2100
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike",
+        "AttackSpeed"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 50,
+        "PercentAttackSpeedMod": 0.45
+      },
+      "depth": 3
+    },
+    "3033": {
+      "name": "Mortal Reminder",
+      "description": "<mainText><stats><attention>35</attention> Attack Damage<br><attention>30%</attention> Armor Penetration<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Grievous Wounds</passive><br>Dealing physical damage applies <keyword>40% Wounds</keyword> to enemy champions for 3 seconds.</mainText>",
+      "colloq": ";grievous",
+      "plaintext": "Overcomes enemies with high Health recovery and Armor",
+      "from": [
+        "3123",
+        "3035",
+        "1018"
+      ],
+      "image": {
+        "full": "3033.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 144,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 150,
+        "purchasable": true,
+        "total": 3000,
+        "sell": 2100
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike",
+        "ArmorPenetration"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 35
+      },
+      "depth": 3
+    },
+    "3035": {
+      "name": "Last Whisper",
+      "description": "<mainText><stats><attention>20</attention> Attack Damage<br><attention>18%</attention> Armor Penetration</stats><br><br></mainText>",
+      "colloq": ";lw",
+      "plaintext": "Overcomes enemies with high Armor",
+      "from": [
+        "1036",
+        "1036"
+      ],
+      "into": [
+        "3033",
+        "3036",
+        "6694"
+      ],
+      "image": {
+        "full": "3035.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 192,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 750,
+        "purchasable": true,
+        "total": 1450,
+        "sell": 1015
+      },
+      "tags": [
+        "ArmorPenetration",
+        "Damage"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 20
+      },
+      "depth": 2
+    },
+    "3036": {
+      "name": "Lord Dominik's Regards",
+      "description": "<mainText><stats><attention>35</attention> Attack Damage<br><attention>35%</attention> Armor Penetration<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Giant Slayer</passive><br>Deal up to 15% bonus damage against champions based on their bonus Health. Maximum damage bonus reached at 1500 bonus Health.</mainText>",
+      "colloq": ";lw",
+      "plaintext": "Overcomes enemies with high health and armor",
+      "from": [
+        "3035",
+        "6670"
+      ],
+      "image": {
+        "full": "3036.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 240,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 550,
+        "purchasable": true,
+        "total": 3300,
+        "sell": 2310
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike",
+        "ArmorPenetration"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 35
+      },
+      "depth": 3
+    },
+    "3057": {
+      "name": "Sheen",
+      "description": "<mainText><stats><attention>10</attention> Ability Haste</stats><br><br><passive>Spellblade</passive><br>After using an Ability, your next Attack deals <physicalDamage>bonus physical damage</physicalDamage> <OnHit>On-Hit</OnHit>.<br></mainText>",
+      "colloq": ";",
+      "plaintext": "Grants a bonus to next attack after spell cast",
+      "from": [
+        "2022"
+      ],
+      "into": [
+        "3078",
+        "3100",
+        "2510",
+        "3508",
+        "6632",
+        "6662"
+      ],
+      "image": {
+        "full": "3057.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 288,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 650,
+        "purchasable": true,
+        "total": 900,
+        "sell": 630
+      },
+      "tags": [
+        "OnHit",
+        "AbilityHaste"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {},
+      "depth": 2
+    },
+    "3072": {
+      "name": "Bloodthirster",
+      "description": "<mainText><stats><attention>80</attention> Attack Damage<br><attention>15%</attention> Life Steal</stats><br><br><passive>Ichorshield</passive><br>Convert excess healing from your Lifesteal to a <shield>Shield</shield>.</mainText>",
+      "colloq": ";bt",
+      "plaintext": "Grants Attack Damage, Life Steal and Life Steal now overheals",
+      "from": [
+        "1038",
+        "1037",
+        "1053"
+      ],
+      "image": {
+        "full": "3072.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 144,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 325,
+        "purchasable": true,
+        "total": 3400,
+        "sell": 2380
+      },
+      "tags": [
+        "Damage",
+        "LifeSteal"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 80,
+        "PercentLifeStealMod": 0.15
+      },
+      "depth": 3
+    },
+    "3086": {
+      "name": "Zeal",
+      "description": "<mainText><stats><attention>15%</attention> Attack Speed<br><attention>15%</attention> Critical Strike Chance<br><attention>4%</attention> Move Speed</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Slight bonuses to Critical Strike Chance, Move Speed and Attack Speed",
+      "from": [
+        "1018",
+        "1042"
+      ],
+      "into": [
+        "2512",
+        "3094",
+        "3046",
+        "3085",
+        "4403",
+        "6671",
+        "6675"
+      ],
+      "image": {
+        "full": "3086.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 192,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 350,
+        "purchasable": true,
+        "total": 1200,
+        "sell": 840
+      },
+      "tags": [
+        "CriticalStrike",
+        "AttackSpeed",
+        "NonbootsMovement"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.15,
+        "PercentAttackSpeedMod": 0.15,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "depth": 2
+    },
+    "3123": {
+      "name": "Executioner's Calling",
+      "description": "<mainText><stats><attention>15</attention> Attack Damage</stats><br><br><passive>Grievous Wounds</passive><br>Dealing physical damage to champions applies <keyword>40% Wounds</keyword> for 3 seconds.</mainText>",
+      "colloq": ";grievous",
+      "plaintext": "Overcomes enemies with high health gain",
+      "from": [
+        "1036"
+      ],
+      "into": [
+        "3033",
+        "6609"
+      ],
+      "image": {
+        "full": "3123.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 336,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 450,
+        "purchasable": true,
+        "total": 800,
+        "sell": 560
+      },
+      "tags": [
+        "Damage"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 15
+      },
+      "effect": {
+        "Effect1Amount": "3"
+      },
+      "depth": 2
+    },
+    "3133": {
+      "name": "Caulfield's Warhammer",
+      "description": "<mainText><stats><attention>20</attention> Attack Damage<br><attention>10</attention> Ability Haste</stats><br><br></mainText>",
+      "colloq": ";",
+      "plaintext": "Attack Damage and Cooldown Reduction",
+      "stacks": 0,
+      "from": [
+        "1036",
+        "2022",
+        "1036"
+      ],
+      "into": [
+        "6333",
+        "126697",
+        "6697",
+        "4402",
+        "3156",
+        "2517",
+        "323004",
+        "6693",
+        "3004",
+        "3508",
+        "3074",
+        "3179",
+        "6691",
+        "6609",
+        "6610",
+        "6632",
+        "6692",
+        "6694",
+        "6696"
+      ],
+      "image": {
+        "full": "3133.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 48,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 100,
+        "purchasable": true,
+        "total": 1050,
+        "sell": 735
+      },
+      "tags": [
+        "Damage",
+        "CooldownReduction",
+        "AbilityHaste"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 20
+      },
+      "depth": 2
+    },
+    "3134": {
+      "name": "Serrated Dirk",
+      "description": "<mainText><stats><attention>20</attention> Attack Damage<br><attention>10</attention> Lethality</stats><br><br></mainText>",
+      "colloq": ";lethality",
+      "plaintext": "Increases Attack Damage and Lethality",
+      "stacks": 0,
+      "from": [
+        "1036",
+        "1036"
+      ],
+      "into": [
+        "3142",
+        "667666",
+        "126697",
+        "6697",
+        "6701",
+        "6693",
+        "2520",
+        "4004",
+        "6695",
+        "3814",
+        "3131",
+        "3179",
+        "6691",
+        "6676"
+      ],
+      "image": {
+        "full": "3134.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 96,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 300,
+        "purchasable": true,
+        "total": 1000,
+        "sell": 700
+      },
+      "tags": [
+        "Damage",
+        "ArmorPenetration"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 20
+      },
+      "depth": 2
+    },
+    "3139": {
+      "name": "Mercurial Scimitar",
+      "description": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>35</attention> Magic Resist<br><attention>10%</attention> Life Steal</stats><br><br><br><br><active>ACTIVE</active><br><active>Quicksilver</active><br>Removes all crowd control debuffs (excluding <keyword>Airborne</keyword>) and grants Move Speed.</mainText>",
+      "colloq": ";",
+      "plaintext": "Activate to remove all crowd control debuffs and grant massive Move Speed",
+      "from": [
+        "3140",
+        "1037",
+        "1053"
+      ],
+      "image": {
+        "full": "3139.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 240,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 125,
+        "purchasable": true,
+        "total": 3200,
+        "sell": 2240
+      },
+      "tags": [
+        "SpellBlock",
+        "Damage",
+        "LifeSteal",
+        "Active",
+        "NonbootsMovement",
+        "Tenacity"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatSpellBlockMod": 35,
+        "FlatPhysicalDamageMod": 50,
+        "PercentLifeStealMod": 0.1
+      },
+      "effect": {
+        "Effect1Amount": "0.5",
+        "Effect2Amount": "2",
+        "Effect3Amount": "90"
+      },
+      "depth": 3
+    },
+    "3140": {
+      "name": "Quicksilver Sash",
+      "description": "<mainText><stats><attention>30</attention> Magic Resist</stats><br><br><active>Quicksilver</active><br>Remove all crowd control debuffs (excluding <keyword>Airborne</keyword>).</mainText>",
+      "colloq": ";qss",
+      "plaintext": "Activate to remove all crowd control debuffs",
+      "from": [
+        "1033"
+      ],
+      "into": [
+        "3139",
+        "6035"
+      ],
+      "image": {
+        "full": "3140.png",
+        "sprite": "item3.png",
+        "group": "item",
+        "x": 288,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 900,
+        "purchasable": true,
+        "total": 1300,
+        "sell": 910
+      },
+      "tags": [
+        "Active",
+        "SpellBlock"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatSpellBlockMod": 30
+      },
+      "depth": 2
+    },
+    "3155": {
+      "name": "Hexdrinker",
+      "description": "<mainText><stats><attention>25</attention> Attack Damage<br><attention>25</attention> Magic Resist</stats><br><br><passive>Lifeline</passive><br>Taking magic damage that would reduce your Health below 30% grants a <shield>magic damage Shield</shield> for 2.5 seconds.</mainText>",
+      "colloq": ";",
+      "plaintext": "Increases Attack Damage and Magic Resist",
+      "stacks": 0,
+      "from": [
+        "1036",
+        "1033",
+        "1036"
+      ],
+      "into": [
+        "3156"
+      ],
+      "image": {
+        "full": "3155.png",
+        "sprite": "item4.png",
+        "group": "item",
+        "x": 240,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 200,
+        "purchasable": true,
+        "total": 1300,
+        "sell": 910
+      },
+      "tags": [
+        "Damage",
+        "SpellBlock"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatSpellBlockMod": 25,
+        "FlatPhysicalDamageMod": 25
+      },
+      "depth": 2
+    },
+    "3156": {
+      "name": "Maw of Malmortius",
+      "description": "<mainText><stats><attention>60</attention> Attack Damage<br><attention>15</attention> Ability Haste<br><attention>40</attention> Magic Resist</stats><br><br><passive>Lifeline</passive><br>Taking magic damage that would reduce your Health below 30% grants a <shield>magic damage Shield</shield> for 3 seconds and <lifeSteal>10% Omnivamp</lifeSteal> until end of combat.</mainText>",
+      "colloq": ";",
+      "plaintext": "Grants bonus Attack Damage when Health is low",
+      "stacks": 0,
+      "from": [
+        "3155",
+        "3133"
+      ],
+      "image": {
+        "full": "3156.png",
+        "sprite": "item4.png",
+        "group": "item",
+        "x": 288,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 750,
+        "purchasable": true,
+        "total": 3100,
+        "sell": 2170
+      },
+      "tags": [
+        "SpellBlock",
+        "Damage",
+        "LifeSteal",
+        "SpellVamp",
+        "AbilityHaste"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatSpellBlockMod": 40,
+        "FlatPhysicalDamageMod": 60
+      },
+      "depth": 3
+    },
+    "3340": {
+      "name": "Stealth Ward",
+      "description": "<mainText><stats></stats><br><br><active>Active</active> (<scaleLevel>210 - 90</scaleLevel>s, max 2 charges)<br>Places an <keyword>Invisible</keyword> Stealth Ward that grants vision for <scaleLevel>90-120</scaleLevel> seconds.</mainText>",
+      "colloq": "yellow; totem; trinket",
+      "plaintext": "Periodically place a Stealth Ward",
+      "image": {
+        "full": "3340.png",
+        "sprite": "item4.png",
+        "group": "item",
+        "x": 240,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 0,
+        "purchasable": true,
+        "total": 0,
+        "sell": 0
+      },
+      "tags": [
+        "Active",
+        "Jungle",
+        "Lane",
+        "Trinket",
+        "Vision"
+      ],
+      "maps": {
+        "11": true,
+        "12": false,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {},
+      "effect": {
+        "Effect1Amount": "90",
+        "Effect2Amount": "0",
+        "Effect3Amount": "120",
+        "Effect4Amount": "0",
+        "Effect5Amount": "2",
+        "Effect6Amount": "9",
+        "Effect7Amount": "30",
+        "Effect8Amount": "120"
+      }
+    },
+    "3363": {
+      "name": "Farsight Alteration",
+      "description": "<mainText><stats></stats><br><br><active>Active</active> (<scaleLevel>198 - 99</scaleLevel>s)<br>Reveals a distant area for 2 seconds and leaves a Ward that expires upon spotting an enemy champion.</mainText>",
+      "colloq": "blue; totem; trinket",
+      "plaintext": "Grants increased range and reveals the targetted area",
+      "image": {
+        "full": "3363.png",
+        "sprite": "item4.png",
+        "group": "item",
+        "x": 384,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 0,
+        "purchasable": true,
+        "total": 0,
+        "sell": 0
+      },
+      "tags": [
+        "Active",
+        "Trinket",
+        "Vision"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {},
+      "effect": {
+        "Effect1Amount": "4000",
+        "Effect2Amount": "2",
+        "Effect3Amount": "5",
+        "Effect4Amount": "198",
+        "Effect5Amount": "60",
+        "Effect6Amount": "9",
+        "Effect7Amount": "30",
+        "Effect8Amount": "120",
+        "Effect9Amount": "6.5",
+        "Effect10Amount": "198",
+        "Effect11Amount": "99",
+        "Effect12Amount": "60",
+        "Effect13Amount": "180",
+        "Effect14Amount": "10",
+        "Effect15Amount": "45"
+      }
+    },
+    "3364": {
+      "name": "Oracle Lens",
+      "description": "<mainText><stats></stats><br><br><active>Active</active> (<scaleLevel>160 - 100</scaleLevel>s, max 2 charges)<br>Reveals enemy Stealth Wards and traps around you for 8 seconds.</mainText>",
+      "colloq": "red; lens; trinket",
+      "plaintext": "Disables nearby invisible wards and traps for a duration",
+      "image": {
+        "full": "3364.png",
+        "sprite": "item4.png",
+        "group": "item",
+        "x": 432,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 0,
+        "purchasable": true,
+        "total": 0,
+        "sell": 0
+      },
+      "tags": [
+        "Active",
+        "Trinket",
+        "Vision"
+      ],
+      "maps": {
+        "11": true,
+        "12": false,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {},
+      "effect": {
+        "Effect1Amount": "8",
+        "Effect2Amount": "10",
+        "Effect3Amount": "120",
+        "Effect4Amount": "60",
+        "Effect5Amount": "0",
+        "Effect6Amount": "1",
+        "Effect7Amount": "30",
+        "Effect8Amount": "120",
+        "Effect9Amount": "60"
+      }
+    },
+    "3508": {
+      "name": "Essence Reaver",
+      "description": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>20</attention> Ability Haste<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Spellblade</passive><br>After using an Ability, your next Attack deals <physicalDamage>bonus physical damage</physicalDamage> and grants <scaleMana>Mana</scaleMana> <OnHit>On-Hit</OnHit>.</mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "3057",
+        "3133",
+        "1018"
+      ],
+      "image": {
+        "full": "3508.png",
+        "sprite": "item4.png",
+        "group": "item",
+        "x": 240,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 500,
+        "purchasable": true,
+        "total": 3050,
+        "sell": 2135
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike",
+        "ManaRegen",
+        "CooldownReduction",
+        "OnHit",
+        "AbilityHaste"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 50
+      },
+      "depth": 3
+    },
+    "6670": {
+      "name": "Noonquiver",
+      "description": "<mainText><stats><attention>15</attention> Attack Damage<br><attention>20%</attention> Critical Strike Chance</stats><br><br></mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "1036",
+        "1018"
+      ],
+      "into": [
+        "2523",
+        "3036",
+        "6673"
+      ],
+      "image": {
+        "full": "6670.png",
+        "sprite": "item6.png",
+        "group": "item",
+        "x": 384,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 350,
+        "purchasable": true,
+        "total": 1300,
+        "sell": 910
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.2,
+        "FlatPhysicalDamageMod": 15
+      },
+      "depth": 2
+    },
+    "6672": {
+      "name": "Kraken Slayer",
+      "description": "<mainText><stats><attention>45</attention> Attack Damage<br><attention>40%</attention> Attack Speed<br><attention>4%</attention> Move Speed</stats><br><br><passive>Bring It Down</passive><br>Every third Attack deals <physicalDamage>bonus physical damage</physicalDamage> <OnHit>On-Hit</OnHit>, increased based on their missing Health.</mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "6690",
+        "3051",
+        "1043"
+      ],
+      "image": {
+        "full": "6672.png",
+        "sprite": "item6.png",
+        "group": "item",
+        "x": 144,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 325,
+        "purchasable": true,
+        "total": 3000,
+        "sell": 2100
+      },
+      "tags": [
+        "Damage",
+        "AttackSpeed",
+        "OnHit",
+        "NonbootsMovement"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatPhysicalDamageMod": 45,
+        "PercentAttackSpeedMod": 0.4,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "depth": 3
+    },
+    "6673": {
+      "name": "Immortal Shieldbow",
+      "description": "<mainText><stats><attention>55</attention> Attack Damage<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Lifeline</passive><br>Taking damage that would reduce your Health below 30% grants a <shield>Shield</shield> for 3 seconds.</mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "1037",
+        "6670"
+      ],
+      "image": {
+        "full": "6673.png",
+        "sprite": "item6.png",
+        "group": "item",
+        "x": 192,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 825,
+        "purchasable": true,
+        "total": 3000,
+        "sell": 2100
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 55
+      },
+      "depth": 3
+    },
+    "6675": {
+      "name": "Navori Flickerblade",
+      "description": "<mainText><stats><attention>40%</attention> Attack Speed<br><attention>25%</attention> Critical Strike Chance<br><attention>4%</attention> Move Speed</stats><br><br><passive>Transcendence</passive><br>Attacks reduce Basic Ability cooldowns by <attention>15%</attention> of their remaining cooldown.</mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "1042",
+        "3086",
+        "1042"
+      ],
+      "image": {
+        "full": "6675.png",
+        "sprite": "item6.png",
+        "group": "item",
+        "x": 240,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 950,
+        "purchasable": true,
+        "total": 2650,
+        "sell": 1855
+      },
+      "tags": [
+        "CriticalStrike",
+        "AttackSpeed",
+        "NonbootsMovement"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "PercentAttackSpeedMod": 0.4,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "effect": {
+        "Effect1Amount": "0.5",
+        "Effect2Amount": "1",
+        "Effect3Amount": "90"
+      },
+      "depth": 3
+    },
+    "6676": {
+      "name": "The Collector",
+      "description": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>10</attention> Lethality<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Death</passive><br>Your damage executes champions that are below 5% Health.<br><br><passive>Taxes</passive><br>Champion kills grant <gold>25 bonus gold</gold>.</mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "1037",
+        "3134",
+        "1018"
+      ],
+      "image": {
+        "full": "6676.png",
+        "sprite": "item6.png",
+        "group": "item",
+        "x": 288,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 525,
+        "purchasable": true,
+        "total": 3000,
+        "sell": 2100
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike",
+        "ArmorPenetration"
+      ],
+      "maps": {
+        "11": true,
+        "12": true,
+        "22": false,
+        "30": false,
+        "453": true
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 50
+      },
+      "depth": 3
+    },
+    "667666": {
+      "name": "The Collector",
+      "description": "<mainText><stats><attention>50</attention> Attack Damage<br><attention>10</attention> Lethality<br><attention>25%</attention> Critical Strike Chance</stats><br><br><passive>Death</passive><br>Your damage executes champions that are below 5% Health.<br><br><passive>Taxes</passive><br>Champion kills grant <gold>25 bonus gold</gold>.</mainText>",
+      "colloq": "",
+      "plaintext": "",
+      "from": [
+        "1037",
+        "3134",
+        "1018"
+      ],
+      "image": {
+        "full": "667666.png",
+        "sprite": "item6.png",
+        "group": "item",
+        "x": 336,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "gold": {
+        "base": 525,
+        "purchasable": true,
+        "total": 3000,
+        "sell": 2100
+      },
+      "tags": [
+        "Damage",
+        "CriticalStrike",
+        "ArmorPenetration"
+      ],
+      "maps": {
+        "11": true,
+        "12": false,
+        "22": false,
+        "30": false,
+        "453": false
+      },
+      "stats": {
+        "FlatCritChanceMod": 0.25,
+        "FlatPhysicalDamageMod": 50
+      },
+      "depth": 3
+    }
+  }
+}
