@@ -19,3 +19,6 @@ m0/tests/fixtures/captured/
 # Tauri overlay build output (built on the Windows side, see scripts/cargo-win.sh)
 overlay/target/
 overlay/src-tauri/gen/
+
+# local screenshots for overlay checks
+.screens/
