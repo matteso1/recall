@@ -21,3 +21,11 @@
   Next session: confirm `wslinfo --networking-mode` = mirrored and re-run the doctor.
 - 12:41 WSL back up in mirrored mode. Doctor: transport direct, LCU OK without curl.exe.
   Watchers restarted in the background (`--dump m0/tests/fixtures/captured`).
+- 12:44-12:47 first Practice Tool game with both watchers running (direct transport):
+  champ select captured hover -> lock -> FINALIZATION -> GAME_STARTING; live poller saw gold
+  ticking, a Q point and a Biscuit purchase. Scrubbed copies are now fixtures
+  (`*_practicetool*.json`, raw `--dump` output is gitignored: it carries a chat JWT).
+- Shop feedback: block titles were cut off. Titles now <= 30 chars (`MAX_BLOCK_TITLE`), the
+  per-item "why" stays in the spec for the overlay. Set re-pushed; check in the next game.
+- op.gg desktop app autostarts from `HKCU\...\Run` (`electron.app.OP.GG`) and used 1.8 GB RAM
+  across 9 processes during the game; Overwolf autostarts too. Neither is ours.

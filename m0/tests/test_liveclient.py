@@ -19,7 +19,7 @@ class LiveClientTests(unittest.TestCase):
         self.assertEqual(s.me.champion, "Xayah")
         self.assertEqual(s.me.position, "BOTTOM")
         self.assertEqual(s.me.gold, 500.0)
-        self.assertEqual(s.me.abilities, {"E": 0, "Q": 1, "R": 0, "W": 0})
+        self.assertEqual(list(s.me.abilities.items()), [("Q", 1), ("W", 0), ("E", 0), ("R", 0)])
         self.assertEqual([p.champion for p in s.enemies], ["Tristana", "Soraka", "Malphite", "Ornn", "Thresh"])
         self.assertEqual(len(s.allies), 4)
         self.assertEqual(s.me.item_names(), ["Doran's Blade", "Health Potion", "Stealth Ward"])
@@ -57,6 +57,21 @@ class LiveClientTests(unittest.TestCase):
         d2["activePlayer"]["abilities"]["W"]["abilityLevel"] = 1
         text = "\n".join(diff(summarize(self.data), summarize(d2)))
         self.assertIn("skilled W", text)
+
+
+class PracticeToolCaptureTests(unittest.TestCase):
+    """Real allgamedata captured from a Practice Tool game on 2026-09-05 (patch 16.17)."""
+
+    def test_real_capture(self):
+        s = summarize(json.loads((FIX / "allgamedata_practicetool.json").read_text()))
+        self.assertEqual(s.mode, "PRACTICETOOL")
+        self.assertEqual(s.me.champion, "Xayah")
+        self.assertEqual(s.me.position, "")  # the API says "NONE" here
+        self.assertEqual(s.me.item_names(), ["Total Biscuit of Everlasting Will"])
+        self.assertEqual(list(s.me.abilities.items()), [("Q", 1), ("W", 0), ("E", 0), ("R", 0)])
+        self.assertAlmostEqual(s.me.gold, 613.2, places=0)
+        self.assertEqual((s.allies, s.enemies), ([], []))
+        self.assertIn("you are Xayah (no lane)", diff(None, s)[0])
 
 
 if __name__ == "__main__":

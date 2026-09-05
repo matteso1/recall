@@ -67,5 +67,32 @@ class ChampSelectTests(unittest.TestCase):
         self.assertIn("enemy cell 6: 16", text)
 
 
+class PracticeToolCaptureTests(unittest.TestCase):
+    """Real payloads captured from the client on 2026-09-05 (Practice Tool, patch 16.17)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.hover = json.loads((FIX / "champselect_practicetool_hover.json").read_text())
+        cls.lock = json.loads((FIX / "champselect_practicetool_lock.json").read_text())
+        cls.champs = ChampionIndex(json.loads((FIX / "champion_subset.json").read_text()))
+
+    def test_hover_is_intent_not_lock(self):
+        st = champselect.extract(self.hover)
+        me = st.me
+        self.assertEqual((st.my_cell, st.phase), (0, "BAN_PICK"))
+        self.assertEqual((me.champion_id, me.intent_id, me.locked), (0, 498, False))
+        self.assertEqual(me.shown_champion, 498)
+        self.assertFalse(st.all_locked)
+        self.assertEqual(st.enemies(), [])  # Practice Tool has no enemy team
+
+    def test_lock_and_diff(self):
+        prev, cur = champselect.extract(self.hover), champselect.extract(self.lock)
+        self.assertEqual((cur.me.champion_id, cur.me.intent_id, cur.me.locked), (498, 0, True))
+        text = "\n".join(champselect.diff(prev, cur, self.champs))
+        self.assertIn("[PHASE] BAN_PICK -> FINALIZATION", text)
+        self.assertIn("[LOCK]  ally cell 0 (you): Xayah", text)
+        self.assertIn("ALLY : Xayah *you*", text)
+
+
 if __name__ == "__main__":
     unittest.main()

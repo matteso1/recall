@@ -14,5 +14,6 @@
   `riotId`. Enemy items are the ones visible on Tab, which is exactly what we may use.
 - Match the active player to `allPlayers` by `riotId`.
 - `gameData`: `gameMode` (`CLASSIC`, `PRACTICETOOL`, `ARAM`...), `gameTime` seconds, `mapNumber`.
-- Fixture `m0/tests/fixtures/allgamedata.json` is hand-written from the documented shape;
-  replace it with a `watch_live.py --dump` capture from a real game.
+- Practice Tool reports `position: "NONE"` and `abilities.Passive: null`; `gameMode` is
+  `PRACTICETOOL`. Real capture: `m0/tests/fixtures/allgamedata_practicetool.json`
+  (`allgamedata.json` is a hand-written 5v5 stand-in until a real match is captured).

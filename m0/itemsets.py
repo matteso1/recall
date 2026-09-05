@@ -16,6 +16,7 @@ from typing import Any
 from ddragon import ChampionIndex, ItemIndex
 
 TITLE_PREFIX = "Featherstorm"
+MAX_BLOCK_TITLE = 30  # the in-game shop panel truncates longer block titles
 UID_NAMESPACE = uuid.UUID("6f1c3d8e-0a2b-4c5d-9e7f-1234567890ab")
 _COUNT_RE = re.compile(r"^(.*?)\s*[x×]\s*(\d+)$")
 
@@ -39,6 +40,8 @@ def parse_item_entry(entry: Any) -> tuple[str, int, str]:
 
 
 def _block(title: str, entries: list, items: ItemIndex, warnings: list[str]) -> dict:
+    if len(title) > MAX_BLOCK_TITLE:
+        warnings.append(f"block title too long for the shop panel ({len(title)} > {MAX_BLOCK_TITLE}): {title!r}")
     merged: dict[str, int] = {}
     for e in entries:
         name, count, _ = parse_item_entry(e)
@@ -71,22 +74,22 @@ def build_item_set(spec: dict, items: ItemIndex, champs: ChampionIndex) -> tuple
     core_names: list[str] = []
     component_order = spec.get("component_order", {})
     for n, entry in enumerate(spec.get("core", []), 1):
-        name, _, why = parse_item_entry(entry)
+        name, _, _why = parse_item_entry(entry)  # why: used by the overlay (M1), not the shop
         core_names.append(name)
         iid = items.id_for(name)
         if iid is None:
             warnings.append(f"unknown core item {name!r}")
             continue
         comps = component_order.get(name) or [items.name(c) for c in items.components(iid)]
-        heading = f"{n}. {name}" + (f" - {why}" if why else "")
-        blocks.append(_block(heading, comps + [name], items, warnings))
+        # The shop panel is narrow: the "why" stays in the spec for the overlay, not the block title.
+        blocks.append(_block(f"{n}. {name}", comps + [name], items, warnings))
     if core_names:
-        blocks.append(_block("Full build (in order)", core_names, items, warnings))
+        blocks.append(_block("Full build, in order", core_names, items, warnings))
 
     for sit in spec.get("situational", []):
-        blocks.append(_block(f"If {sit['when']}", sit["items"], items, warnings))
+        blocks.append(_block(sit["when"], sit["items"], items, warnings))
     if spec.get("consumables"):
-        blocks.append(_block("Vision & consumables", spec["consumables"], items, warnings))
+        blocks.append(_block("Vision", spec["consumables"], items, warnings))
 
     return {
         "uid": str(uuid.uuid5(UID_NAMESPACE, title)),   # stable, so re-pushing replaces in place

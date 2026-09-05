@@ -13,9 +13,9 @@ The full design is in [docs/design.md](docs/design.md). Working name, placeholde
 | Piece | State |
 |---|---|
 | Find the client, read its lockfile, talk to the LCU API | done, verified against the live client from WSL |
-| Champ select watcher (prints hovers, bans, lock-ins) | written + unit-tested; awaits a real champ select to capture fixtures (`--dump`) |
-| Live Client Data poller (gold, items, level, abilities, enemy items) | written + unit-tested; awaits a real game (Practice Tool is enough) |
-| Push a hardcoded Xayah item set into the client | done, verified: the set appears in the account's item-set list |
+| Champ select watcher (prints hovers, bans, lock-ins) | verified in a Practice Tool champ select (hover, lock, phase changes); real captures are test fixtures. Enemy picks/bans still need a draft game |
+| Live Client Data poller (gold, items, level, abilities, enemy items) | verified in a Practice Tool game (gold ticks, skill point, item purchase); real capture is a test fixture |
+| Push a hardcoded Xayah item set into the client | done, visible in the in-game shop; block titles kept to 30 chars because the shop panel truncates |
 | Data Dragon name -> id resolution with local cache | done |
 
 Next: M1, the Tauri overlay (see [docs/notes/dev-setup.md](docs/notes/dev-setup.md) for the build plan).

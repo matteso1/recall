@@ -1,0 +1,244 @@
+{
+ "activePlayer": {
+  "abilities": {
+   "E": {
+    "abilityLevel": 0,
+    "displayName": "Bladecaller",
+    "id": "XayahE",
+    "rawDescription": "GeneratedTip_Spell_XayahE_Description",
+    "rawDisplayName": "GeneratedTip_Spell_XayahE_DisplayName"
+   },
+   "Passive": {
+    "displayName": "Clean Cuts",
+    "id": "XayahPassive",
+    "rawDescription": "GeneratedTip_Passive_XayahPassive_Description",
+    "rawDisplayName": "GeneratedTip_Passive_XayahPassive_DisplayName"
+   },
+   "Q": {
+    "abilityLevel": 1,
+    "displayName": "Double Daggers",
+    "id": "XayahQ",
+    "rawDescription": "GeneratedTip_Spell_XayahQ_Description",
+    "rawDisplayName": "GeneratedTip_Spell_XayahQ_DisplayName"
+   },
+   "R": {
+    "abilityLevel": 0,
+    "displayName": "Featherstorm",
+    "id": "XayahR",
+    "rawDescription": "GeneratedTip_Spell_XayahR_Description",
+    "rawDisplayName": "GeneratedTip_Spell_XayahR_DisplayName"
+   },
+   "W": {
+    "abilityLevel": 0,
+    "displayName": "Deadly Plumage",
+    "id": "XayahW",
+    "rawDescription": "GeneratedTip_Spell_XayahW_Description",
+    "rawDisplayName": "GeneratedTip_Spell_XayahW_DisplayName"
+   }
+  },
+  "championStats": {
+   "abilityHaste": 0.0,
+   "abilityPower": 0.0,
+   "armor": 25.0,
+   "armorPenetrationFlat": 0.0,
+   "armorPenetrationPercent": 1.0,
+   "attackDamage": 65.4000015258789,
+   "attackRange": 525.0,
+   "attackSpeed": 0.723800003528595,
+   "bonusArmorPenetrationPercent": 1.0,
+   "bonusMagicPenetrationPercent": 1.0,
+   "critChance": 0.0,
+   "critDamage": 200.0,
+   "currentHealth": 640.0,
+   "healShieldPower": 0.0,
+   "healthRegenRate": 0.6499999761581421,
+   "lifeSteal": 0.0,
+   "magicLethality": 0.0,
+   "magicPenetrationFlat": 0.0,
+   "magicPenetrationPercent": 1.0,
+   "magicResist": 33.0,
+   "maxHealth": 640.0,
+   "moveSpeed": 725.0,
+   "omnivamp": 0.0,
+   "physicalLethality": 0.0,
+   "physicalVamp": 0.0,
+   "resourceMax": 340.0,
+   "resourceRegenRate": 1.649999976158142,
+   "resourceType": "MANA",
+   "resourceValue": 340.0,
+   "spellVamp": 0.0,
+   "tenacity": 5.0
+  },
+  "currentGold": 613.2218017578125,
+  "fullRunes": {
+   "generalRunes": [
+    {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "perk_tooltip_LethalTempo",
+     "rawDisplayName": "perk_displayname_LethalTempo"
+    },
+    {
+     "displayName": "Presence of Mind",
+     "id": 8009,
+     "rawDescription": "perk_tooltip_PresenceOfMind",
+     "rawDisplayName": "perk_displayname_PresenceOfMind"
+    },
+    {
+     "displayName": "Legend: Bloodline",
+     "id": 9103,
+     "rawDescription": "perk_tooltip_9103",
+     "rawDisplayName": "perk_displayname_9103"
+    },
+    {
+     "displayName": "Coup de Grace",
+     "id": 8014,
+     "rawDescription": "perk_tooltip_CoupDeGrace",
+     "rawDisplayName": "perk_displayname_CoupDeGrace"
+    },
+    {
+     "displayName": "Magical Footwear",
+     "id": 8304,
+     "rawDescription": "perk_tooltip_MagicalFootwear",
+     "rawDisplayName": "perk_displayname_MagicalFootwear"
+    },
+    {
+     "displayName": "Biscuit Delivery",
+     "id": 8345,
+     "rawDescription": "perk_tooltip_BiscuitDelivery",
+     "rawDisplayName": "perk_displayname_BiscuitDelivery"
+    }
+   ],
+   "keystone": {
+    "displayName": "Lethal Tempo",
+    "id": 8008,
+    "rawDescription": "perk_tooltip_LethalTempo",
+    "rawDisplayName": "perk_displayname_LethalTempo"
+   },
+   "primaryRuneTree": {
+    "displayName": "Precision",
+    "id": 8000,
+    "rawDescription": "perkstyle_tooltip_7201",
+    "rawDisplayName": "perkstyle_displayname_7201"
+   },
+   "secondaryRuneTree": {
+    "displayName": "Inspiration",
+    "id": 8300,
+    "rawDescription": "perkstyle_tooltip_7203",
+    "rawDisplayName": "perkstyle_displayname_7203"
+   },
+   "statRunes": [
+    {
+     "id": 5005,
+     "rawDescription": "perk_tooltip_StatModAttackSpeed"
+    },
+    {
+     "id": 5008,
+     "rawDescription": "perk_tooltip_StatModAdaptive"
+    },
+    {
+     "id": 5001,
+     "rawDescription": "perk_tooltip_StatModHealthScaling"
+    }
+   ]
+  },
+  "level": 1,
+  "riotId": "matteso#NA1",
+  "riotIdGameName": "matteso",
+  "riotIdTagLine": "NA1",
+  "summonerName": "matteso#NA1",
+  "teamRelativeColors": true
+ },
+ "allPlayers": [
+  {
+   "championName": "Xayah",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 1,
+     "displayName": "Total Biscuit of Everlasting Will",
+     "itemID": 2010,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2010_Description",
+     "rawDisplayName": "Item_2010_Name",
+     "slot": 0
+    }
+   ],
+   "level": 1,
+   "position": "NONE",
+   "rawChampionName": "game_character_displayname_Xayah",
+   "rawSkinName": "game_character_displayname_Xayah",
+   "respawnTimer": 0.0,
+   "riotId": "matteso#NA1",
+   "riotIdGameName": "matteso",
+   "riotIdTagLine": "NA1",
+   "runes": {
+    "keystone": {
+     "displayName": "Lethal Tempo",
+     "id": 8008,
+     "rawDescription": "perk_tooltip_LethalTempo",
+     "rawDisplayName": "perk_displayname_LethalTempo"
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "perkstyle_tooltip_7201",
+     "rawDisplayName": "perkstyle_displayname_7201"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "perkstyle_tooltip_7203",
+     "rawDisplayName": "perkstyle_displayname_7203"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Xayah",
+   "summonerName": "matteso#NA1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Barrier",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerBarrier_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerBarrier_DisplayName"
+    }
+   },
+   "team": "ORDER"
+  }
+ ],
+ "events": {
+  "Events": [
+   {
+    "EventID": 0,
+    "EventName": "GameStart",
+    "EventTime": 0.0
+   },
+   {
+    "EventID": 1,
+    "EventName": "MinionsSpawning",
+    "EventTime": 30.041038513183594
+   }
+  ]
+ },
+ "gameData": {
+  "gameMode": "PRACTICETOOL",
+  "gameTime": 120.4815673828125,
+  "mapName": "Map11",
+  "mapNumber": 11,
+  "mapTerrain": "Default"
+ }
+}

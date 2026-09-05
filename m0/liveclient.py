@@ -11,6 +11,7 @@ from typing import Optional
 from transport import ConnectionFailed, Transport, make_transport
 
 DEFAULT_PORT = 2999
+ABILITY_ORDER = ("Q", "W", "E", "R")
 
 
 class LiveClient:
@@ -86,6 +87,12 @@ def fmt_time(seconds: float) -> str:
     return f"{s // 60:02d}:{s % 60:02d}"
 
 
+def _position(raw) -> str:
+    """Practice Tool / non-SR modes report 'NONE' or ''; normalise to ''."""
+    pos = (raw or "").upper()
+    return "" if pos == "NONE" else pos
+
+
 def _items(raw: list) -> tuple[Item, ...]:
     return tuple(
         sorted(
@@ -112,7 +119,7 @@ def summarize(data: dict) -> Snapshot:
             name=pid,
             champion=p.get("championName", "?"),
             team=p.get("team", "?"),
-            position=p.get("position") or "",
+            position=_position(p.get("position")),
             level=int(p.get("level", 0)),
             items=_items(p.get("items")),
             kills=int(scores.get("kills", 0)),
@@ -123,11 +130,8 @@ def summarize(data: dict) -> Snapshot:
         )
         if ps.is_me:
             ps.gold = float(active.get("currentGold", 0.0))
-            ps.abilities = {
-                k: int((v or {}).get("abilityLevel", 0))
-                for k, v in (active.get("abilities") or {}).items()
-                if k in ("Q", "W", "E", "R")
-            }
+            raw_abilities = active.get("abilities") or {}
+            ps.abilities = {k: int((raw_abilities.get(k) or {}).get("abilityLevel", 0)) for k in ABILITY_ORDER}
             me = ps
         players.append(ps)
 

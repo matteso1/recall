@@ -12,3 +12,6 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+
+# raw --dump captures: contain chat tokens and ids; scrub into named fixtures instead
+m0/tests/fixtures/captured/

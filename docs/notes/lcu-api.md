@@ -42,8 +42,12 @@ The op.gg app writes one set titled `OP.GG <Champion>` with ~12 blocks; block ti
 - `actions[][]` with `actorCellId`, `championId`, `type` (`ban|pick|ten_bans_reveal`),
   `completed`, `isAllyAction`, `isInProgress`. A completed `pick` = locked in.
 - `bans.myTeamBans[]`, `bans.theirTeamBans[]`; `timer.phase` (`PLANNING|BAN_PICK|FINALIZATION|GAME_STARTING`).
-- Not yet captured from a real session: run `python3 m0/watch_champselect.py --dump m0/tests/fixtures/captured`
-  during the next game and replace the hand-written fixture.
+- Captured from a real Practice Tool session (fixtures `champselect_practicetool_*.json`):
+  hovering sets `championPickIntent`, locking sets `championId` and resets the intent to 0;
+  `actions[][]` also carry `duration`; custom games have `assignedPosition: ""`, `theirTeam: []`,
+  `isCustomGame: true`, `queueId`. `chatDetails.mucJwtDto.jwt` is a real token: never commit
+  raw dumps, scrub them first (see the scrub step in `docs/notes/m0-log.md`).
+- Still to capture: a draft game with enemy bans and lock-ins (`watch_champselect.py --dump`).
 - The client also offers a WebSocket (`wss://127.0.0.1:<port>/`, subscribe
   `[5,"OnJsonApiEvent_lol-champ-select_v1_session"]`) for push updates; polling at 1 s is
   fine for M0 and avoids a dependency.

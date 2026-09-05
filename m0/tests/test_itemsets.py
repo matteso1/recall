@@ -39,10 +39,17 @@ class ItemSetTests(unittest.TestCase):
         self.assertEqual([i["id"] for i in er["items"]], ["3057", "3133", "1018", "3508"])
         greaves = s["blocks"][2]
         self.assertIn({"id": "1042", "count": 2}, greaves["items"])  # Dagger x2 merged
-        full = next(b for b in s["blocks"] if b["type"] == "Full build (in order)")
+        full = next(b for b in s["blocks"] if b["type"] == "Full build, in order")
         self.assertEqual([i["id"] for i in full["items"]], ["3508", "3006", "3031", "6675", "3033", "3026"])
         s2, _ = itemsets.build_item_set(self.spec, self.items, self.champs)
         self.assertEqual(s["uid"], s2["uid"])
+        for b in s["blocks"]:
+            self.assertLessEqual(len(b["type"]), itemsets.MAX_BLOCK_TITLE, b["type"])
+
+    def test_long_titles_warn(self):
+        spec = {"champion": "Xayah", "blocks": [{"type": "x" * 40, "items": ["Boots"]}]}
+        _, warnings = itemsets.build_item_set(spec, self.items, self.champs)
+        self.assertTrue(any("too long" in w for w in warnings))
 
     def test_unresolved_names_are_reported(self):
         spec = json.loads(json.dumps(self.spec))

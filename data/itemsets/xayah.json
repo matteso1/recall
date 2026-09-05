@@ -7,36 +7,110 @@
   "notes": [
     "M0 hardcoded set. The path follows docs/design.md section 5.3 (ER -> Greaves -> IE -> Navori -> Mortal Reminder -> GA).",
     "For reference, op.gg on patch 16.17 lists Yun Tal Wildarrows -> Navori -> IE as the most-picked line (32%) and the ER line second (25%).",
-    "Item and champion names are resolved against Data Dragon at push time; ids are never hardcoded here."
+    "Item and champion names are resolved against Data Dragon at push time; ids are never hardcoded here.",
+    "Shop item-set panel is narrow: block titles must stay short (<= 30 chars). The 'why' strings are for the overlay, not the shop."
   ],
   "skill_order": {
-    "first_four": ["Q", "E", "W", "E"],
-    "max": ["E", "W", "Q"]
+    "first_four": [
+      "Q",
+      "E",
+      "W",
+      "E"
+    ],
+    "max": [
+      "E",
+      "W",
+      "Q"
+    ]
   },
   "blocks": [
     {
-      "type": "Starting Items  (skills Q>E>W>E, then max E>W>Q)",
-      "items": ["Doran's Blade", "Health Potion", "Stealth Ward"]
+      "type": "Start: Q>E>W>E, max E>W>Q",
+      "items": [
+        "Doran's Blade",
+        "Health Potion",
+        "Stealth Ward"
+      ]
     }
   ],
   "core": [
-    {"item": "Essence Reaver", "why": "mana + haste keeps W up"},
-    {"item": "Berserker's Greaves", "why": "attack speed boots"},
-    {"item": "Infinity Edge", "why": "crit spike"},
-    {"item": "Navori Flickerblade", "why": "W cooldown starts on cast"},
-    {"item": "Mortal Reminder", "why": "swap to LDR if no healing"},
-    {"item": "Guardian Angel", "why": "survive the dive"}
+    {
+      "item": "Essence Reaver",
+      "why": "mana + haste keeps W up"
+    },
+    {
+      "item": "Berserker's Greaves",
+      "why": "attack speed boots"
+    },
+    {
+      "item": "Infinity Edge",
+      "why": "crit spike"
+    },
+    {
+      "item": "Navori Flickerblade",
+      "why": "W cooldown starts on cast"
+    },
+    {
+      "item": "Mortal Reminder",
+      "why": "swap to LDR if no healing"
+    },
+    {
+      "item": "Guardian Angel",
+      "why": "survive the dive"
+    }
   ],
   "component_order": {
-    "Essence Reaver": ["Sheen", "Caulfield's Warhammer", "Cloak of Agility"],
-    "Infinity Edge": ["B. F. Sword", "Pickaxe", "Cloak of Agility"]
+    "Essence Reaver": [
+      "Sheen",
+      "Caulfield's Warhammer",
+      "Cloak of Agility"
+    ],
+    "Infinity Edge": [
+      "B. F. Sword",
+      "Pickaxe",
+      "Cloak of Agility"
+    ]
   },
   "situational": [
-    {"when": "they have healing (Soraka, Yuumi, Aatrox...)", "items": ["Mortal Reminder"]},
-    {"when": "2+ tanks, no healing", "items": ["Lord Dominik's Regards"]},
-    {"when": "lockdown ult (Malzahar, Skarner, Warwick...)", "items": ["Mercurial Scimitar"]},
-    {"when": "assassins / burst", "items": ["Guardian Angel", "Immortal Shieldbow", "Maw of Malmortius"]},
-    {"when": "long fights, sustain", "items": ["Bloodthirster"]}
+    {
+      "when": "vs healing",
+      "note": "Soraka, Yuumi, Aatrox, Vladimir...",
+      "items": [
+        "Mortal Reminder"
+      ]
+    },
+    {
+      "when": "vs 2+ tanks",
+      "note": "armor pen without anti-heal",
+      "items": [
+        "Lord Dominik's Regards"
+      ]
+    },
+    {
+      "when": "vs lockdown ult",
+      "note": "Malzahar, Skarner, Warwick, Mordekaiser...",
+      "items": [
+        "Mercurial Scimitar"
+      ]
+    },
+    {
+      "when": "vs burst / assassins",
+      "items": [
+        "Guardian Angel",
+        "Immortal Shieldbow",
+        "Maw of Malmortius"
+      ]
+    },
+    {
+      "when": "vs long fights",
+      "items": [
+        "Bloodthirster"
+      ]
+    }
   ],
-  "consumables": ["Control Ward", "Farsight Alteration", "Oracle Lens"]
+  "consumables": [
+    "Control Ward",
+    "Farsight Alteration",
+    "Oracle Lens"
+  ]
 }
