@@ -14,6 +14,15 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
 - The League client (`LeagueClientUx.exe`) is often running while working; the LCU is
   reachable then, the Live Client API only during a game (Practice Tool works).
 
+## Rust overlay (M1+)
+- `overlay/` is a cargo workspace: `core` (brain, platform-independent) and `src-tauri` (Windows shell).
+  Test the brain in WSL with `cd overlay && cargo test -p featherstorm-core` (rustup lives in ~/.cargo).
+  Build/run the shell on Windows with `scripts/cargo-win.sh build --release` / `scripts/cargo-win.sh run`;
+  it mirrors the sources to `C:\Users\nilsm\code\featherstorm-win`. Never build from the WSL path.
+- The Tauri crate cannot be type-checked from WSL (needs MSVC `lib.exe`), so keep logic in `core`.
+- Never hold a `std::sync::Mutex` guard across an `.await` (clone out, then await).
+- The data pack (`data/pack/*.json`) is embedded with `include_str!`; a pack change needs a rebuild.
+
 ## Conventions
 - `m0/` is stdlib-only Python so it also runs under a bare Windows Python. Scripts import
   sibling modules directly; run them as `python3 m0/<script>.py` from the repo root.

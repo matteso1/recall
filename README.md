@@ -19,7 +19,9 @@ overlay needs was exercised against the real client and a real game.
 | Push a hardcoded Xayah item set into the client | done, visible in the in-game shop; block titles kept to 30 chars because the shop panel truncates |
 | Data Dragon name -> id resolution with local cache | done |
 
-Next: M1, the Tauri overlay (see [docs/notes/dev-setup.md](docs/notes/dev-setup.md) for the build plan).
+**M1 - Xayah overlay: in progress** (started 2026-09-05). Rust workspace in `overlay/`: a
+platform-independent brain crate (`core`, 16 tests, runs in WSL) and a Tauri shell (`src-tauri`)
+built on the Windows side. See [docs/notes/m1-overlay.md](docs/notes/m1-overlay.md).
 
 ## Setup (WSL + Windows)
 
@@ -53,6 +55,13 @@ Useful flags: `--once` (single poll), `--offline` (cached Data Dragon only),
 `--dry-run` on push_itemset, `FEATHERSTORM_TRANSPORT=direct|curl` to force a transport,
 `FEATHERSTORM_LEAGUE_DIR` / `FEATHERSTORM_LOCKFILE` for non-standard installs.
 
+## Building the overlay
+
+```bash
+scripts/cargo-win.sh build --release   # Windows build via a mirrored copy; needs VS Build Tools (C++) on Windows
+cd overlay && cargo test -p featherstorm-core   # the brain's tests, in WSL
+```
+
 ## Layout
 
 ```
@@ -67,6 +76,9 @@ m0/                     "prove the pipe" scripts and library modules
   ddragon.py            Data Dragon fetch/cache, item + champion name resolution
   itemsets.py           names-based spec -> LCU item set; upsert/remove
   tests/                unit tests with JSON fixtures
-data/itemsets/          build specs by item *name* (ids resolved per patch)
+overlay/                M1 Tauri overlay: core/ (brain), src-tauri/ (window + poller + commands), ui/ (panel)
+data/pack/              the data pack: xayah.json (build, runes, spells, matchups), champion_traits.json
+data/itemsets/          M0 item-set spec by item *name* (superseded by data/pack for the overlay)
 data/cache/             Data Dragon cache (gitignored)
+scripts/cargo-win.sh    run cargo for the overlay on the Windows toolchain
 ```

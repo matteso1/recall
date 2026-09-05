@@ -31,7 +31,16 @@ to 127.0.0.1 hits the Linux VM and is refused (confirmed).
    `wslinfo --networking-mode` prints `mirrored` and 127.0.0.1 is shared both ways.
    Revert by deleting the file. Known caveats: some VPN clients dislike mirrored mode.
 
-## M1 build plan (Tauri) - to be settled when M1 starts
+## M1 build setup (settled 2026-09-05)
+- Rust in WSL too (rustup, ~/.cargo) for the brain crate's tests. Cross-checking the Tauri crate
+  from WSL fails (`cc-rs: failed to find tool "lib.exe"`), so the shell is Windows-only.
+- Visual Studio Build Tools 2022 with the C++ workload provide `link.exe`; the standalone Rust MSI
+  does not include them. Installed via `vs_BuildTools.exe --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended`
+  (elevated through `Start-Process -Verb RunAs`; the UAC prompt must be clicked on the Windows side).
+- `scripts/cargo-win.sh` mirrors `overlay/`, `data/pack/` and the test fixtures to
+  `C:\Users\nilsm\code\featherstorm-win` with rsync and runs `cargo.exe` there.
+
+## M1 build plan (Tauri) - original options, kept for the record
 - Build on Windows with the existing Rust MSVC toolchain; `cargo install tauri-cli` there.
   WebView2 ships with Windows 11. Plain HTML/CSS/JS frontend means no Node is needed on
   Windows (WSL Node can prebuild assets if we ever want a bundler).
