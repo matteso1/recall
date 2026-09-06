@@ -36,6 +36,8 @@ while ($true) {
                     $startedByUs = $true
                     $sawClientSinceQuit = $false
                     Log "client up, overlay started"
+                    Start-Sleep -Seconds $PollSeconds
+                    continue
                 } else {
                     Log "client up but the overlay is not built: $Exe"
                     Start-Sleep -Seconds 60

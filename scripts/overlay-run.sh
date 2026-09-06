@@ -22,3 +22,8 @@ fi
 nohup cmd.exe /c start "" "$EXE_WIN" >/dev/null 2>&1 </dev/null &
 sleep 2
 echo "running: $(tasklist.exe 2>/dev/null | tr -d '\r' | grep -c recall.exe) process(es)"
+# Re-arm the auto-start watcher if it is installed (overlay-stop.sh stops it).
+LINK="$(wslpath -u "$WINHOME")/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/Recall auto-start.lnk"
+if [ -f "$LINK" ]; then
+    nohup cmd.exe /c start "" "$(wslpath -w "$LINK")" >/dev/null 2>&1 </dev/null &
+fi

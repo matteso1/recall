@@ -169,16 +169,26 @@ fn a_detour_the_player_answered_with_another_purchase_is_not_offered_again() {
             || second.path.iter().all(|item| item.id != 3123),
     );
 
-    // Buying the detour's own component is progress, not an answer.
+    // A second Long Sword builds into Executioner's but also into the planned Black Cleaver:
+    // that is a purchase for the path, so the detour counts as answered (the recorded Zed game
+    // bought a Long Sword toward Bastionbreaker and got the detour offered again).
     let with_sword = [1101, 3078, 3047, 3067, 1036, 1036];
     let third = plan(
         &snapshot(fixture, Some(200.0), Some(&with_sword)),
         &first.preferences,
     );
+    assert_eq!(third.preferences.declined_detours, vec![3123]);
+
+    // A new trinket or consumable is not an answer.
+    let with_ward = [1101, 3078, 3047, 3067, 1036, 3340, 2055];
+    let fourth = plan(
+        &snapshot(fixture, Some(500.0), Some(&with_ward)),
+        &first.preferences,
+    );
     assert!(
-        third.preferences.declined_detours.is_empty(),
+        fourth.preferences.declined_detours.is_empty(),
         "{:?}",
-        third.preferences
+        fourth.preferences
     );
 }
 

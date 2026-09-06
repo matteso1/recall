@@ -518,8 +518,15 @@ fn builds_into(cat: &Catalog, part: u32, whole: u32) -> bool {
 }
 
 /// An offered detour the player answered by buying something else is declined for the rest of
-/// the game. Progress toward the detour, consumables and trinkets are not an answer.
-fn note_declined_detour(cat: &Catalog, ids: &[u32], preferences: &mut PlannerPreferences) {
+/// the game. Consumables and trinkets are not an answer; neither is a component that builds only
+/// into the detour. A component shared with the planned path (a Long Sword when both an
+/// Executioner's Calling and a Black Cleaver want one) is an answer: it was bought for the path.
+fn note_declined_detour(
+    cat: &Catalog,
+    ids: &[u32],
+    pending: &[u32],
+    preferences: &mut PlannerPreferences,
+) {
     let Some(detour) = preferences.offered_detour else {
         return;
     };
@@ -537,11 +544,13 @@ fn note_declined_detour(cat: &Catalog, ids: &[u32], preferences: &mut PlannerPre
             return false;
         }
         cat.item(id).is_some_and(|item| {
+            let progress = builds_into(cat, id, detour)
+                && !pending.iter().any(|&planned| builds_into(cat, id, planned));
             !item
                 .tags
                 .iter()
                 .any(|t| t == "Consumable" || t == "Trinket")
-                && !builds_into(cat, id, detour)
+                && !progress
         })
     });
     if declined {
@@ -689,7 +698,6 @@ pub(crate) fn select(
         ..Default::default()
     };
     let Some(agg) = inp.aggregate else { return out };
-    note_declined_detour(cat, &ids, &mut out.preferences);
     let choices = pool(inp);
     let mut path = commitment(inp, me);
     let full_committed = path.len() == 6;
@@ -805,6 +813,7 @@ pub(crate) fn select(
         .map(|p| p.id)
         .collect();
     let baseline = pending.first().copied();
+    note_declined_detour(cat, &ids, &pending, &mut out.preferences);
     let baseline_cost = baseline
         .and_then(|id| remaining(inp, id, me, boots_locked, swiftplay).remaining_cost)
         .unwrap_or(1)

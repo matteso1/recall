@@ -72,7 +72,10 @@ const AT_1604: &str =
 fn a_finishable_target_is_kept_while_it_stays_affordable() {
     // 15:14 with the gold of a few seconds later (1500), Oblivion Orb and Blasting Wand owned:
     // Morellonomicon (1200 left) can be finished, Rylai's (1750 left) cannot.
-    let first = plan(&snapshot(AT_1514, Some(1500.0)), &PlannerPreferences::default());
+    let first = plan(
+        &snapshot(AT_1514, Some(1500.0)),
+        &PlannerPreferences::default(),
+    );
     let target = first.next.as_ref().expect("a recommendation");
     assert_eq!(target.id, MORELLO, "{target:?}");
     assert!(target.buy_now_affordable);
@@ -90,7 +93,10 @@ fn a_finishable_target_is_kept_while_it_stays_affordable() {
 
 #[test]
 fn the_kept_target_gives_way_once_it_is_bought_or_no_longer_affordable() {
-    let first = plan(&snapshot(AT_1514, Some(1500.0)), &PlannerPreferences::default());
+    let first = plan(
+        &snapshot(AT_1514, Some(1500.0)),
+        &PlannerPreferences::default(),
+    );
     // 16:04: the player bought Rylai's instead and holds 470 gold. Morellonomicon is no longer
     // affordable, so ordinary scoring decides again; it is still the next item on the path.
     let after = plan(&snapshot(AT_1604, None), &first.preferences);
@@ -120,7 +126,10 @@ fn the_kept_target_gives_way_once_it_is_bought_or_no_longer_affordable() {
 
 #[test]
 fn a_pin_overrides_the_kept_target() {
-    let first = plan(&snapshot(AT_1514, Some(1500.0)), &PlannerPreferences::default());
+    let first = plan(
+        &snapshot(AT_1514, Some(1500.0)),
+        &PlannerPreferences::default(),
+    );
     let pinned = PlannerPreferences {
         pinned_item: Some(RYLAIS),
         ..first.preferences.clone()
