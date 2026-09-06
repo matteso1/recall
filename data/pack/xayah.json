@@ -8,7 +8,7 @@
     {"item": "Berserker's Greaves", "short": "Greaves", "role": "boots", "why": "attack speed boots"},
     {"item": "Infinity Edge", "short": "IE", "role": "damage", "why": "the crit spike",
      "components": ["B. F. Sword", "Pickaxe", "Cloak of Agility"]},
-    {"item": "Navori Flickerblade", "short": "Navori", "role": "damage", "why": "W cooldown refunds on crit"},
+    {"item": "Navori Flickerblade", "short": "Navori", "role": "damage", "why": "attacks reduce remaining basic ability cooldowns"},
     {"item": "Lord Dominik's Regards", "short": "LDR", "role": "armor_pen", "why": "armor pen for the late game"},
     {"item": "Guardian Angel", "short": "GA", "role": "defensive", "why": "survive the dive"}
   ],
@@ -38,26 +38,26 @@
     "The Collector": "Collector", "Kraken Slayer": "Kraken", "Lord Dominik's Regards": "LDR"
   },
   "matchups": {
-    "Tristana": {"line": "vs Tristana: loses the lvl 2 all-in, wins after 2 items. Don't fight before 3."},
-    "Draven": {"line": "vs Draven: he wins early trades. Farm safe, root him when he catches an axe."},
-    "Caitlyn": {"line": "vs Caitlyn: she out-ranges you. Farm with Q feathers, all-in when her trap is down."},
-    "Ezreal": {"line": "vs Ezreal: poke lane. Stand behind minions, punish when his E is down."},
-    "Jinx": {"line": "vs Jinx: you win lvl 2-5 if E roots land. Don't let her scale for free."},
-    "Kai'Sa": {"line": "vs Kai'Sa: even lane, you win 2-item fights. Respect her lvl 6 dive."},
-    "Lucian": {"line": "vs Lucian: he wins short trades. Trade only when your W is up."},
-    "Samira": {"line": "vs Samira: root her before she reaches melee. Mercurial if she gets fed."},
-    "Ashe": {"line": "vs Ashe: she slows, you root. Take Cleanse if her R keeps landing.", "spells": ["Flash", "Cleanse"]},
-    "Vayne": {"line": "vs Vayne: bully her early. She outscales unless you are two items ahead."},
-    "Miss Fortune": {"line": "vs Miss Fortune: dodge Q bounces behind minions; her R is stopped by your R."},
-    "Jhin": {"line": "vs Jhin: poke lane. Trade when he reloads; his 4th shot is the threat."},
-    "Zeri": {"line": "vs Zeri: she scales harder. Push early, root her when she dashes in."},
-    "Smolder": {"line": "vs Smolder: bully him before stacks. Do not let him farm freely."},
-    "Sivir": {"line": "vs Sivir: her shield eats one E root. Bait the shield, then commit."},
-    "Aphelios": {"line": "vs Aphelios: watch his weapon; all-in during Gravitum/Infernum windows."}
+    "Tristana": {"line": "vs Tristana: her bomb rewards repeated attacks on one target. Watch its stacks before extending a trade."},
+    "Draven": {"line": "vs Draven: axe landing markers reveal where he wants to move; use that information when placing feathers."},
+    "Caitlyn": {"line": "vs Caitlyn: her basic attacks have longer range. Avoid giving up health for a single minion."},
+    "Ezreal": {"line": "vs Ezreal: minions can block his Q. Check the minion line before taking a trade."},
+    "Jinx": {"line": "vs Jinx: rockets give her extra attack range. Feather placement matters more than chasing her."},
+    "Kai'Sa": {"line": "vs Kai'Sa: isolation makes her Q more concentrated. Your nearby minions can share those missiles."},
+    "Lucian": {"line": "vs Lucian: his passive adds attacks after abilities. A short dash forward can signal a burst trade."},
+    "Samira": {"line": "vs Samira: her blade whirl blocks projectiles. Mercurial does not cancel her ultimate."},
+    "Ashe": {"line": "vs Ashe: Cleanse can remove her arrow's stun; it does not prevent the arrow's damage.", "spells": ["Flash", "Cleanse"]},
+    "Vayne": {"line": "vs Vayne: her third Silver Bolts hit adds true damage. Avoid extending every trade to three hits."},
+    "Miss Fortune": {"line": "vs Miss Fortune: watch for Q bounces from low-health minions. Featherstorm does not interrupt her ultimate."},
+    "Jhin": {"line": "vs Jhin: his fourth shot is a guaranteed critical hit, followed by a reload. Watch his ammo indicator."},
+    "Zeri": {"line": "vs Zeri: minions can block her Q shots. Keep your escape route clear of walls she can cross."},
+    "Smolder": {"line": "vs Smolder: his passive scales with stacks, not just items. His level alone does not describe his damage."},
+    "Sivir": {"line": "vs Sivir: her spell shield can block an ability. Account for it before relying on a feather root."},
+    "Aphelios": {"line": "vs Aphelios: his visible weapons change what he can do. Gravitum adds a root threat."}
   },
   "notes": [
-    "Base path follows docs/design.md 5.3. LDR is the default armor-pen slot; the anti-heal rule swaps it to Mortal Reminder.",
-    "op.gg 16.17: Yun Tal -> Navori -> IE is the most-picked line (32%), the ER line is second (25%).",
-    "Matchup lines are hand-written and short by design; they are the 'why', not a guide."
+    "Legacy M0 fields (start, core, runes, spells) are retained for old probe scripts only. The Rust planner never uses them as build defaults.",
+    "The production base path, loadout and skill order come from aggregate evidence. Alternatives are discovered through item effects, not this pack's preferred slots.",
+    "Matchup notes describe visible mechanics, not predicted lane winners or enemy cooldowns."
   ]
 }

@@ -1,162 +1,282 @@
-# Smart Build Overlay for League of Legends — Design Doc
-**Working name:** Featherstorm (placeholder)
-**Author:** matteso
-**Status:** Draft v0.1 — September 2026
-**Platform:** Windows, League of Legends (PC)
----
+# Featherstorm — design
+
+Working name: Featherstorm. Owner: matteso. Platform: Windows / League of Legends.
+Revision: action-first, universal build engine, September 2026.
+
 ## 1. The problem
-Every current companion app (op.gg, Blitz, U.GG, Mobalytics, Porofessor) does the same thing: it looks up the highest-win-rate build for your champion across millions of games and imports it. That build is chosen *before the game* and never changes. It doesn't know the enemy has Soraka. It doesn't know you're into a triple-tank comp. It doesn't know you're behind. It shows the first 3 items and stops because the stats run thin after that.
-The result: a Xayah player sees "Essence Reaver → Greaves → IE" every single game and has to alt-tab to Skill Capped mid-game to figure out whether to buy Mortal Reminder or Lord Dominik's. That defeats the point of an overlay.
-**What players actually need at the shop is one answer:** "Buy this next. Here's why, in five words." And that answer should already account for who's on the other team.
+
+A beginner reaches the shop and does not know what to buy. A popular build is a
+useful starting point, but it does not account for this inventory, affordable
+upgrades, the visible enemy items, or an explicit preference for more protection.
+
+Featherstorm supplies one best-supported next purchase and a short reason.
+Learning happens through repeated, concrete decisions. It is not a quiz,
+self-reflection exercise, or a replacement for practicing mechanics.
+
 ## 2. Goals
-1. **One on-screen panel** that shows the full build path (start → 6 items + boots), in order, adapted to the actual lobby. Not just three items.
-2. **Enemy-comp aware.** Anti-heal if they have healers. Armor pen earlier if they have 2+ tanks. QSS if they have lockdown ults. Defensive item swaps against assassins or heavy poke.
-3. **Lane-matchup aware.** The specific opponent in your lane changes first item, starting item, and sometimes summoner spells.
-4. **Skill-order guidance.** Show the next ability to level based on current meta skill path, with a highlight when you level up.
-5. **Import into the client** like op.gg does: runes, summoner spells, and the item set (so the ordered build also appears inside the in-game shop's "recommended" tab).
-6. **Lightweight and Riot-compliant.** No Overwolf, no ads, no memory reading, under 100 MB RAM.
-## 3. Non-goals (v1)
-- Jungle timers, objective timers, teammate ult tracking (Blitz/Porofessor already do this and it's a different product)
-- Post-game analytics / performance scores (Mobalytics territory)
-- Pre-game player scouting (rank, win rate of each lobby member) — nice to have, not core
-- macOS support
-- Anything that reads hidden info (enemy cooldowns, fog of war, spectator data). Riot banned enemy ult alerts in overlays in 2025; we stay well clear of that line.
-## 4. What existing tools do (research summary)
-| Tool | Build source | Adapts to enemy comp? | Full 6-item path? | Skill order | Imports to client | Overlay | Runs on |
-|---|---|---|---|---|---|---|---|
-| **op.gg app** | Highest WR aggregate | No | No (3 core items) | Yes (static) | Runes, spells, item set | Yes, Electron | Standalone |
-| **Blitz** | Highest WR aggregate | No | Partial | Yes (static) | Runes, spells, item set — best auto-import | Yes, feature-rich, heavy RAM/ads | Standalone (Electron) |
-| **U.GG** | High-elo aggregate | No | Partial | Yes (static) | Runes, item set | Yes, minimal | Standalone |
-| **Mobalytics** | Highest WR aggregate | No | Partial | Yes (static) | Runes, item set | Yes, data-heavy | Overwolf |
-| **Porofessor** | Aggregate | No | No | Yes (static) | Runes | Yes, scouting-focused, dated | Overwolf |
-| **Hexgate** | WR filtered by enemy comp | **Yes** — scores items vs enemy damage split, CC, healing, tankiness | Yes, slot by slot | No | Runes only | Yes, minimal (Tauri) | Standalone |
-| **buildzcrank / iTero** | AI + live game state | Partially | Partial | No | Varies | Yes | Standalone |
-Key takeaways:
-- Only Hexgate does real adaptive itemization, and it only starts once the game loads (it uses the Live Client Data API, not champ select). It has no skill-order guidance and doesn't import item sets.
-- Nobody combines: adaptive build + full ordered path + skill order + one-click import + lane matchup context in one panel.
-- The "why" is missing everywhere. Skill Capped writes the reasoning but it's a website, not an overlay.
-- Ads and RAM are the two most-hated things about the big apps. Both are solvable by not being an ad business and not shipping a Chromium instance.
-**Our differentiator, in one line:** the adaptive brain of Hexgate, the auto-import of Blitz, the reasoning of Skill Capped, in a panel the size of op.gg's.
+
+1. One compact panel: a purchasable component or completed item, exact remaining
+   price, one short reason, and the next legal ability point when supported.
+2. A coherent path of up to six inventory items **including boots**, with starters
+   shown separately. Respect purchases and never imply automatic sales.
+3. Any champion and role use their own aggregate loadout and shared planning
+   algorithms. No Xayah-only decision rules or hidden preferred build files.
+4. Adapt when visible evidence and purchase timing justify it, not to meet a
+   quota of differences from the popular build.
+5. Import runes, spells, and an ordered item set during allowed client phases.
+6. Keep explanations optional, state honest, local computations inexpensive,
+   and gameplay decisions under the player's control.
+
+## 3. Non-goals for this implementation
+
+No hidden-state inference, enemy cooldown/ult tracking, positioning/combat orders,
+automated purchases or movement, rank scouting, performance grades, or LLM.
+No promise to solve League's complete strategic decision space from this API.
+ARAM/Arena need mode-specific data and rules and are paused, not approximated.
+
+## 4. Product positioning
+
+The differentiator is the combination of a concrete purchase, correct inventory
+accounting, a short evidence-grounded explanation, and unobtrusive controls.
+Earlier competitor comparisons were exploratory research, not verified current
+feature claims. Product scope should be driven by player needs and tests, not
+claims that another app cannot adapt builds.
+
 ## 5. User experience
-### 5.1 Champ select
-- Overlay detects champ select via the LCU API and reads: your champion, your assigned role, all 10 champions as they lock in.
-- Panel shows: the runes + summoners most players run on this patch (set in the client automatically when you pick; the buttons re-import), starting item, and a **live-updating build path** that shifts as enemies lock in.
-- Small tag next to any item that changed from the default, e.g. `Mortal Reminder (Soraka)`.
-- Lane matchup line: "vs Tristana — loses lvl 2 all-in, wins after 2 items. Don't fight before 3."
-### 5.2 Loading screen
-- Final build locked. Item set written to the client so it appears in the shop.
-- One-sentence game plan for your lane + one for teamfights.
-### 5.3 In game (the main panel)
-Single compact panel, default bottom-right above the minimap area, draggable, hotkey to collapse. Contents:
+
+### 5.1 Champion select
+
+Read the identified champion, assigned role, current spells, and visible rosters.
+Prepare the champion/role's aggregate loadout. Auto-import switches are independent;
+buttons retry manually. Keep Flash on its existing key and respect observed manual
+spell edits. Reuse an editable Featherstorm rune page without deleting it first.
+
+A matchup note is either curated factual context or an explicitly labeled
+aggregate matchup record. Counters are whole-game outcomes, not lane win rates or
+conditional item-value evidence. An ambiguous lane opponent is not guessed from a
+contradictory trait tag.
+
+### 5.2 Loading and short champion selects
+
+Draft shows the last supported loadout. Swiftplay (verified queue 480) instead prepares
+both champion/role choices in the lobby, before queueing. Read `localMember.playerSlots`
+and update the local player-slots array, preserving champion, role, skin, unknown fields,
+and each choice's Flash key. Runes stay attached to each choice; role-specific item-set
+titles/UIDs prevent collisions when the same champion occupies both choices.
+
+Show one readiness row per choice. Successful reads back from the client, not merely
+completed requests, establish saved status. Unknown/malformed choices fail closed;
+manual edits are kept, including when the other choice changes. Stale observations
+expire readiness after six seconds. Imports pause outside Lobby and uncertain queue
+identity cannot trigger ordinary draft imports. Fresh reads reject detected concurrent
+edits; LCU supplies no compare-and-swap primitive for the final HTTP race.
+
+The assigned live champion/role is authoritative. A prequeue role is only a fallback
+when that champion has one unambiguous chosen role. Enemies become known in game;
+prequeue preparation does not invent a matchup. Launching after assignment cannot
+repair missed runes/spells, and the shop may cache its initial item set.
+
+### 5.3 In game
+
+The collapsed information hierarchy is:
+
+1. **Recommended shop buy**: component/item name and its actual current price; or
+   **Save for** with the gold still needed.
+2. One reason, derived from the action actually selected.
+3. Small planned-item strip and the next supported skill point.
+4. **Why & options**, closed by default.
+
+Expanded details show the reusable principle, tradeoff, closest alternative,
+components, source uncertainty, and optional **More protection**, target pin, and
+**Auto** controls. No prompt forces the beginner to reason out the answer first.
+
+Do not say “recall now”: these inputs cannot establish a safe recall. Gold available
+does not mean the player is at a shop. “Recommended shop buy” is deliberate.
+
+No fresh player identity/advancing live data for six seconds means purchase and
+skill advice pause, including when the UI event stream itself stalls. Unknown
+prices never render as zero-gold buys. Explicit read-only demos are labeled separately.
+
+### 5.4 After the game and settings
+
+Show up to eight recent decision records with optional Useful / Not useful feedback.
+Observed purchases are not treated as mistakes, recommendation compliance, or proof
+of performance. The local journal is bounded and stores no player identifiers.
+
+Panel position and independent auto-import switches are in local settings; region
+and tier are explicit source parameters. Balanced/protection and target pins are
+match-scoped. A full settings dashboard, adjustable opacity, and champion prefetch
+are not implemented.
+
+## 6. The build engine
+
+### 6.1 Evidence and data boundaries
+
+- op.gg champion/role aggregates provide popularity, games/wins, rune pages,
+  spells, core lines, starters, boots, skills, late items, and single-opponent
+  counters. They contain no per-match rows, timing, or full-comp conditioning.
+- Data Dragon provides current-patch names, numeric stats, prices, recipes, tags,
+  restrictions, and narrowly parsed effects. Unknown description mechanics stay
+  unknown. Published item groups are used where membership is available; tested,
+  explicit family rules cover known gaps, not arbitrary preferred builds.
+- Champion traits are weak, manually reviewed priors, not an authoritative damage
+  simulator. Typed, verified cleanse interactions replace the broad
+  “lockdown ult implies QSS” rule. Schema checks catch invalid data; reviewed
+  scenarios catch known semantic mistakes, not every incorrect tag automatically.
+- Xayah's pack retains factual matchup notes and labels only. Legacy preferred
+  item/rune/spell fields do not drive the planner. Without compatible aggregate
+  data, pause; never borrow a different champion or role.
+
+Aggregate requests are bounded, validated before cache promotion, and cached six
+hours. Keep provenance and patch snapshots; never add overlapping refreshes or
+tiers to manufacture sample size. Stale fallback is labeled.
+
+### 6.2 Objective and candidate comparison
+
+This is an explicit **purchase-utility heuristic**, not expected win probability:
+
+```text
+score = popular-order prior + completion / existing investment
+        + useful situational coverage - delay / opportunity cost
 ```
-┌─────────────────────────────────────┐
-│ NEXT: Infinity Edge         3400g   │  ← big, one item, the answer
-│  ├ B.F. Sword ✓                     │  ← components, ticks as you buy
-│  ├ Pickaxe                          │
-│  └ Cloak of Agility                 │
-│                                     │
-│ Path: ER ✓ · Greaves ✓ · IE · Navori│
-│       · Mortal Rem. · GA            │
-│                                     │
-│ LVL UP → E  (max E > W > Q)         │  ← flashes on level-up
-│                                     │
-│ ⓘ Mortal Reminder over LDR: Soraka  │  ← one line of "why"
-└─────────────────────────────────────┘
+
+Legality comes before score: correct map/store/champion/loadout, item-family
+exclusions, actual inventory, recipe consumption, boots, and slot capacity.
+The same constraints apply to a player-selected target. Free quest upgrades are
+real purchases; transformed owned items are not new targets.
+
+Candidates come from that champion/role's observed core lines, finished late items,
+boots, and relevant recipe components. Preserve completed/quest inventory, filter
+incompatible candidates, and make a bounded deterministic comparison. Early
+components do not count as completed alternate first items. Full builds do not
+start a seventh item; legal quest transformations still work with six occupied slots.
+
+Scores combine observed resistance needs, visible healing items plus weak healing
+priors, equipment/level-weighted physical and magical pressure, and dive/poke
+context. Existing coverage reduces duplicated investment. Ally anti-heal is
+uncertain coverage, never proof every target is covered. Offensive candidates must
+fit the champion's aggregate-derived itemization archetype.
+
+Weights live as documented Rust policy constants. Completion can beat a modest
+situational preference. No binary AD/AP majority vote, “two tank tags means move a
+slot,” or KDA-based Navori rule remains. Final-decision explanations cannot describe
+an earlier rule that another rule later undid.
+
+The observed most-picked core remains the baseline. Wilson intervals and a
+Newcombe difference interval describe uncertainty; neither identifies causation.
+The Xayah fixture's alternate-minus-popular interval includes zero. No automatic
+winner search across many lines, undocumented previous-patch shrinkage, or fitted
+model is claimed.
+
+### 6.3 Purchase planning and live input
+
+Every two seconds, summarize own gold, inventory, abilities, actual rune/spell
+loadout, and visible players/items/levels. Own equipped value versus a plausible
+lane opponent can describe **visible equipment difference**, never hidden wallets,
+earned gold, or a causal “behind” state.
+
+Recursively allocate owned recipe items exactly once, including repeated parts and
+verified transformations. Quote the remaining price, simulate component purchases
+and freed slots, and prefer feasible completed upgrades/useful stat gain with
+deterministic ties. Return one primary purchase, a small legal basket, or the
+cheapest feasible saving step. Do not infer passive value that was not parsed.
+
+This is a greedy bounded shop optimizer. The hard problem is scoring long-term
+power, not enumerating all possible six-item permutations. Exact combat simulation,
+time-to-recall prediction, and learned comp-conditioned item values need data not
+available here.
+
+### 6.4 Local models
+
+No model runtime is shipped. Current templates are faster, deterministic, and
+faithful to decision evidence. A future statistical model would need timestamped
+match decisions, legal candidate actions, calibration, patch/time-separated
+evaluation, and safeguards against selection/survivorship bias. An LLM may
+eventually phrase a verified reason, never select the item or invent gameplay facts.
+
+## 7. Architecture and storage
+
+```text
+LCU observations ───────┐
+Live observations ─────┼─> session/freshness guards ─> pure Rust planner ─> compact UI
+validated aggregates ──┤                                │
+patch item catalog ────┘                                └─> bounded local journal
 ```
-- **Next item** is computed from your current inventory + gold (from Live Client Data API), so "what do I buy right now" is always literal.
-- **Path** updates during the game as conditions change (enemy tank builds armor → LDR/Mortal moves up; enemy carry fed → defensive item moves up).
-- **Skill level-up** flashes the recommended ability for ~3 seconds when your level increases.
-- Hovering "ⓘ" shows the full reasoning. Never more than two lines by default.
-### 5.4 Settings
-- Auto-import on/off (runes, spells, item set independently)
-- Panel position, scale, opacity
-- "Quiet mode": hide path and reasoning, show only NEXT item + level-up
-- Champion pool: mark your mains so their builds are pre-cached and tuned
-## 6. How the build brain works
-### 6.1 Data layer
-- **Base builds:** per champion + position, from op.gg's champion API (the JSON behind op.gg's own champion pages), fetched when you pick in champ select and cached for six hours: rune page, summoner spells, skill order, starting items, core items, boots, late items, counters. Nothing in the base build is hand-tuned; a new patch shows up on its own. The rune page and spells are put into the client automatically at pick (settings can turn that off).
-- **Matchup builds:** per champion + role + lane opponent where sample size allows (first item, start item, summoner swap).
-- **Champion trait tags:** each champion tagged with: damage type (AD/AP/mixed), healing/shielding provided, tankiness scaling, hard CC (and whether it's a lockdown ult), burst/assassin, poke/sustain, mobility. Manually maintained, small file, patched when champs change.
-- **Item trait tags:** each item tagged with what it answers: anti-heal, armor pen, magic pen, MR, armor, anti-burst, anti-CC (QSS), sustain, mobility.
-### 6.2 Scoring
-For each item slot, start from the base build for that slot, then apply rules from the enemy comp. Rules are explicit and readable (not a black box), e.g.:
-```yaml
-- when: enemy.healing_sources >= 1 and not team.has_antiheal
-  then: prefer Mortal Reminder over Lord Dominik's
-  reason: "{healer} heals — nobody else has anti-heal"
-- when: enemy.tanks >= 2
-  then: move armor_pen item up one slot
-  reason: "{tanks} both build armor"
-- when: enemy.lockdown_ults >= 1
-  then: replace last damage item with Mercurial Scimitar
-  reason: "QSS cleanses {champ} ult"
-- when: enemy.assassins >= 2 or (enemy.fed_carry is assassin)
-  then: move defensive item (GA / Shieldbow) to slot 4
-  reason: "{champ} will dive you"
-```
-Rules are champion-agnostic where possible so they scale across the roster. Champion-specific overrides live in a small per-champion file (e.g. Xayah: "prefer Navori over other haste items because W CD starts on cast").
-### 6.3 Live adjustments
-- Read Live Client Data (`https://127.0.0.1:2999/liveclientdata/allgamedata`) every ~2s: your items, gold, level, game time; enemy items (visible in-game via Tab, so it's public info); scoreboard KDA.
-- Recompute "NEXT" from current inventory: which component of the target item is affordable now.
-- Re-run rules when relevant facts change (enemy buys Thornmail → armor pen bumps up; you're 0/4 → Navori before IE for a cheaper spike).
-### 6.4 Optional LLM layer (v2)
-A small model call at champ select can turn the rule output + matchup into the one-sentence lane plan. Rules make the decisions; the model just writes the sentence. Never let it pick items.
-## 7. Architecture
-```
-┌──────────────────────────────────────────┐
-│  Overlay app (Tauri: Rust core + webview) │
-│                                          │
-│  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ LCU      │  │ Live     │  │ Build   │ │
-│  │ client   │  │ Client   │  │ engine  │ │
-│  │ (champ   │  │ Data     │  │ (rules  │ │
-│  │ select,  │  │ poller   │  │ + data) │ │
-│  │ imports) │  │          │  │         │ │
-│  └────┬─────┘  └────┬─────┘  └────┬────┘ │
-│       └─────────────┴─────────────┘      │
-│                     │                    │
-│              ┌──────┴──────┐             │
-│              │ Overlay UI  │             │
-│              │ (HTML/CSS)  │             │
-│              └─────────────┘             │
-└──────────────────────────────────────────┘
-            │ once per patch
-            ▼
-   Build/rune/matchup data pack (JSON, ~few MB)
-```
-- **Tauri** over Electron: Hexgate proved this gets an overlay under 100 MB RAM. Rust handles the LCU auth (lockfile → port + password), polling, and window management; the UI is plain web.
-- **LCU API** (local, authenticated via the client's lockfile): champ select session, rune page CRUD, summoner spell selection, item sets. This is the same mechanism op.gg and Blitz use for imports.
-- **Live Client Data API** (local, `127.0.0.1:2999`, Riot-provided): all in-game data we need. No memory reading, no packet sniffing.
-- **Data pack**: shipped as JSON, updated each patch from a small server or GitHub release. The app works offline with the last pack.
-- Overlay window: transparent, always-on-top, click-through except on the panel itself. Works in borderless/windowed; fullscreen exclusive needs a fallback (same limitation every overlay has).
-## 8. Riot compliance
-Riot's stated rules for LoL third-party apps (developer.riotgames.com/docs/lol) permit game overlays showing static data available before the game and aggregate stats, and prohibit apps that provide game-session information previously unknown to the player, or that dictate player decisions. Build recommendation overlays, win-rate trackers, and real-time build suggestions are explicitly allowed and are used in ranked by Blitz, Hexgate, op.gg, etc.
-How we stay inside the lines:
-- **Only public data.** Enemy champions, their visible items, KDA, and game time are all things the player can see by pressing Tab. We never surface cooldowns, fog-of-war positions, or spectator data.
-- **Recommend, don't dictate.** Everything is phrased as "recommended next" with a reason; the player chooses. No "go here now" instructions.
-- **No enemy ability/ult timers.** Banned by Riot in March 2025. Not building it.
-- **No ads in the overlay.** Riot banned in-game overlay ads in mid-2025 anyway; we simply aren't an ad product.
-- **Official local APIs only.** LCU + Live Client Data. No game-file modification, no injection.
-- If we ever want to pull per-player match history (scouting), we need a production API key and must follow RSO/opt-in rules. Out of scope for v1.
-## 9. Milestones
-**M0 — Prove the pipe (1–2 weeks)**
-Python script: connect to LCU, print champ select as champs lock in; connect to Live Client Data, print your items/gold every 2s. Push a hardcoded Xayah item set into the client. Confirms every integration works before writing UI.
-**M1 — Xayah-only overlay (3–4 weeks)**
-Tauri overlay with the panel from §5.3. Data pack for Xayah only (all matchups, full paths). Rule engine with the ~10 core comp rules. Manual rune/spell/item-set import buttons. Dogfood in real games. *Status 2026-09-05:* built; after the first dogfood the base build moved from the hand pack to the op.gg aggregate for every champion, with auto-import at pick; the pack keeps the Xayah matchups and rules.
-**M2 — All ADCs (3–4 weeks)**
-Extend data pack to every bot-lane champion. Auto-import toggle. Skill level-up highlight. Reasoning tooltips. Settings panel.
-**M3 — All roles + polish (ongoing)**
-Full roster. Patch-day data refresh pipeline. Live adjustments (enemy armor → pen bump, behind → cheaper spike). Optional LLM one-liner for lane plan.
-**Later / maybe**
-Loading-screen scouting (needs production key), TFT/Arena (no — Riot restricts Arena item WR display), macOS.
-## 10. Open questions
-- **Data licensing.** Scraping U.GG/op.gg at scale is against their terms. Options: license a feed, aggregate from Riot's Match-v5 API ourselves (needs production key and real infra), or start with a hand-curated pack for a small champion pool and expand. *Decided 2026-09-05:* the base build comes from op.gg's champion API, one small request per champion pick, cached six hours; that is one user's champ selects, not scraping at scale, but it is their site data and not a licensed feed. U.GG and Lolalytics sit behind bot protection. If op.gg closes the endpoint the source is one file (`overlay/core/src/aggregate.rs`) and the hand pack still works as the offline fallback. Hand-curation is kept only for what an aggregate cannot know: matchup lines, alternatives, the enemy-comp rules.
-- **Component ordering.** Which component to buy first inside an item is itself meta-dependent (e.g. B.F. Sword vs Pickaxe first). Base builds should include component order, not just finished items.
-- **Fullscreen.** League in exclusive fullscreen breaks every overlay. Detect and nudge the user to borderless, like the other apps do.
-- **What counts as "behind"?** Gold diff vs lane opponent at 10/15 min is the obvious signal; needs tuning so the panel doesn't flip-flop.
-- **Panel real estate.** The mockup in §5.3 is ~8 lines. Needs testing at 1080p and 1440p to make sure it doesn't cover anything that matters in a fight.
-## 11. Success criteria
-- A new player can open the shop, look at one spot on screen, and know exactly what to click. Zero alt-tabs.
-- The build shown differs from the op.gg default in a meaningful share of games (target: >40%), and the change is explainable in one line every time.
-- Under 100 MB RAM, no measurable FPS impact.
-- Zero features that would be at risk under Riot's current third-party policy.
+
+LCU/live loops remain independent of remote fetching. Aggregate results carry an
+exact champion/role/source generation; stale tasks cannot replace a new request.
+Imports are validated again before writes and acknowledgments. Local preferences
+recompute immediately without a remote request or a gameplay action.
+
+The journal keeps at most 20 sessions, 80 significant decisions and 160 observed
+purchases per session, with a two-megabyte serialized bound. Mid-game inventory is
+a starting observation, not a list of purchases. Writes are asynchronous/coalesced;
+corrupt prior files are preserved and errors surfaced. Abrupt process termination
+can still lose an unflushed tail.
+
+Tauri uses the Windows system webview. Borderless/windowed use is the supported
+deployment target. Memory/FPS targets require measurement on the actual gaming
+machine; architecture choice alone does not prove them.
+
+## 8. Riot compliance boundary
+
+Only LCU and Live Client Data supply game-session observations. Public catalogs
+and aggregates supply general knowledge. Do not read memory, inject code, modify
+game files, infer unseen positions, obtain enemy wallets/cooldowns, or automate
+gameplay. A clear recommendation with a reason remains optional; short wording is
+not itself an exemption from policy.
+
+Riot prohibits previously unknown session information, unfair advantages, and
+products that remove player decisions. Registration/review requirements still
+apply to products using undocumented APIs. Featherstorm is an independent local
+prototype, **not certified or endorsed**. Recheck current policy and obtain the
+necessary review before distributing or expanding the scope.
+See [Riot's policies](https://developer.riotgames.com/docs/lol/).
+
+Match-v5 training data is future work and would require appropriate API access and
+data handling. It does not authorize expanding live inputs beyond this boundary.
+
+## 9. Implementation stages
+
+- Historical M0 proved LCU/live connectivity and item-set import using Xayah.
+- The initial overlay moved base loadouts to aggregates across the roster.
+- This revision adds shared adaptive scoring, shop correctness, source/session
+  guards, action-first UI, player controls, local recaps, and offline evaluation.
+- Follow-up work should come from reviewed real-game failures and data coverage.
+  Mode-specific support, nonstandard ability leveling, and trained models are
+  separate validated extensions, not promises bundled into this revision.
+
+## 10. Remaining limitations
+
+The op.gg endpoint is unofficial/unlicensed; caching does not settle licensing.
+Data Dragon description parsing and fallback exclusivity families are incomplete
+and patch-sensitive. Static champion traits cannot estimate actual damage dealt.
+
+The shared skill helper is disabled for Aphelios/Udyr and transformation/early-ult
+cases Jayce/Elise/Nidalee/Karma until rank mechanics are modeled. Item advice still
+works. Special item mechanics beyond the represented catalog must fail
+conservatively; cross-champion fixtures do not prove exhaustive roster coverage.
+
+Replay on historical snapshots cannot identify the outcome of a different build.
+Recorded equipment prices omit consumables spent, sales, upgrades, unspent gold,
+and timing. User feedback is subjective evidence, not a win label. Fullscreen
+exclusive behavior, live import races, and Windows resource impact still need
+controlled in-client checks.
+
+## 11. Success criteria and evaluation
+
+- At the shop, a beginner can identify one legal, affordable purchase—or the exact
+  amount still needed—without reading an essay.
+- Prices match independent fixture arithmetic; no invalid component purchases,
+  seventh-item suggestions, stale-state actions, or wrong-champion defaults.
+- Meaningful adaptations have a short, traceable reason and do not arise merely
+  from noisy gold ticks or a rule-order accident.
+- Measure baseline deviation descriptively, **not a >40% target to optimize**.
+  Improvement means better reviewed decisions, fewer wrong recommendations, and
+  stronger legal/data coverage.
+- Keep planner latency comfortably inside the two-second observation interval;
+  measure actual Windows RAM/FPS separately.
+- Offline gates: scenario tests, real-aggregate role fixtures, captured-state
+  legality replay, headless runtime transitions, browser interaction tests,
+  independent code review, and a Windows build.
+- Policy compliance is an ongoing review requirement, not a zero-risk claim.

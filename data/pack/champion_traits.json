@@ -65,6 +65,7 @@
     "bottom"
    ],
    "lockdown_ult": true,
+   "control": {"ability": "Enchanted Crystal Arrow", "kind": "stun", "verified_patch": "16.17"},
    "poke": true
   },
   "Aurora": {
@@ -236,8 +237,7 @@
     "middle"
    ],
    "assassin": true,
-   "burst": true,
-   "lockdown_ult": true
+   "burst": true
   },
   "Galio": {
    "damage": "ap",
@@ -504,7 +504,6 @@
    "roles": [
     "middle"
    ],
-   "tank": true,
    "lockdown_ult": true,
    "burst": true
   },
@@ -545,7 +544,8 @@
    "roles": [
     "middle"
    ],
-   "lockdown_ult": true
+   "lockdown_ult": true,
+   "control": {"ability": "Nether Grasp", "kind": "suppression", "verified_patch": "16.17"}
   },
   "Maokai": {
    "damage": "ap",
@@ -591,8 +591,7 @@
    "roles": [
     "top"
    ],
-   "tank": true,
-   "lockdown_ult": true
+   "tank": true
   },
   "Morgana": {
    "damage": "ap",
@@ -890,7 +889,8 @@
     "top"
    ],
    "tank": true,
-   "lockdown_ult": true
+   "lockdown_ult": true,
+   "control": {"ability": "Impale", "kind": "suppression", "verified_patch": "16.17"}
   },
   "Smolder": {
    "damage": "mixed",
@@ -1111,13 +1111,14 @@
    "healing": true
   },
   "Warwick": {
-   "damage": "ad",
+   "damage": "mixed",
    "roles": [
     "jungle",
     "top"
    ],
    "healing": true,
-   "lockdown_ult": true
+   "lockdown_ult": true,
+   "control": {"ability": "Infinite Duress", "kind": "suppression", "verified_patch": "16.17"}
   },
   "Wukong": {
    "damage": "ad",
@@ -1191,8 +1192,7 @@
     "middle"
    ],
    "assassin": true,
-   "burst": true,
-   "lockdown_ult": true
+   "burst": true
   },
   "Zeri": {
    "damage": "ad",

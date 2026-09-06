@@ -46,20 +46,18 @@ fn ids(cat: &Catalog, names: &[String]) -> Vec<u32> {
     names.iter().filter_map(|n| cat.item_id(n)).collect()
 }
 
-pub fn build(plan: &Plan, pack: Option<&ChampionPack>, cat: &Catalog, champion_key: u32) -> Value {
+pub fn build(plan: &Plan, _pack: Option<&ChampionPack>, cat: &Catalog, champion_key: u32) -> Value {
     let mut blocks: Vec<Value> = Vec::new();
     let start_title = match &plan.source {
         Some(s) => format!("Start ({})", s.split(',').next().unwrap_or("").trim()),
         None => "Start".to_string(),
     };
-    blocks.push(block(&start_title, &plan.start.iter().map(|i| i.id).collect::<Vec<_>>()));
+    blocks.push(block(
+        &start_title,
+        &plan.start.iter().map(|i| i.id).collect::<Vec<_>>(),
+    ));
     for (n, item) in plan.path.iter().enumerate() {
-        let comps = pack
-            .and_then(|p| p.core.iter().find(|c| crate::ddragon::normalize(&c.item) == crate::ddragon::normalize(&item.name)))
-            .and_then(|c| c.components.as_ref())
-            .map(|names| ids(cat, names))
-            .filter(|v| !v.is_empty())
-            .unwrap_or_else(|| cat.components(item.id));
+        let comps = cat.components(item.id);
         let mut list = comps;
         list.push(item.id);
         let heading = match &item.tag {
@@ -75,20 +73,24 @@ pub fn build(plan: &Plan, pack: Option<&ChampionPack>, cat: &Catalog, champion_k
         };
         blocks.push(block(&heading, &list));
     }
-    blocks.push(block("Full build, in order", &plan.path.iter().map(|i| i.id).collect::<Vec<_>>()));
+    blocks.push(block(
+        "Full build, in order",
+        &plan.path.iter().map(|i| i.id).collect::<Vec<_>>(),
+    ));
     let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();
     if !plan.options.is_empty() {
-        blocks.push(block("Other popular items", &plan.options.iter().map(|i| i.id).collect::<Vec<_>>()));
+        blocks.push(block(
+            "Alternatives, not extra slots",
+            &plan.options.iter().map(|i| i.id).collect::<Vec<_>>(),
+        ));
     }
-    if let Some(p) = pack {
-        let alt = &p.alternatives;
-        blocks.push(block("vs healing", &ids(cat, &s(&[&alt.anti_heal]))));
-        blocks.push(block("vs 2+ tanks", &ids(cat, &s(&[&alt.armor_pen]))));
-        blocks.push(block("vs lockdown ult", &ids(cat, &s(&[&alt.cleanse]))));
-        blocks.push(block("vs burst / assassins", &ids(cat, &s(&[&alt.defensive_ad, &alt.anti_burst, &alt.defensive_ap]))));
-        blocks.push(block("vs long fights", &ids(cat, &s(&[&alt.sustain]))));
-    }
-    blocks.push(block("Vision", &ids(cat, &s(&["Control Ward", "Farsight Alteration", "Oracle Lens"]))));
+    blocks.push(block(
+        "Vision",
+        &ids(
+            cat,
+            &s(&["Control Ward", "Farsight Alteration", "Oracle Lens"]),
+        ),
+    ));
 
     let title = title(&plan.champion);
     json!({
@@ -100,10 +102,29 @@ pub fn build(plan: &Plan, pack: Option<&ChampionPack>, cat: &Catalog, champion_k
         "sortrank": 0,
         "startedFrom": "blank",
         "associatedChampions": [champion_key],
-        "associatedMaps": [],
+        "associatedMaps": [11],
         "blocks": blocks,
         "preferredItemSlots": []
     })
+}
+
+/// Swiftplay keeps role-specific sets even when both choices use one champion.
+pub fn build_for_role(
+    plan: &Plan,
+    pack: Option<&ChampionPack>,
+    cat: &Catalog,
+    champion_key: u32,
+) -> anyhow::Result<Value> {
+    let role = plan
+        .position
+        .as_deref()
+        .and_then(crate::aggregate::Position::parse)
+        .ok_or_else(|| anyhow::anyhow!("role-specific item set requires a known role"))?;
+    let title = format!("{} {}", title(&plan.champion), role.label());
+    let mut set = build(plan, pack, cat, champion_key);
+    set["uid"] = json!(Uuid::new_v5(&UID_NAMESPACE, title.as_bytes()).to_string());
+    set["title"] = json!(title);
+    Ok(set)
 }
 
 fn now_ms() -> u64 {
@@ -115,11 +136,20 @@ fn now_ms() -> u64 {
 
 /// New payload for PUT: existing sets kept, any set with the same title replaced.
 pub fn upsert(payload: &Value, set: Value) -> Value {
-    let title = set.get("title").and_then(Value::as_str).unwrap_or("").to_string();
+    let title = set
+        .get("title")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
     let mut sets: Vec<Value> = payload
         .get("itemSets")
         .and_then(Value::as_array)
-        .map(|a| a.iter().filter(|s| s.get("title").and_then(Value::as_str) != Some(title.as_str())).cloned().collect())
+        .map(|a| {
+            a.iter()
+                .filter(|s| s.get("title").and_then(Value::as_str) != Some(title.as_str()))
+                .cloned()
+                .collect()
+        })
         .unwrap_or_default();
     sets.push(set);
     let mut out = payload.clone();
@@ -135,7 +165,12 @@ pub fn remove(payload: &Value, title: &str) -> Value {
     let sets: Vec<Value> = payload
         .get("itemSets")
         .and_then(Value::as_array)
-        .map(|a| a.iter().filter(|s| s.get("title").and_then(Value::as_str) != Some(title)).cloned().collect())
+        .map(|a| {
+            a.iter()
+                .filter(|s| s.get("title").and_then(Value::as_str) != Some(title))
+                .cloned()
+                .collect()
+        })
         .unwrap_or_default();
     let mut out = payload.clone();
     out["itemSets"] = Value::Array(sets);
@@ -151,26 +186,127 @@ mod tests {
     use crate::pack::{load_traits, load_xayah};
 
     #[test]
+    fn role_specific_itemsets_keep_both_choices_and_foreign_sets_on_reimport() {
+        let cat = catalog();
+        let mut plan = Plan {
+            champion: "Xayah".into(),
+            position: Some("ADC".into()),
+            ..Default::default()
+        };
+        let adc = build_for_role(&plan, None, &cat, 498).unwrap();
+        plan.position = Some("Mid".into());
+        let mid = build_for_role(&plan, None, &cat, 498).unwrap();
+        assert_ne!(adc["uid"], mid["uid"]);
+        assert_eq!(adc["title"], "Featherstorm Xayah ADC");
+        assert_eq!(mid["title"], "Featherstorm Xayah Mid");
+        let original = json!({"accountId":42,"itemSets":[{"uid":"foreign","title":"My build","blocks":[{"type":"Keep"}]}]});
+        let merged = upsert(&upsert(&upsert(&original, adc.clone()), mid), adc);
+        let sets = merged["itemSets"].as_array().unwrap();
+        assert_eq!(sets.len(), 3);
+        assert_eq!(
+            sets[0],
+            json!({"uid":"foreign","title":"My build","blocks":[{"type":"Keep"}]})
+        );
+        assert_eq!(merged["accountId"], 42);
+        for set in &sets[1..] {
+            assert_eq!(set["associatedChampions"], json!([498]));
+            assert_eq!(set["associatedMaps"], json!([11]));
+        }
+        assert_eq!(build(&plan, None, &cat, 498)["title"], "Featherstorm Xayah");
+    }
+
+    #[test]
+    fn role_itemset_identity_is_stable_for_equivalent_role_names() {
+        let cat = catalog();
+        let mut plan = Plan {
+            champion: "Xayah".into(),
+            position: Some("BOTTOM".into()),
+            ..Default::default()
+        };
+        let bottom = build_for_role(&plan, None, &cat, 498).unwrap();
+        plan.position = Some("ADC".into());
+        let adc = build_for_role(&plan, None, &cat, 498).unwrap();
+        assert_eq!(bottom["uid"], adc["uid"]);
+        assert_eq!(bottom["title"], "Featherstorm Xayah ADC");
+    }
+
+    #[test]
+    fn role_itemsets_reject_missing_or_unknown_roles() {
+        let cat = catalog();
+        for role in [None, Some(""), Some("FILL")] {
+            let plan = Plan {
+                champion: "Xayah".into(),
+                position: role.map(str::to_owned),
+                ..Default::default()
+            };
+            assert!(build_for_role(&plan, None, &cat, 498).is_err());
+        }
+    }
+
+    #[test]
     fn builds_a_valid_set_and_upserts_idempotently() {
         let (cat, pack, traits) = (catalog(), load_xayah().unwrap(), load_traits().unwrap());
         let enemies = vec!["Soraka".to_string()];
-        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: None, traits: &traits, catalog: &cat, enemies: &enemies, live: None });
+        let raw = serde_json::from_str(include_str!(
+            "../../../m0/tests/fixtures/opgg_xayah_adc.json"
+        ))
+        .unwrap();
+        let aggregate = crate::aggregate::decode(
+            &raw,
+            498,
+            crate::aggregate::Position::Adc,
+            "global",
+            "emerald_plus",
+        )
+        .unwrap();
+        let plan = plan(&Inputs {
+            champion: "Xayah",
+            pack: Some(&pack),
+            aggregate: Some(&aggregate),
+            traits: &traits,
+            catalog: &cat,
+            enemies: &enemies,
+            live: None,
+        });
         let set = build(&plan, Some(&pack), &cat, 498);
         assert_eq!(set["title"], "Featherstorm Xayah");
         assert_eq!(set["associatedChampions"], json!([498]));
         let blocks = set["blocks"].as_array().unwrap();
         assert!(blocks.len() >= 10);
         for b in blocks {
-            assert!(b["type"].as_str().unwrap().chars().count() <= MAX_BLOCK_TITLE, "{}", b["type"]);
+            assert!(
+                b["type"].as_str().unwrap().chars().count() <= MAX_BLOCK_TITLE,
+                "{}",
+                b["type"]
+            );
         }
-        assert_eq!(blocks[1]["type"], "1. Essence Reaver");
-        assert_eq!(blocks[1]["items"].as_array().unwrap().iter().map(|i| i["id"].as_str().unwrap()).collect::<Vec<_>>(),
-                   vec!["3057", "3133", "1018", "3508"]);
+        assert_eq!(blocks[1]["type"], "1. Yun Tal Wildarrows");
+        assert_eq!(
+            blocks[1]["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|i| i["id"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            vec!["1038", "3144", "1036", "3032"]
+        );
         let greaves = &blocks[2]["items"];
-        assert!(greaves.as_array().unwrap().iter().any(|i| i["id"] == "1042" && i["count"] == 2));
-        assert!(blocks.iter().any(|b| b["type"].as_str().unwrap().starts_with("5. Mortal Reminder (Soraka")));
+        assert!(greaves
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|i| i["id"] == "1042" && i["count"] == 2));
+        assert!(blocks
+            .iter()
+            .any(|b| b["type"].as_str().unwrap().contains("Mortal")
+                && b["type"].as_str().unwrap().contains("anti-heal")));
+        assert!(!blocks.iter().any(|b| b["type"] == "vs lockdown ult"));
+        assert_eq!(set["associatedMaps"], json!([11]));
 
-        let existing: Value = serde_json::from_str(include_str!("../../../m0/tests/fixtures/itemsets_existing.json")).unwrap();
+        let existing: Value = serde_json::from_str(include_str!(
+            "../../../m0/tests/fixtures/itemsets_existing.json"
+        ))
+        .unwrap();
         let p1 = upsert(&existing, set.clone());
         assert_eq!(p1["itemSets"].as_array().unwrap().len(), 2);
         let p2 = upsert(&p1, set.clone());

@@ -32,25 +32,40 @@ pub async fn run(app: AppHandle, st: Arc<App>, phase: String) {
     };
     *st.catalog.lock().unwrap() = Some(catalog.clone());
     let version = catalog.version.clone();
-    let agg = aggregate::load(&cache.join("aggregate"), aggregate::DEFAULT_REGION, aggregate::DEFAULT_TIER, 498, Some(Position::Adc))
-        .await
-        .map_err(|e| log::warn!("demo: aggregate: {e}"))
-        .ok();
+    let agg = aggregate::load(
+        &cache.join("aggregate"),
+        aggregate::DEFAULT_REGION,
+        aggregate::DEFAULT_TIER,
+        498,
+        Some(Position::Adc),
+    )
+    .await
+    .map_err(|e| log::warn!("demo: aggregate: {e}"))
+    .ok();
     let enemies: Vec<String> = ENEMIES.iter().map(|s| s.to_string()).collect();
     let allies: Vec<String> = ALLIES.iter().map(|s| s.to_string()).collect();
     let pack = st.pack_for("Xayah");
-    let lobby = LobbyView { allies, enemies: enemies.clone(), my_position: "bottom".into() };
+    let lobby = LobbyView {
+        allies,
+        enemies: enemies.clone(),
+        my_position: "bottom".into(),
+    };
 
     st.update(&app, |p| {
-        p.summoner = Some("matteso#NA1".into());
+        p.demo = true;
+        p.summoner = Some("Demo player".into());
         p.ddragon = Some(version.clone());
-        p.message = None;
+        p.message = Some("Demo — staged lobby and inventory; no client imports".into());
     });
     match phase.as_str() {
         p if p.starts_with("ingame") => {
             // Level 9 at 12:23 with Yun Tal, boots and a B. F. Sword towards IE; 1,204 gold; 4/1/2.
-            let mut data: serde_json::Value = serde_json::from_str(LIVE_FIXTURE).expect("live fixture");
-            if let Some(me) = data["allPlayers"].as_array_mut().and_then(|a| a.iter_mut().find(|p| p["riotId"] == "matteso#NA1")) {
+            let mut data: serde_json::Value =
+                serde_json::from_str(LIVE_FIXTURE).expect("live fixture");
+            if let Some(me) = data["allPlayers"]
+                .as_array_mut()
+                .and_then(|a| a.iter_mut().find(|p| p["riotId"] == "matteso#NA1"))
+            {
                 me["items"] = serde_json::json!([
                     {"itemID": 3032, "displayName": "Yun Tal Wildarrows", "count": 1, "slot": 0},
                     {"itemID": 3006, "displayName": "Berserker's Greaves", "count": 1, "slot": 1},
@@ -78,16 +93,24 @@ pub async fn run(app: AppHandle, st: Arc<App>, phase: String) {
                 enemies: &enemies,
                 live: Some(&snap),
             });
-            let flash = phase.ends_with("flash").then(|| Flash { skill: 'E', until_ms: now_ms() + 3500 });
+            let flash = phase.ends_with("flash").then(|| Flash {
+                skill: 'E',
+                until_ms: now_ms() + 3500,
+            });
             *st.plan.lock().unwrap() = Some(plan.clone());
             st.update(&app, |p| {
                 p.phase = "ingame".into();
                 p.gameflow = "InProgress".into();
                 p.champion = Some("Xayah".into());
-                p.supported = true;
+                p.supported = !plan.path.is_empty();
                 p.lobby = Some(lobby.clone());
                 p.plan = Some(plan.clone());
-                p.live = Some(LiveView { game_time: 743.0, gold: 1204.0, level: 9, kda: "4/1/2".into() });
+                p.live = Some(LiveView {
+                    game_time: 743.0,
+                    gold: 1204.0,
+                    level: 9,
+                    kda: "4/1/2".into(),
+                });
                 p.flash = flash.clone();
             });
         }
@@ -106,10 +129,14 @@ pub async fn run(app: AppHandle, st: Arc<App>, phase: String) {
                 p.phase = "champselect".into();
                 p.gameflow = "ChampSelect".into();
                 p.champion = Some("Xayah".into());
-                p.supported = true;
+                p.supported = !plan.path.is_empty();
                 p.lobby = Some(lobby.clone());
                 p.plan = Some(plan.clone());
-                p.imports = Imports { itemset: "idle".into(), runes: "done".into(), spells: "done".into() };
+                p.imports = Imports {
+                    itemset: "idle".into(),
+                    runes: "done".into(),
+                    spells: "done".into(),
+                };
             });
         }
         _ => {

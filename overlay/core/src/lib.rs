@@ -13,12 +13,19 @@
 //! * `state`       - what the panel renders
 pub mod aggregate;
 pub mod champselect;
+pub mod coaching;
 pub mod ddragon;
+pub mod decision;
 pub mod engine;
 pub mod itemset;
+pub mod journal;
 pub mod lcu;
 pub mod live;
 pub mod pack;
 pub mod placement;
 pub mod runes;
+pub mod session;
+pub mod shop;
 pub mod state;
+pub mod statistics;
+pub mod swiftplay;

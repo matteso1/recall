@@ -14,12 +14,33 @@
         <span id="pill" class="chip" data-tauri-drag-region><span class="dot"></span><span id="pill-text">starting</span></span>
         <span class="spacer" data-tauri-drag-region></span>
         <span id="ctx" class="ctx" data-tauri-drag-region></span>
-        <button id="collapse" class="icon" title="Collapse / expand">–</button>
-        <button id="quit" class="icon" title="Quit Featherstorm">×</button>
+        <button id="collapse" class="icon" aria-label="Collapse panel" title="Collapse / expand">–</button>
+        <button id="quit" class="icon" aria-label="Quit Featherstorm" title="Quit Featherstorm">×</button>
       </div>
-      <div id="body" class="body">
-        <div id="message" class="message">Starting…</div>
-      </div>
+      <main id="body" class="body">
+        <section id="main-content" aria-label="Current recommendation"><p class="message">Connecting to League…</p></section>
+        <details id="learn-panel" hidden>
+          <summary>Why &amp; options <span id="preference-label">Auto</span></summary>
+          <div class="detail-content">
+            <div id="lesson"></div>
+            <fieldset id="preferences">
+              <legend>Build direction</legend>
+              <div class="row">
+                <button type="button" data-mode="balanced" aria-pressed="true">Balanced</button>
+                <button type="button" data-mode="survival" aria-pressed="false">More protection</button>
+              </div>
+              <label for="target-select">Choose a target <span>(optional)</span></label>
+              <select id="target-select"></select>
+              <div class="row"><button type="button" id="pin-target">Pin target</button><button type="button" id="auto-target">Auto</button></div>
+              <p class="hint">Pinning changes the recommendation, never buys or sells an item.</p>
+            </fieldset>
+            <div id="details-context"></div>
+          </div>
+        </details>
+        <section id="recap" aria-label="Last game decisions" hidden></section>
+      </main>
+      <p id="command-status" role="status" aria-live="polite" hidden></p>
+      <footer id="stats" class="stats" hidden></footer>
     </div>
   </div>
   <script src="app.js"></script>

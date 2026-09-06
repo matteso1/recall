@@ -39,7 +39,10 @@ impl Lockfile {
     /// Safe to log.
     pub fn masked(&self) -> String {
         let head: String = self.password.chars().take(2).collect();
-        format!("{}:{}:{}:{}***:{}", self.process, self.pid, self.port, head, self.protocol)
+        format!(
+            "{}:{}:{}:{}***:{}",
+            self.process, self.pid, self.port, head, self.protocol
+        )
     }
 }
 
@@ -63,8 +66,11 @@ pub fn find_league_dir() -> Option<PathBuf> {
     if let Ok(p) = std::env::var("FEATHERSTORM_LEAGUE_DIR") {
         return Some(PathBuf::from(p));
     }
-    let program_data = std::env::var("ProgramData").unwrap_or_else(|_| r"C:\ProgramData".to_string());
-    let installs = Path::new(&program_data).join("Riot Games").join("RiotClientInstalls.json");
+    let program_data =
+        std::env::var("ProgramData").unwrap_or_else(|_| r"C:\ProgramData".to_string());
+    let installs = Path::new(&program_data)
+        .join("Riot Games")
+        .join("RiotClientInstalls.json");
     if let Ok(text) = std::fs::read_to_string(&installs) {
         for dir in league_dirs_from_installs(&text) {
             if dir.is_dir() {
@@ -92,8 +98,12 @@ pub fn lockfile_path() -> Result<PathBuf> {
 /// Fails when the client is not running (no lockfile).
 pub fn read_lockfile() -> Result<Lockfile> {
     let path = lockfile_path()?;
-    let text = std::fs::read_to_string(&path)
-        .with_context(|| format!("no lockfile at {} - is the League client running?", path.display()))?;
+    let text = std::fs::read_to_string(&path).with_context(|| {
+        format!(
+            "no lockfile at {} - is the League client running?",
+            path.display()
+        )
+    })?;
     Lockfile::parse(&text)
 }
 
@@ -118,14 +128,23 @@ impl Lcu {
             .danger_accept_invalid_certs(true) // the client uses a self-signed certificate
             .timeout(Duration::from_secs(5))
             .build()?;
-        Ok(Lcu { base: lockfile.base_url(), lockfile, http })
+        Ok(Lcu {
+            base: lockfile.base_url(),
+            lockfile,
+            http,
+        })
     }
 
     pub fn port(&self) -> u16 {
         self.lockfile.port
     }
 
-    async fn call(&self, method: reqwest::Method, path: &str, body: Option<&Value>) -> Result<(u16, Value)> {
+    async fn call(
+        &self,
+        method: reqwest::Method,
+        path: &str,
+        body: Option<&Value>,
+    ) -> Result<(u16, Value)> {
         let mut req = self
             .http
             .request(method.clone(), format!("{}{}", self.base, path))
@@ -134,7 +153,10 @@ impl Lcu {
         if let Some(b) = body {
             req = req.json(b);
         }
-        let resp = req.send().await.with_context(|| format!("{method} {path}: client unreachable"))?;
+        let resp = req
+            .send()
+            .await
+            .with_context(|| format!("{method} {path}: client unreachable"))?;
         let status = resp.status().as_u16();
         let text = resp.text().await.unwrap_or_default();
         let json = if text.trim().is_empty() {
@@ -149,7 +171,10 @@ impl Lcu {
         if (200..300).contains(&status) {
             Ok(body)
         } else {
-            bail!("{method} {path} -> HTTP {status}: {}", truncate(&body.to_string(), 300))
+            bail!(
+                "{method} {path} -> HTTP {status}: {}",
+                truncate(&body.to_string(), 300)
+            )
         }
     }
 
@@ -192,13 +217,43 @@ impl Lcu {
     /// None | Lobby | Matchmaking | ReadyCheck | ChampSelect | GameStart | InProgress |
     /// WaitingForStats | PreEndOfGame | EndOfGame | Reconnect | ...
     pub async fn gameflow_phase(&self) -> Result<String> {
-        Ok(self.get("/lol-gameflow/v1/gameflow-phase").await?.as_str().unwrap_or("None").to_string())
+        Ok(self
+            .get("/lol-gameflow/v1/gameflow-phase")
+            .await?
+            .as_str()
+            .unwrap_or("None")
+            .to_string())
     }
 
     // ---------------------------------------------------------------- summoner
 
     pub async fn current_summoner(&self) -> Result<Value> {
         self.get("/lol-summoner/v1/current-summoner").await
+    }
+
+    // ------------------------------------------------------------------- lobby
+
+    pub async fn lobby(&self) -> Result<Option<Value>> {
+        self.get_opt("/lol-lobby/v2/lobby").await
+    }
+
+    /// Swiftplay choices include each champion, role, skin, spells and perks.
+    pub async fn player_slots(&self) -> Result<Value> {
+        self.get("/lol-lobby/v1/lobby/members/localMember/player-slots")
+            .await
+    }
+
+    /// Replaces all local choices; use a freshly checked `swiftplay::prepare_slots` array.
+    pub async fn put_player_slots(&self, slots: &Value) -> Result<()> {
+        if !slots.is_array() {
+            bail!("Swiftplay player choices must be an array");
+        }
+        self.put(
+            "/lol-lobby/v1/lobby/members/localMember/player-slots",
+            slots,
+        )
+        .await
+        .map(|_| ())
     }
 
     // ------------------------------------------------------------- champ select
@@ -220,12 +275,18 @@ impl Lcu {
 
     /// `{accountId, timestamp, itemSets: [...]}` - every custom set on the account.
     pub async fn item_sets(&self, summoner_id: u64) -> Result<Value> {
-        self.get(&format!("/lol-item-sets/v1/item-sets/{summoner_id}/sets")).await
+        self.get(&format!("/lol-item-sets/v1/item-sets/{summoner_id}/sets"))
+            .await
     }
 
     /// Replaces ALL item sets: always GET, modify (`itemset::upsert`), PUT.
     pub async fn put_item_sets(&self, summoner_id: u64, payload: &Value) -> Result<()> {
-        self.put(&format!("/lol-item-sets/v1/item-sets/{summoner_id}/sets"), payload).await.map(|_| ())
+        self.put(
+            &format!("/lol-item-sets/v1/item-sets/{summoner_id}/sets"),
+            payload,
+        )
+        .await
+        .map(|_| ())
     }
 
     // -------------------------------------------------------------------- runes
@@ -243,12 +304,27 @@ impl Lcu {
         self.post("/lol-perks/v1/pages", page).await
     }
 
+    /// Reuse an app-owned page without deleting it before a replacement succeeds.
+    pub async fn update_perk_page(&self, id: u64, page: &Value) -> Result<Value> {
+        let mut payload = page.clone();
+        payload
+            .as_object_mut()
+            .context("rune page must be an object")?
+            .insert("id".into(), Value::from(id));
+        self.put(&format!("/lol-perks/v1/pages/{id}"), &payload)
+            .await
+    }
+
     pub async fn delete_perk_page(&self, id: u64) -> Result<()> {
-        self.delete(&format!("/lol-perks/v1/pages/{id}")).await.map(|_| ())
+        self.delete(&format!("/lol-perks/v1/pages/{id}"))
+            .await
+            .map(|_| ())
     }
 
     pub async fn set_current_perk_page(&self, id: u64) -> Result<()> {
-        self.put("/lol-perks/v1/currentpage", &Value::from(id)).await.map(|_| ())
+        self.put("/lol-perks/v1/currentpage", &Value::from(id))
+            .await
+            .map(|_| ())
     }
 }
 
@@ -256,10 +332,109 @@ impl Lcu {
 mod tests {
     use super::*;
 
+    #[tokio::test]
+    async fn swiftplay_slot_import_sends_the_complete_array_to_the_verified_endpoint() {
+        use std::io::{Read, Write};
+        use std::net::TcpListener;
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            let deadline = std::time::Instant::now() + Duration::from_secs(3);
+            let mut stream = loop {
+                match listener.accept() {
+                    Ok((stream, _)) => break stream,
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        if std::time::Instant::now() >= deadline {
+                            return None;
+                        }
+                        std::thread::sleep(Duration::from_millis(5));
+                    }
+                    Err(error) => panic!("{error}"),
+                }
+            };
+            stream
+                .set_read_timeout(Some(Duration::from_secs(3)))
+                .unwrap();
+            let mut bytes = Vec::new();
+            let (header_end, body_len) = loop {
+                let mut buffer = [0; 4096];
+                let read = stream.read(&mut buffer).unwrap();
+                assert!(read > 0);
+                bytes.extend_from_slice(&buffer[..read]);
+                if let Some(end) = bytes.windows(4).position(|part| part == b"\r\n\r\n") {
+                    let header = String::from_utf8_lossy(&bytes[..end]);
+                    let length = header
+                        .lines()
+                        .find_map(|line| {
+                            let (key, value) = line.split_once(':')?;
+                            key.eq_ignore_ascii_case("content-length")
+                                .then(|| value.trim().parse::<usize>().unwrap())
+                        })
+                        .unwrap();
+                    break (end + 4, length);
+                }
+            };
+            while bytes.len() < header_end + body_len {
+                let mut buffer = [0; 4096];
+                let read = stream.read(&mut buffer).unwrap();
+                assert!(read > 0);
+                bytes.extend_from_slice(&buffer[..read]);
+            }
+            stream
+                .write_all(
+                    b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                )
+                .unwrap();
+            Some((
+                String::from_utf8_lossy(&bytes[..header_end]).into_owned(),
+                serde_json::from_slice::<Value>(&bytes[header_end..header_end + body_len]).unwrap(),
+            ))
+        });
+        let lcu = Lcu::from_lockfile(Lockfile {
+            process: "test".into(),
+            pid: 1,
+            port,
+            password: "test".into(),
+            protocol: "http".into(),
+        })
+        .unwrap();
+        let slots = serde_json::json!([
+            {"championId":498,"positionPreference":"BOTTOM","skinId":498000,"spell1":4,"spell2":21,"perks":"{}"},
+            {"championId":39,"positionPreference":"MIDDLE","skinId":39000,"spell1":4,"spell2":14,"perks":"{}"}
+        ]);
+        let result = lcu.put_player_slots(&slots).await;
+        let request = server.join().unwrap();
+        assert!(result.is_ok(), "{result:?}");
+        let (header, body) = request.expect("no player-slot PUT received");
+        assert!(header
+            .starts_with("PUT /lol-lobby/v1/lobby/members/localMember/player-slots HTTP/1.1\r\n"));
+        assert_eq!(body, slots);
+    }
+
+    #[tokio::test]
+    async fn swiftplay_slot_import_rejects_wrapped_or_missing_arrays_before_network_io() {
+        let lcu = Lcu::from_lockfile(Lockfile {
+            process: "test".into(),
+            pid: 1,
+            port: 0,
+            password: "test".into(),
+            protocol: "http".into(),
+        })
+        .unwrap();
+        for invalid in [Value::Null, serde_json::json!({"playerSlots":[]})] {
+            let error = lcu.put_player_slots(&invalid).await.unwrap_err();
+            assert!(error.to_string().contains("must be an array"), "{error}");
+        }
+    }
+
     #[test]
     fn parses_lockfile() {
         let lf = Lockfile::parse("LeagueClient:17896:56139:TmSecret_-x:https\n").unwrap();
-        assert_eq!((lf.pid, lf.port, lf.protocol.as_str()), (17896, 56139, "https"));
+        assert_eq!(
+            (lf.pid, lf.port, lf.protocol.as_str()),
+            (17896, 56139, "https")
+        );
         assert_eq!(lf.base_url(), "https://127.0.0.1:56139");
         assert!(!lf.masked().contains("Secret"));
         assert!(Lockfile::parse("garbage").is_err());
@@ -268,7 +443,10 @@ mod tests {
     #[test]
     fn finds_league_dirs_in_installs_json() {
         let text = r#"{"associated_client": {"C:/Riot Games/League of Legends/": "x", "D:/VALORANT/live/": "y"}}"#;
-        assert_eq!(league_dirs_from_installs(text), vec![PathBuf::from("C:/Riot Games/League of Legends/")]);
+        assert_eq!(
+            league_dirs_from_installs(text),
+            vec![PathBuf::from("C:/Riot Games/League of Legends/")]
+        );
         assert!(league_dirs_from_installs("{nope").is_empty());
     }
 }

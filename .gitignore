@@ -22,3 +22,8 @@ overlay/src-tauri/gen/
 
 # local screenshots for overlay checks
 .screens/
+
+# Browser-only development checks (not bundled with the overlay)
+node_modules/
+test-results/
+playwright-report/

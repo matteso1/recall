@@ -136,3 +136,24 @@
   starters; owned = dimmed + teal tick, next = lit gold frame, rule tags under the slot (`FREE @12`,
   `SORAKA`). New `--demo <phase>` mode + `scripts/overlay-demo-shots.sh` render staged states for design
   checks without a game. First pass looked right except a wrapping chip and a crowded header; fixed.
+
+## Engine v2 follow-up — 2026-09-05
+
+The entries above describe the earlier prototype, not the current planner. The
+user confirmed a general all-champion/role tool and direct, hand-holding purchase
+recommendations; learning comes from repetition, with deeper explanation optional.
+
+- Replaced the WR threshold and ordered slot swaps with aggregate-backed,
+  compositional candidate scoring and exact inventory-aware shop quotes.
+- Removed preferred pack builds from planner defaults; added real mage, tank,
+  fighter, support, and jungle aggregates alongside Xayah regression coverage.
+- Hardened source/session freshness, asynchronous refresh/import handling, actual
+  rune/spell constraints, and nonstandard champion/mode boundaries.
+- Added compact action-first controls, bounded local recaps, offline replay,
+  cross-role scenarios, browser checks, and headless runtime tests.
+- Kept old deployments untouched; created a separate Windows candidate. No live
+  account writes or game interventions were part of this verification.
+
+Exact checks, measurements, and unverified client behavior are recorded in
+[engine-v2.md](engine-v2.md). The earlier >40% baseline-deviation target is retired:
+deviation is measured descriptively, not treated as evidence of better decisions.

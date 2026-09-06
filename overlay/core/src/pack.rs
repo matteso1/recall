@@ -87,7 +87,10 @@ pub struct ChampionPack {
 impl ChampionPack {
     pub fn matchup(&self, enemy: &str) -> Option<&Matchup> {
         let key = normalize(enemy);
-        self.matchups.iter().find(|(k, _)| normalize(k) == key).map(|(_, m)| m)
+        self.matchups
+            .iter()
+            .find(|(k, _)| normalize(k) == key)
+            .map(|(_, m)| m)
     }
 
     /// The pack's own short label for an item, if it has one.
@@ -98,11 +101,15 @@ impl ChampionPack {
                 return Some(s.clone());
             }
         }
-        self.shorts.iter().find(|(k, _)| normalize(k) == key).map(|(_, s)| s.clone())
+        self.shorts
+            .iter()
+            .find(|(k, _)| normalize(k) == key)
+            .map(|(_, s)| s.clone())
     }
 
     pub fn short(&self, item: &str) -> String {
-        self.short_opt(item).unwrap_or_else(|| item.split_whitespace().next().unwrap_or(item).to_string())
+        self.short_opt(item)
+            .unwrap_or_else(|| item.split_whitespace().next().unwrap_or(item).to_string())
     }
 }
 
@@ -116,6 +123,10 @@ pub struct ChampTraits {
     pub tank: bool,
     #[serde(default)]
     pub lockdown_ult: bool,
+    /// A verified mechanic, unlike the legacy broad `lockdown_ult` label. Only this
+    /// field can justify a cleanse recommendation.
+    #[serde(default)]
+    pub control: Option<ControlThreat>,
     #[serde(default)]
     pub assassin: bool,
     #[serde(default)]
@@ -129,6 +140,26 @@ pub struct ChampTraits {
     pub roles: Vec<String>,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ControlKind {
+    Stun,
+    Suppression,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ControlThreat {
+    pub ability: String,
+    pub kind: ControlKind,
+    pub verified_patch: String,
+}
+
+impl ControlThreat {
+    pub fn summoner_cleanse_removes(&self) -> bool {
+        matches!(self.kind, ControlKind::Stun)
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct Traits {
     pub champions: HashMap<String, ChampTraits>,
@@ -137,7 +168,10 @@ pub struct Traits {
 impl Traits {
     pub fn get(&self, champion: &str) -> Option<&ChampTraits> {
         let key = normalize(champion);
-        self.champions.iter().find(|(k, _)| normalize(k) == key).map(|(_, t)| t)
+        self.champions
+            .iter()
+            .find(|(k, _)| normalize(k) == key)
+            .map(|(_, t)| t)
     }
 }
 
@@ -146,7 +180,27 @@ pub fn load_xayah() -> Result<ChampionPack> {
 }
 
 pub fn load_traits() -> Result<Traits> {
-    serde_json::from_str(TRAITS_JSON).context("data/pack/champion_traits.json")
+    let traits: Traits =
+        serde_json::from_str(TRAITS_JSON).context("data/pack/champion_traits.json")?;
+    let mut keys = std::collections::HashSet::new();
+    for (name, t) in &traits.champions {
+        anyhow::ensure!(
+            !normalize(name).is_empty() && keys.insert(normalize(name)),
+            "duplicate or empty champion trait name: {name}"
+        );
+        anyhow::ensure!(
+            ["ad", "ap", "mixed"].contains(&t.damage.as_str()),
+            "invalid damage trait for {name}"
+        );
+        anyhow::ensure!(!t.roles.is_empty() && t.roles.iter().all(|r| ["top", "jungle", "middle", "bottom", "utility"].contains(&r.as_str())), "invalid roles for {name}");
+        if let Some(control) = &t.control {
+            anyhow::ensure!(
+                !control.ability.is_empty() && !control.verified_patch.is_empty(),
+                "unverified cleanse mechanic for {name}"
+            );
+        }
+    }
+    Ok(traits)
 }
 
 #[cfg(test)]

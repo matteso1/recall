@@ -1,194 +1,140 @@
-/* Featherstorm panel. One visual world, League's own: near-black navy ground, gold frames, cream
-   text, teal for what you can act on. Display face Cinzel (bundled, OFL) stands in for Beaufort;
-   body text is the system's Segoe UI, close to the client's Spiegel. */
-@font-face {
-  font-family: "Cinzel";
-  src: url("fonts/Cinzel.woff2") format("woff2");
-  font-weight: 400 900;
-  font-display: block;
-}
-
+/* League-inspired navy, gold and teal. Display type stays in the wordmark; instructions use sans. */
+@font-face { font-family: Cinzel; src: url('fonts/Cinzel.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
 :root {
-  --ground: #010a13;
-  --ground-2: #091428;
-  --line: #1e2328;
-  --line-2: #3c3c41;
-  --gold-1: #f0e6d2;
-  --gold-2: #c8aa6e;
-  --gold-3: #c89b3c;
-  --gold-4: #785a28;
-  --gold-5: #463714;
-  --grey-1: #a09b8c;
-  --grey-2: #5b5a56;
-  --teal-1: #cdfafa;
-  --teal-2: #0ac8b9;
-  --teal-3: #0397ab;
-  --teal-5: #0a323c;
-  --red: #d64541;
-  --amber: #e8a34a;
-  --display: "Cinzel", "Times New Roman", serif;
-  --body: "Segoe UI", "Segoe UI Variable Text", system-ui, Arial, sans-serif;
+  color-scheme: dark;
+  --ground: #010a13; --surface: #091428; --line: #303944; --text: #f0e6d2; --muted: #b3b7bd;
+  --gold: #c8aa6e; --gold-frame: #785a28; --teal: #0ac8b9; --amber: #f1b76a; --danger: #ff9890;
+  --body: 'Segoe UI', 'Segoe UI Variable Text', system-ui, Arial, sans-serif;
 }
-
 * { box-sizing: border-box; }
-html, body {
-  margin: 0; padding: 0; background: transparent; overflow: hidden;
-  font: 12px/1.35 var(--body); color: var(--gold-1);
-  user-select: none; -webkit-user-select: none; cursor: default;
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--text); font: 12px/1.4 var(--body); }
+button, select { font: inherit; }
+button { color: var(--text); background: #101c2a; border: 1px solid var(--gold-frame); padding: 5px 9px; min-height: 28px; cursor: pointer; border-radius: 2px; transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+button:hover { border-color: var(--gold); background: #1c2a39; }
+button:active { background: #263847; }
+button:disabled { cursor: default; opacity: .55; }
+button[aria-pressed='true'], button.done { color: var(--teal); border-color: var(--teal); }
+button.error { color: var(--danger); border-color: var(--danger); }
+:is(button, select, summary):focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.frame { position: absolute; inset: 0; padding: 1px; background: linear-gradient(180deg, var(--gold), var(--gold-frame) 40%, #463714 70%, var(--gold)); }
+.panel { height: 100%; display: flex; flex-direction: column; overflow: hidden; background: linear-gradient(180deg, #010a13f7, #091428fa); }
+.header { height: 30px; flex: none; display: flex; align-items: center; gap: 7px; padding: 0 4px 0 10px; border-bottom: 1px solid var(--gold-frame); cursor: move; user-select: none; }
+.brand { color: var(--gold); font: 700 10px/1 Cinzel, serif; letter-spacing: .1em; white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; white-space: nowrap; color: var(--muted); }
+.dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.chip.ingame { color: var(--teal); }
+.chip.champselect, .chip.loading, .chip.swiftplay { color: var(--gold); }
+.chip.noclient { color: var(--amber); }
+.spacer { flex: 1; min-width: 0; }
+.ctx { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; font-size: 10px; }
+button.icon { flex: none; width: 22px; min-height: 24px; padding: 0; font-size: 16px; border-color: transparent; background: transparent; }
+button.icon:hover { background: #26303b; color: white; }
+.body { flex: 1; min-height: 0; padding: 10px 11px 8px; overflow: auto; overflow-x: hidden; scrollbar-width: thin; }
+.panel.collapsed :is(.body, .stats, #command-status) { display: none !important; }
+#main-content { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+h1, h2, p { margin: 0; }
+h1 { font-size: 17px; font-weight: 650; line-height: 1.2; }
+h2 { font-size: 12px; font-weight: 650; color: var(--gold); }
+p { text-wrap: pretty; }
+.message { color: var(--muted); padding: 4px 0; }
+.warn { color: var(--amber); }
+.hint, .source { color: var(--muted); font-size: 11px; }
+.empty-state { display: grid; gap: 8px; padding: 8px 0 12px; }
+.empty-state h1 { color: var(--text); }
+.purchase { display: grid; row-gap: 4px; min-width: 0; }
+.action-verb { color: var(--gold); font-size: 11px; font-weight: 600; }
+.affordable .action-verb { color: var(--teal); }
+.action-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 9px; }
+#action-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#action-cost { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--gold); }
+.target-line { margin-left: 47px; font-size: 11px; color: var(--muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#action-gap { margin-left: 47px; color: var(--gold); font-size: 11px; }
+.basket-next { color: var(--muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11px; }
+#action-reason { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--muted); font-size: 11px; }
+.ico { position: relative; width: 30px; height: 30px; flex: none; display: inline-grid; place-items: center; background: #132234; border: 1px solid #53482f; vertical-align: middle; }
+.ico .symbol { color: var(--gold); font-size: 10px; line-height: 1; }
+.ico img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.hero-icon { width: 38px; height: 38px; border-color: var(--gold); }
+.ico.owned img { filter: saturate(.55) brightness(.65); }
+.ico .check { position: absolute; right: -3px; bottom: -5px; color: var(--teal); font-size: 12px; font-weight: 700; text-shadow: 0 1px 3px #000, 0 -1px 3px #000; }
+.ico.next { border-color: var(--gold); outline: 1px solid #c8aa6e55; outline-offset: 1px; }
+.path { display: flex; align-items: center; gap: 12px; min-height: 33px; }
+.path-label { color: var(--muted); font-size: 11px; }
+.path ol { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.path li { display: flex; }
+.skill { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; min-height: 23px; }
+.skill kbd { display: inline-grid; place-items: center; width: 23px; height: 23px; font: 650 13px/1 var(--body); border: 1px solid var(--line); background: #142032; color: var(--text); }
+.skill.available kbd { color: var(--gold); border-color: var(--gold); }
+.skill.flash kbd { animation: point-ready 600ms ease-out 3; }
+.skill-priority { margin-left: auto; font-size: 10px; }
+@keyframes point-ready { 50% { background-color: #544726; } }
+#learn-panel { margin-top: 8px; border-top: 1px solid var(--line); }
+summary { cursor: pointer; padding: 6px 0; color: var(--gold); font-size: 11px; }
+summary:hover { color: var(--text); }
+#preference-label { float: right; color: var(--muted); }
+.detail-content { display: grid; gap: 16px; padding: 6px 0 10px; }
+#lesson { display: grid; gap: 6px; }
+.tradeoff { color: var(--muted); }
+#details-context { display: grid; gap: 7px; min-width: 0; }
+#details-context h2:not(:first-child) { margin-top: 8px; }
+fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: 7px; min-width: 0; }
+legend { padding: 0 0 6px; color: var(--gold); font-weight: 600; }
+label { padding-top: 4px; }
+label span { color: var(--muted); }
+select { width: 100%; min-width: 0; min-height: 30px; padding: 4px 6px; color: var(--text); border: 1px solid var(--line); border-radius: 2px; background: #111d2c; }
+select:disabled { opacity: .6; }
+.row { display: flex; gap: 7px; }
+.row button { flex: 1; }
+.component-list, .context-list, .recap-list { margin: 0; padding: 0; }
+.component-list { display: grid; gap: 6px; list-style: none; }
+.component-list li { display: flex; align-items: center; gap: 7px; }
+.component-list .ico { width: 22px; height: 22px; }
+.component-list li > span:last-child { margin-left: auto; white-space: nowrap; color: var(--muted); }
+.context-list { padding-left: 15px; color: var(--muted); }
+.context-list li + li { margin-top: 6px; }
+.stats { display: flex; flex: none; justify-content: space-between; gap: 8px; margin: 0 11px; padding: 5px 0 6px; border-top: 1px solid var(--line); font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#command-status { flex: none; padding: 5px 11px; font-size: 11px; color: var(--amber); border-top: 1px solid var(--line); max-height: 50px; overflow: auto; }
+.pregame-heading { color: var(--gold); font-weight: 600; }
+.matchup { color: var(--text); font-size: 11px; }
+.teams, .loadout { display: flex; align-items: center; gap: 7px; }
+.teams .ico, .loadout .ico { width: 23px; height: 23px; }
+.round, .round img { border-radius: 50%; }
+.loadout .sep { height: 20px; width: 1px; background: var(--line); margin: 0 3px; }
+.import-row button { font-size: 11px; }
+.swiftplay { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.swiftplay h1 { font-size: 16px; }
+.swiftplay-slots { list-style: none; margin: 0; padding: 0; }
+.swiftplay-slot { padding: 8px 0; border-top: 1px solid var(--line); }
+.swiftplay-choice { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.swiftplay-choice h2 { font-size: 14px; color: var(--text); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.swiftplay-role { color: var(--gold); font-size: 10px; flex: none; margin-left: auto; }
+.swiftplay-imports { display: flex; justify-content: space-between; gap: 6px; margin: 5px 0 0; font-size: 11px; color: var(--muted); }
+.swiftplay-imports > div { min-width: 0; }
+.swiftplay-imports dt, .swiftplay-imports dd { display: inline; margin: 0; }
+.swiftplay-imports dt { color: var(--muted); }
+.swiftplay-ready { color: var(--teal); }
+.swiftplay-error { color: var(--danger); }
+.swiftplay-message { overflow-wrap: anywhere; }
+.swiftplay-slot .swiftplay-message { margin-top: 4px; }
+#recap { border-top: 1px solid var(--line); padding-top: 10px; }
+#recap > .hint { padding-top: 5px; }
+.recap-list { list-style: none; }
+.recap-list > li { display: grid; gap: 6px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.recap-heading { display: flex; gap: 9px; }
+.recap-heading time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.recap-list p { color: var(--muted); }
+.feedback { display: flex; gap: 6px; }
+.feedback button { padding: 3px 8px; font-size: 11px; }
+@media (max-width: 340px) {
+  .header { gap: 5px; padding-left: 7px; }
+  .brand { font-size: 9px; letter-spacing: .03em; }
+  .ctx { max-width: 80px; }
+  .path ol { gap: 6px; }
+  .path { gap: 8px; }
+  .path .ico { width: 28px; height: 28px; }
+  #action-name { font-size: 16px; }
 }
-
-/* The gold frame is the outer layer; the panel sits one pixel inside it. */
-.frame {
-  position: absolute; inset: 0; padding: 1px;
-  background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold-4) 35%, var(--gold-5) 65%, var(--gold-2) 100%);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
-.panel {
-  position: relative; height: 100%; display: flex; flex-direction: column;
-  background: linear-gradient(180deg, rgba(1, 10, 19, 0.97), rgba(9, 20, 40, 0.97));
-  box-shadow: inset 0 0 0 1px var(--line);
-  overflow: hidden;
-}
-
-/* Header: brand, state chip, context, window buttons. Drag handle for the whole panel. */
-.header {
-  position: relative; display: flex; align-items: center; gap: 8px; height: 30px; flex: none;
-  padding: 0 6px 0 10px; cursor: move;
-  background: linear-gradient(180deg, rgba(200, 170, 110, 0.09), rgba(200, 170, 110, 0));
-  border-bottom: 1px solid var(--gold-4);
-}
-.brand {
-  font: 700 10px/1 var(--display); letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-2);
-  text-shadow: 0 0 8px rgba(200, 170, 110, 0.3); white-space: nowrap;
-}
-.chip {
-  display: inline-flex; align-items: center; gap: 5px; padding: 3px 6px 2px; white-space: nowrap;
-  font: 500 8.5px/1 var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-1);
-  border: 1px solid var(--line-2); background: rgba(1, 10, 19, 0.6);
-}
-.chip .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--grey-2); }
-.chip.ingame { color: var(--teal-2); border-color: var(--teal-5); }
-.chip.ingame .dot { background: var(--teal-2); box-shadow: 0 0 5px var(--teal-2); }
-.chip.champselect, .chip.loading { color: var(--gold-3); border-color: var(--gold-5); }
-.chip.champselect .dot, .chip.loading .dot { background: var(--gold-3); box-shadow: 0 0 5px var(--gold-3); }
-.chip.noclient { color: var(--red); border-color: #4a1a1a; }
-.chip.noclient .dot { background: var(--red); }
-.ctx { font-size: 11px; color: var(--grey-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; margin-right: 2px; }
-.ctx b { color: var(--gold-1); font-weight: 600; }
-.spacer { flex: 1; height: 100%; }
-button.icon {
-  all: unset; width: 20px; height: 20px; line-height: 20px; text-align: center;
-  color: var(--grey-1); cursor: pointer; font-size: 13px;
-}
-button.icon:hover { color: var(--gold-1); background: rgba(200, 170, 110, 0.14); }
-button.icon:focus-visible, button.act:focus-visible { outline: 1px solid var(--teal-2); outline-offset: 1px; }
-
-.body { display: flex; flex-direction: column; gap: 7px; padding: 11px 10px 8px; flex: 1; overflow: hidden; }
-.panel.collapsed .body { display: none; }
-.message { color: var(--grey-1); }
-.message.warn { color: var(--amber); }
-.summoner { font-size: 11px; color: var(--grey-2); }
-.eyebrow {
-  font: 500 8.5px/1 var(--display); letter-spacing: 0.22em; text-transform: uppercase; color: #957536;
-}
-
-/* Icons from Data Dragon in League-style frames. */
-.ico { position: relative; flex: none; background: #000; border: 1px solid var(--gold-5); }
-.ico img { display: block; width: 100%; height: 100%; }
-.ico.hot { border-color: var(--gold-2); box-shadow: 0 0 9px rgba(200, 170, 110, 0.45); }
-.ico.owned img { filter: grayscale(0.7) brightness(0.5); }
-.ico.owned::after {
-  content: "✓"; position: absolute; right: -4px; bottom: -5px; font-size: 11px; font-weight: 700;
-  color: var(--teal-2); text-shadow: 0 0 3px #000, 0 0 3px #000;
-}
-.ico .tag {
-  position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
-  font: 500 7px/1 var(--display); letter-spacing: 0.04em; white-space: nowrap;
-  color: var(--teal-1); background: var(--ground); border: 1px solid var(--teal-5); padding: 1px 3px;
-}
-.ico.round { border-radius: 50%; }
-.ico.round img { border-radius: 50%; }
-
-/* NEXT: the one answer, big. */
-.next { display: grid; grid-template-columns: 44px 1fr auto; grid-template-rows: auto auto; column-gap: 10px; align-items: center; }
-.next .ico { width: 44px; height: 44px; grid-row: 1 / 3; }
-.next .name {
-  font: 700 15px/1.15 var(--display); color: var(--gold-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  align-self: end;
-}
-.next .cost { font: 600 13px/1.15 var(--body); color: var(--gold-3); font-variant-numeric: tabular-nums; align-self: end; }
-.next .buy { grid-column: 2 / 4; align-self: start; font-size: 11.5px; color: var(--grey-1); }
-.next .buy b { font-weight: 600; color: var(--gold-1); }
-.next .buy.can b { color: var(--teal-2); }
-.components { display: flex; flex-wrap: wrap; gap: 5px 10px; padding-left: 54px; }
-.comp { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--grey-1); }
-.comp .ico { width: 20px; height: 20px; border-color: var(--line-2); }
-.comp.owned { color: var(--gold-1); }
-.comp.owned .ico { border-color: var(--teal-3); }
-.comp.owned .ico::after { font-size: 9px; right: -3px; bottom: -4px; }
-.comp .c-cost { color: var(--grey-2); font-variant-numeric: tabular-nums; }
-
-/* PATH: six frames, the next one lit, bought ones dimmed and ticked. */
-.path { display: flex; align-items: center; gap: 8px; }
-.path .slots { display: flex; gap: 7px; }
-.path .ico { width: 30px; height: 30px; }
-.path .ico.next { border-color: var(--gold-2); box-shadow: 0 0 8px rgba(200, 170, 110, 0.4); }
-.path.tagged { margin-bottom: 6px; }
-
-/* Skill point. */
-.skill { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--grey-1); }
-.key {
-  display: inline-grid; place-items: center; width: 22px; height: 22px;
-  font: 700 12px/1 var(--display); color: var(--gold-1);
-  background: linear-gradient(180deg, #1e2328, #0a1428); border: 1px solid var(--gold-4);
-}
-.skill.available .key { border-color: var(--gold-2); color: var(--gold-3); }
-.skill.flash .key { animation: flash 0.6s ease-in-out 5; }
-@keyframes flash {
-  0%, 100% { box-shadow: none; transform: scale(1); }
-  50% { box-shadow: 0 0 14px var(--gold-3); transform: scale(1.25); }
-}
-@media (prefers-reduced-motion: reduce) { .skill.flash .key { animation: none; border-color: var(--gold-2); } }
-.skill .levels { margin-left: auto; color: var(--grey-2); font-variant-numeric: tabular-nums; letter-spacing: 0.05em; }
-
-/* Why: one line, the rest on hover. */
-.why { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--grey-1); }
-.why .i {
-  flex: none; display: inline-grid; place-items: center; width: 14px; height: 14px;
-  font: 700 9px/1 var(--display); color: var(--gold-2); border: 1px solid var(--gold-4); border-radius: 50%;
-}
-.why .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.why .more { color: var(--grey-2); }
-
-.stats {
-  margin-top: auto; padding-top: 6px; border-top: 1px solid var(--line);
-  display: flex; gap: 12px; font-size: 11px; color: var(--grey-1); font-variant-numeric: tabular-nums;
-}
-.stats b { color: var(--gold-1); font-weight: 600; }
-
-/* Champ select. */
-.teams { display: flex; align-items: center; gap: 6px; }
-.teams .ico { width: 24px; height: 24px; }
-.teams .ico.lane { border-color: var(--gold-2); }
-.teams .names { font-size: 11px; color: var(--grey-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.matchup {
-  font-size: 11.5px; line-height: 1.35; color: var(--gold-1); padding: 5px 8px;
-  border-left: 2px solid var(--gold-4); background: linear-gradient(90deg, rgba(200, 170, 110, 0.1), rgba(200, 170, 110, 0));
-}
-.loadout { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--grey-1); }
-.loadout .ico.keystone { width: 26px; height: 26px; }
-.loadout .ico.tree { width: 18px; height: 18px; border-color: var(--line-2); }
-.loadout .ico.spell { width: 22px; height: 22px; }
-.loadout .ico.start { width: 20px; height: 20px; border-color: var(--line-2); }
-.loadout .sep { width: 1px; height: 20px; background: var(--line-2); margin: 0 2px; }
-.row { display: flex; gap: 6px; }
-button.act {
-  all: unset; flex: 1; text-align: center; padding: 7px 6px 6px; cursor: pointer;
-  font: 600 9.5px/1 var(--display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-1);
-  border: 1px solid var(--gold-4); background: linear-gradient(180deg, #1e2328, #0a1428);
-}
-button.act:hover { border-color: var(--gold-2); color: #fff; box-shadow: 0 0 8px rgba(200, 170, 110, 0.3); }
-button.act.done { border-color: var(--teal-3); color: var(--teal-2); }
-button.act.error { border-color: var(--red); color: var(--red); }
-button.act:disabled { opacity: 0.55; cursor: progress; }
-.source { font-size: 10px; color: var(--grey-2); text-align: right; }

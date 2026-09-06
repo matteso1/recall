@@ -2,16 +2,22 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
+mod controller;
 mod demo;
+mod journal_store;
 mod poller;
 mod probe;
+mod rune_queue;
 mod settings;
+mod swiftplay;
 
-use featherstorm_core::aggregate::{Aggregate, Position};
+use featherstorm_core::aggregate::Aggregate;
 use featherstorm_core::champselect::Lobby;
 use featherstorm_core::ddragon::{normalize, Catalog};
-use featherstorm_core::engine::Plan;
+use featherstorm_core::engine::{Plan, PlannerPreferences};
+use featherstorm_core::journal::Journal;
 use featherstorm_core::lcu::Lcu;
+use featherstorm_core::live::LiveSnapshot;
 use featherstorm_core::pack::{ChampionPack, Traits};
 use featherstorm_core::placement::{self, Screen};
 use featherstorm_core::state::PanelState;
@@ -23,14 +29,16 @@ pub use featherstorm_core::placement::{PANEL_H, PANEL_H_COLLAPSED, PANEL_W};
 /// The aggregate (op.gg) build for the champion currently in play, and when to retry a failed fetch.
 #[derive(Default)]
 pub struct AggState {
-    pub key: Option<(u32, Option<Position>)>,
+    pub refresh: featherstorm_core::session::RefreshGate<featherstorm_core::session::AggregateKey>,
     pub value: Option<Arc<Aggregate>>,
     pub error: Option<String>,
-    pub next_try_ms: u64,
+    pub task: Option<tokio::task::JoinHandle<()>>,
 }
 
 /// Everything the poller and the commands share. Locks are held only for quick copies.
 pub struct App {
+    /// Serializes only local planning/commits. Never held over network or disk I/O.
+    pub planning: Mutex<()>,
     pub panel: Mutex<PanelState>,
     pub catalog: Mutex<Option<Arc<Catalog>>>,
     pub pack: ChampionPack,
@@ -41,6 +49,12 @@ pub struct App {
     pub plan: Mutex<Option<Plan>>,
     pub settings: Mutex<settings::Settings>,
     pub aggregate: Mutex<AggState>,
+    pub preferences: Mutex<PlannerPreferences>,
+    pub latest_live: Mutex<Option<LiveSnapshot>>,
+    pub lobby_observed_at_ms: Mutex<Option<u64>>,
+    pub session: Mutex<controller::RecommendationSession>,
+    pub journal: Mutex<Journal>,
+    pub journal_sink: journal_store::JournalSink,
 }
 
 impl App {
@@ -48,7 +62,7 @@ impl App {
         self.panel.lock().unwrap().clone()
     }
 
-    /// The hand-curated pack, if it is for this champion (M1: Xayah).
+    /// Optional factual champion-specific coaching, never the source of a fallback build.
     pub fn pack_for(&self, champion: &str) -> Option<&ChampionPack> {
         (normalize(champion) == normalize(&self.pack.champion)).then_some(&self.pack)
     }
@@ -77,7 +91,11 @@ fn init_logging() {
     if let Ok(env) = std::env::var("FEATHERSTORM_LOG") {
         builder.parse_filters(&env);
     }
-    match std::fs::OpenOptions::new().create(true).append(true).open(&path) {
+    match std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+    {
         Ok(file) => {
             builder.target(env_logger::Target::Pipe(Box::new(file)));
         }
@@ -90,8 +108,19 @@ fn init_logging() {
 
 fn screen_of(m: &tauri::Monitor) -> Screen {
     let (pos, size, work) = (m.position(), m.size(), m.work_area());
-    Screen::new(pos.x, pos.y, size.width as i32, size.height as i32, m.scale_factor())
-        .with_work_area(work.position.x, work.position.y, work.size.width as i32, work.size.height as i32)
+    Screen::new(
+        pos.x,
+        pos.y,
+        size.width as i32,
+        size.height as i32,
+        m.scale_factor(),
+    )
+    .with_work_area(
+        work.position.x,
+        work.position.y,
+        work.size.width as i32,
+        work.size.height as i32,
+    )
 }
 
 /// Put the panel at its saved position when that is still on a screen, otherwise bottom-right of
@@ -107,7 +136,11 @@ fn place_window(window: &tauri::WebviewWindow, state: &App) {
         .available_monitors()
         .map(|ms| ms.iter().map(screen_of).collect())
         .unwrap_or_default();
-    let primary = window.primary_monitor().ok().flatten().map(|m| screen_of(&m));
+    let primary = window
+        .primary_monitor()
+        .ok()
+        .flatten()
+        .map(|m| screen_of(&m));
     for s in &screens {
         log::info!(
             "monitor {}x{} at ({},{}) scale {}, work area {}x{} at ({},{})",
@@ -124,7 +157,11 @@ fn place_window(window: &tauri::WebviewWindow, state: &App) {
     }
     match placement::startup_position(saved, primary.as_ref(), &screens) {
         Some((x, y)) => {
-            let source = if saved == Some((x, y)) { "saved position" } else { "default placement" };
+            let source = if saved == Some((x, y)) {
+                "saved position"
+            } else {
+                "default placement"
+            };
             log::info!("panel at ({x},{y}) [{source}], saved was {saved:?}");
             match window.set_position(tauri::PhysicalPosition::new(x, y)) {
                 Ok(()) => {
@@ -152,17 +189,31 @@ fn main() {
     // `--demo [champselect|ingame|ingame-flash|idle]`: staged panel, no client (design work, screenshots).
     let demo: Option<String> = {
         let args: Vec<String> = std::env::args().collect();
-        args.iter().position(|a| a == "--demo").map(|i| args.get(i + 1).cloned().unwrap_or_else(|| "ingame".to_string()))
+        args.iter().position(|a| a == "--demo").map(|i| {
+            args.get(i + 1)
+                .cloned()
+                .unwrap_or_else(|| "ingame".to_string())
+        })
     };
 
     let pack = featherstorm_core::pack::load_xayah().expect("data pack");
     let traits = featherstorm_core::pack::load_traits().expect("champion traits");
     let saved = settings::load();
+    let (journal, journal_sink, journal_writer) = if demo.is_some() {
+        journal_store::disabled()
+    } else {
+        journal_store::open(settings::data_dir().join("decisions.json"))
+    };
+    let recap = journal.recap();
+    let journal_error = journal_sink.warning.clone();
     let state = Arc::new(App {
+        planning: Mutex::new(()),
         panel: Mutex::new(PanelState {
             phase: "noclient".into(),
             message: Some("Waiting for the League client...".into()),
             version: env!("CARGO_PKG_VERSION").into(),
+            recap,
+            journal_error,
             ..Default::default()
         }),
         catalog: Mutex::new(None),
@@ -174,6 +225,12 @@ fn main() {
         plan: Mutex::new(None),
         settings: Mutex::new(saved),
         aggregate: Mutex::new(AggState::default()),
+        preferences: Mutex::new(PlannerPreferences::default()),
+        latest_live: Mutex::new(None),
+        lobby_observed_at_ms: Mutex::new(None),
+        session: Mutex::new(controller::RecommendationSession::default()),
+        journal: Mutex::new(journal),
+        journal_sink,
     });
 
     tauri::Builder::default()
@@ -183,6 +240,10 @@ fn main() {
             commands::import_item_set,
             commands::import_runes,
             commands::import_spells,
+            commands::set_build_preference,
+            commands::pin_item,
+            commands::clear_item_pin,
+            commands::rate_decision,
             commands::set_collapsed,
             commands::quit,
         ])
@@ -202,6 +263,11 @@ fn main() {
             place_window(&window, &state);
             let handle = app.handle().clone();
             let st = state.clone();
+            let writer_app = handle.clone();
+            let writer_state = st.clone();
+            tauri::async_runtime::spawn(journal_writer.run(move |error| {
+                writer_state.update(&writer_app, |panel| panel.journal_error = error);
+            }));
             match demo.clone() {
                 Some(phase) => {
                     tauri::async_runtime::spawn(async move {
