@@ -58,3 +58,20 @@
   (`5120x2160 ... work area 5120x2088`). Step 1 + 2 of the handoff done; the overlay is running at the
   user's chosen spot with the client open, capture.sh is recording. Next: Practice Tool dogfood (needs
   the user at the keyboard), then a draft game for enemy-driven swaps.
+- 18:26-18:33 Practice Tool dogfood (user at the keyboard, Xayah). Panel fine in game (borderless,
+  `WindowMode=2`). All three imports landed: rune page "Featherstorm Xayah" became the current page
+  (Slightly Magical Footwear showed up in the live data at 12:00, so it was active in game), the item set
+  has the Start / 1..6 / situational / Vision blocks, spells were set. Live data followed the shop:
+  Sheen -> Caulfield's -> Cloak -> Essence Reaver, and the skill points were Q1 W1 E3 at level 5, i.e.
+  the shown order. 30 raw payloads captured by capture.sh.
+- Findings: (1) the overlay log recorded nothing between "connected" and the end of the game: the
+  poller logged no phases, the imports no results. Added info lines for gameflow changes, champ-select
+  and live plan changes (path/next/why, only when they change), level-ups and import results.
+  (2) The user had Flash + Barrier at lock-in; the "Spells" button changed it to the pack's Flash + Heal,
+  which read as wrong to them (and the button name read as abilities). Pack default is now Flash +
+  Barrier (Draven override dropped as redundant, Ashe -> Cleanse stays), button renamed "Summoner spells".
+  (3) The pack's rune page differed from the current op.gg aggregate page in three slots (Alacrity vs
+  Bloodline, Cut Down vs Coup de Grace, flat Health vs Health Scaling). No M1 rule adapts runes, so the
+  pack now carries the aggregate page; Cut Down vs 2+ tanks is a candidate rule for later.
+  (4) With 2 rune pages owned and both in use (op.gg + ours), the import replaces only its own page; a
+  user with two foreign pages gets "all 2 rune pages are in use; delete one in the client and retry".

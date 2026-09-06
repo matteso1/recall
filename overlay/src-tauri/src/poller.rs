@@ -22,6 +22,26 @@ fn compute(st: &App, catalog: &Catalog, enemies: &[String], live: Option<&LiveSn
     engine::plan(&Inputs { pack: &st.pack, traits: &st.traits, catalog, enemies, live })
 }
 
+/// One line for the log: the path with tags, the NEXT item and the why lines.
+fn plan_summary(plan: &Plan) -> String {
+    let path: Vec<String> = plan
+        .path
+        .iter()
+        .map(|p| match &p.tag {
+            Some(t) => format!("{} ({t})", p.short),
+            None => p.short.clone(),
+        })
+        .collect();
+    let next = match &plan.next {
+        Some(n) => match &n.buy_now {
+            Some(c) if c.id != n.id => format!("{} (buy {})", n.name, c.name),
+            _ => n.name.clone(),
+        },
+        None => "-".to_string(),
+    };
+    format!("path {}; next {next}; why {:?}", path.join(" > "), plan.why)
+}
+
 fn lobby_view(lobby: &Lobby, catalog: &Catalog) -> LobbyView {
     LobbyView {
         allies: lobby.allies.iter().map(|k| catalog.champion_name(*k)).collect(),
@@ -101,6 +121,8 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
     let mut tick: u64 = 0;
     let mut last_level: Option<u32> = None;
     let mut last_live_ok = false;
+    let mut last_phase = String::new();
+    let mut last_summary = String::new();
 
     loop {
         tick += 1;
@@ -108,6 +130,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
 
         let Some(lcu) = connect(&app, &st).await else {
             drop_client(&app, &st);
+            last_phase.clear();
             tokio::time::sleep(Duration::from_secs(2)).await;
             continue;
         };
@@ -117,9 +140,14 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
             Err(e) => {
                 log::info!("client went away: {e}");
                 drop_client(&app, &st);
+                last_phase.clear();
                 continue;
             }
         };
+        if phase != last_phase {
+            log::info!("gameflow {} -> {phase}", if last_phase.is_empty() { "-" } else { last_phase.as_str() });
+            last_phase = phase.clone();
+        }
 
         // Expire the level-up flash.
         st.update(&app, |p| {
@@ -148,6 +176,16 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                     .map(|c| ddragon::normalize(c) == ddragon::normalize(&st.pack.champion))
                     .unwrap_or(false);
                 let plan = compute(&st, &catalog, &enemies, None);
+                let summary = format!(
+                    "champ select: {} vs {:?}; {}",
+                    champion.as_deref().unwrap_or("(no pick yet)"),
+                    enemies,
+                    plan_summary(&plan)
+                );
+                if summary != last_summary {
+                    log::info!("{summary}");
+                    last_summary = summary;
+                }
                 let view = lobby_view(&lobby, &catalog);
                 *st.lobby.lock().unwrap() = Some(lobby);
                 *st.plan.lock().unwrap() = Some(plan.clone());
@@ -202,11 +240,22 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                             .unwrap_or(false);
                         let plan = compute(&st, &catalog, &enemies, Some(&snap));
                         let level = snap.me.as_ref().map(|m| m.player.level).unwrap_or(0);
+                        let summary = format!(
+                            "live: {} lvl {level} vs {:?}; {}",
+                            champion.as_deref().unwrap_or("?"),
+                            enemies,
+                            plan_summary(&plan)
+                        );
+                        if summary != last_summary {
+                            log::info!("{summary}");
+                            last_summary = summary;
+                        }
                         let flash = match last_level {
-                            Some(prev) if level > prev && plan.skill.next.is_some() => Some(Flash {
-                                skill: plan.skill.next.unwrap(),
-                                until_ms: now_ms() + 3500,
-                            }),
+                            Some(prev) if level > prev && plan.skill.next.is_some() => {
+                                let skill = plan.skill.next.unwrap();
+                                log::info!("level {prev} -> {level}: recommend {skill}");
+                                Some(Flash { skill, until_ms: now_ms() + 3500 })
+                            }
                             _ => None,
                         };
                         last_level = Some(level);

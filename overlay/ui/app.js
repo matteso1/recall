@@ -93,7 +93,7 @@ function render(s) {
       parts.push(renderPath(plan));
       parts.push(renderWhy(plan));
       parts.push(`<div class="small">Start: ${esc(plan.start.map((i) => i.name).join(", "))} · ${esc(plan.runes_summary)} · ${esc(plan.spells.join(" + "))}</div>`);
-      parts.push(`<div class="row">${button("btn-runes", "Runes", s.imports.runes)}${button("btn-spells", "Spells", s.imports.spells)}${button("btn-itemset", "Item set", s.imports.itemset)}</div>`);
+      parts.push(`<div class="row">${button("btn-runes", "Runes", s.imports.runes)}${button("btn-spells", "Summoner spells", s.imports.spells)}${button("btn-itemset", "Item set", s.imports.itemset)}</div>`);
     }
   } else if (s.phase === "ingame") {
     if (!s.supported) {

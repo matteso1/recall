@@ -41,6 +41,7 @@ back to Data Dragon class tags. Every rule that changes the path pushes one line
   or live data (2 s), runs the engine, publishes `PanelState` on the `state` event when it changed.
   Flashes the recommended skill for 3.5 s on level-up.
 - `commands.rs`: `get_state`, `import_item_set`, `import_runes`, `import_spells`, `set_collapsed`, `quit`.
+  Import results, gameflow changes and plan changes are logged at info level, so a dogfood game leaves a trace.
 - `probe.rs`: `featherstorm.exe --probe` runs the pipeline once without a window and prints JSON
   (also saved to `%LOCALAPPDATA%\Featherstorm\probe.json`).
 - `ui/`: plain HTML/CSS/JS, no bundler. `window.__TAURI__` (withGlobalTauri) for events and commands.

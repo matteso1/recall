@@ -17,12 +17,12 @@
     "name": "Featherstorm Xayah",
     "primary": "Precision",
     "keystone": "Lethal Tempo",
-    "primary_perks": ["Presence of Mind", "Legend: Alacrity", "Cut Down"],
+    "primary_perks": ["Presence of Mind", "Legend: Bloodline", "Coup de Grace"],
     "secondary": "Inspiration",
     "secondary_perks": ["Magical Footwear", "Biscuit Delivery"],
-    "shards": ["Attack Speed", "Adaptive Force", "Health"]
+    "shards": ["Attack Speed", "Adaptive Force", "Health Scaling"]
   },
-  "spells": ["Flash", "Heal"],
+  "spells": ["Flash", "Barrier"],
   "alternatives": {
     "anti_heal": "Mortal Reminder",
     "armor_pen": "Lord Dominik's Regards",
@@ -39,7 +39,7 @@
   },
   "matchups": {
     "Tristana": {"line": "vs Tristana: loses the lvl 2 all-in, wins after 2 items. Don't fight before 3."},
-    "Draven": {"line": "vs Draven: he wins early trades. Farm safe, root him when he catches an axe.", "spells": ["Flash", "Barrier"]},
+    "Draven": {"line": "vs Draven: he wins early trades. Farm safe, root him when he catches an axe."},
     "Caitlyn": {"line": "vs Caitlyn: she out-ranges you. Farm with Q feathers, all-in when her trap is down."},
     "Ezreal": {"line": "vs Ezreal: poke lane. Stand behind minions, punish when his E is down."},
     "Jinx": {"line": "vs Jinx: you win lvl 2-5 if E roots land. Don't let her scale for free."},

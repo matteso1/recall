@@ -7,6 +7,9 @@ use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
 
 fn set_import(app: &AppHandle, st: &App, which: &str, status: &str) {
+    if status != "working" {
+        log::info!("import {which}: {status}");
+    }
     let status = status.to_string();
     let which = which.to_string();
     st.update(app, |p| match which.as_str() {
