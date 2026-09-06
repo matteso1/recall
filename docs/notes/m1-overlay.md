@@ -10,6 +10,7 @@ Two Rust crates in `overlay/` (a cargo workspace) plus a static web UI.
 | `champselect.rs` | session -> `Lobby` (my cell/champion/position, ally + enemy champion ids, bans) |
 | `ddragon.rs` | Data Dragon catalog cached under `%LOCALAPPDATA%\Featherstorm\ddragon\<patch>`: items, champions, runes, by id and by normalised name |
 | `pack.rs` | the data pack, embedded at compile time from `data/pack/` (`xayah.json`, `champion_traits.json`) |
+| `placement.rs` | panel geometry: the default position (bottom-right, left of the minimap, above the taskbar), and whether a saved position is still usable (its header must be entirely on a monitor) |
 | `engine.rs` | rules -> `Plan`: ordered path with tags/why, NEXT item with components and "buy now", skill point, matchup line |
 | `itemset.rs` | `Plan` -> LCU item set (block titles capped at 30 chars) |
 | `runes.rs` | pack rune page -> LCU perk page; summoner spell ids |
@@ -32,8 +33,10 @@ Champion traits come from `data/pack/champion_traits.json` (164 champions); unkn
 back to Data Dragon class tags. Every rule that changes the path pushes one line to `plan.why`.
 
 ## `overlay/src-tauri` - the shell (Windows only)
-- `main.rs`: window setup (380x300, transparent, always on top, no decorations, remembers position),
-  shared `App` state, logging to `%LOCALAPPDATA%\Featherstorm\featherstorm.log`.
+- `main.rs`: window setup (380x300, transparent, always on top, no decorations), shared `App` state,
+  logging to `%LOCALAPPDATA%\Featherstorm\featherstorm.log`. The position is remembered in `settings.json`
+  but used only while the header is still on a monitor (else the bottom-right default, via `core::placement`);
+  the panel always starts expanded, collapsing is not persisted.
 - `poller.rs`: 1 s loop. Finds the client, follows the gameflow phase, polls champ select (1 s)
   or live data (2 s), runs the engine, publishes `PanelState` on the `state` event when it changed.
   Flashes the recommended skill for 3.5 s on level-up.
@@ -49,10 +52,14 @@ scripts/overlay-probe.sh [debug|release]   # headless pipeline check, no window 
 scripts/overlay-run.sh                    # launch the release exe on Windows (detached)
 scripts/overlay-log.sh 40                 # tail %LOCALAPPDATA%\Featherstorm\featherstorm.log
 scripts/win-screenshot.sh                 # full-DPI screenshot into .screens/ to eyeball the panel from WSL
+scripts/win-rect.sh [process]             # where the window really is (physical pixels), e.g. after a placement change
 scripts/overlay-stop.sh                   # kill it
+scripts/capture.sh [start|stop|status]    # M0 watchers dumping raw champ-select / live payloads for fixtures while dogfooding
 ```
 
 ## Dogfooding checklist (M1)
+Run `scripts/capture.sh start` first so the raw payloads land in `m0/tests/fixtures/captured/` (gitignored;
+scrub the interesting ones into named fixtures afterwards).
 1. Start the overlay with the client open: panel shows "In lobby" and the summoner name.
 2. Practice Tool as Xayah: champ select shows the path, matchup line (none in Practice Tool), the
    Runes / Spells / Item set buttons; each button turns green with a check when the client accepted it.
@@ -60,7 +67,8 @@ scripts/overlay-stop.sh                   # kill it
    components as gold comes in, bought components get a check, the path line checks off finished
    items, the skill key flashes on level-up.
 4. Draft game: enemy locks change the path (Soraka -> Mortal Reminder with a `(Soraka)` tag and a why line).
-5. Position survives a restart (settings.json), collapse button shrinks to one line.
+5. Position survives a restart (settings.json) as long as it is still on a monitor; an off-screen saved
+   position falls back to bottom-right; the panel always starts expanded; collapse shrinks to one line.
 The binary lands in `C:\Users\<you>\code\featherstorm-win\overlay\target\release\featherstorm.exe`.
 Requirements on Windows: Rust MSVC toolchain, Visual Studio Build Tools with the "Desktop development
 with C++" workload (the MSVC linker), WebView2 (ships with Windows 11).

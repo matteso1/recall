@@ -5,6 +5,7 @@
 //! * `champselect` - champ select session -> lobby (who is on each side)
 //! * `ddragon`     - Data Dragon catalog: items, champions, runes, by id and by name
 //! * `pack`        - the hand-curated data pack (per-champion build, champion traits)
+//! * `placement`   - panel geometry: default position, is a saved position still on a screen
 //! * `engine`      - the rules: enemy comp + live state -> ordered path, NEXT item, skill point
 //! * `itemset`     - plan -> LCU item set (shows up in the in-game shop)
 //! * `runes`       - pack rune page -> LCU perk page
@@ -16,5 +17,6 @@ pub mod itemset;
 pub mod lcu;
 pub mod live;
 pub mod pack;
+pub mod placement;
 pub mod runes;
 pub mod state;

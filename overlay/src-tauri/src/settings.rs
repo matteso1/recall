@@ -1,13 +1,16 @@
-//! Tiny persisted settings: panel position and collapsed state, plus the app data dir.
+//! Tiny persisted settings: the panel position, plus the app data dir.
+//!
+//! Only the position is remembered. Whether the panel is collapsed is a per-session choice: a
+//! panel that starts collapsed looks broken, and the saved position is validated against the
+//! monitors at startup (see `featherstorm_core::placement`), so a stale file cannot hide it.
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Settings {
+    /// Outer position of the panel in physical pixels (`None` until it has been placed once).
     pub x: Option<i32>,
     pub y: Option<i32>,
-    #[serde(default)]
-    pub collapsed: bool,
 }
 
 /// %LOCALAPPDATA%\Featherstorm (logs, Data Dragon cache, settings)
@@ -22,6 +25,7 @@ fn path() -> PathBuf {
     data_dir().join("settings.json")
 }
 
+/// Unknown or malformed content (older files, hand edits) yields the defaults; unknown keys are ignored.
 pub fn load() -> Settings {
     std::fs::read_to_string(path())
         .ok()

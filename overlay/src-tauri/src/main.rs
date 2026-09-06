@@ -11,13 +11,12 @@ use featherstorm_core::ddragon::Catalog;
 use featherstorm_core::engine::Plan;
 use featherstorm_core::lcu::Lcu;
 use featherstorm_core::pack::{ChampionPack, Traits};
+use featherstorm_core::placement::{self, Screen};
 use featherstorm_core::state::PanelState;
 use std::sync::{Arc, Mutex};
 use tauri::{Emitter, Manager};
 
-pub const PANEL_W: f64 = 380.0;
-pub const PANEL_H: f64 = 300.0;
-pub const PANEL_H_COLLAPSED: f64 = 64.0;
+pub use featherstorm_core::placement::{PANEL_H, PANEL_H_COLLAPSED, PANEL_W};
 
 /// Everything the poller and the commands share. Locks are held only for quick copies.
 pub struct App {
@@ -72,6 +71,61 @@ fn init_logging() {
     let _ = builder.try_init();
 }
 
+fn screen_of(m: &tauri::Monitor) -> Screen {
+    let (pos, size, work) = (m.position(), m.size(), m.work_area());
+    Screen::new(pos.x, pos.y, size.width as i32, size.height as i32, m.scale_factor())
+        .with_work_area(work.position.x, work.position.y, work.size.width as i32, work.size.height as i32)
+}
+
+/// Put the panel at its saved position when that is still on a screen, otherwise bottom-right of
+/// the primary monitor. A stale settings.json (other monitor, other resolution, hand edits) must
+/// never leave the panel off-screen.
+fn place_window(window: &tauri::WebviewWindow, state: &App) {
+    // Copy the saved position out: `set_position` fires `Moved`, whose handler takes this lock.
+    let saved = {
+        let s = state.settings.lock().unwrap();
+        s.x.zip(s.y)
+    };
+    let screens: Vec<Screen> = window
+        .available_monitors()
+        .map(|ms| ms.iter().map(screen_of).collect())
+        .unwrap_or_default();
+    let primary = window.primary_monitor().ok().flatten().map(|m| screen_of(&m));
+    for s in &screens {
+        log::info!(
+            "monitor {}x{} at ({},{}) scale {}, work area {}x{} at ({},{})",
+            s.bounds.w,
+            s.bounds.h,
+            s.bounds.x,
+            s.bounds.y,
+            s.scale,
+            s.work.w,
+            s.work.h,
+            s.work.x,
+            s.work.y
+        );
+    }
+    match placement::startup_position(saved, primary.as_ref(), &screens) {
+        Some((x, y)) => {
+            let source = if saved == Some((x, y)) { "saved position" } else { "default placement" };
+            log::info!("panel at ({x},{y}) [{source}], saved was {saved:?}");
+            match window.set_position(tauri::PhysicalPosition::new(x, y)) {
+                Ok(()) => {
+                    // A programmatic move does not always raise `Moved`; record the placement ourselves.
+                    let mut s = state.settings.lock().unwrap();
+                    s.x = Some(x);
+                    s.y = Some(y);
+                    if let Err(e) = settings::save(&s) {
+                        log::warn!("could not save settings: {e}");
+                    }
+                }
+                Err(e) => log::warn!("set_position failed: {e}"),
+            }
+        }
+        None => log::warn!("no monitor information; leaving the window where the OS put it"),
+    }
+}
+
 fn main() {
     init_logging();
     log::info!("featherstorm {} starting", env!("CARGO_PKG_VERSION"));
@@ -86,7 +140,6 @@ fn main() {
         panel: Mutex::new(PanelState {
             phase: "noclient".into(),
             message: Some("Waiting for the League client...".into()),
-            collapsed: saved.collapsed,
             version: env!("CARGO_PKG_VERSION").into(),
             ..Default::default()
         }),
@@ -112,28 +165,8 @@ fn main() {
         ])
         .setup(move |app| {
             let window = app.get_webview_window("main").expect("main window");
-            let saved = state.settings.lock().unwrap().clone();
-            let height = if saved.collapsed { PANEL_H_COLLAPSED } else { PANEL_H };
-            let _ = window.set_size(tauri::LogicalSize::new(PANEL_W, height));
-            match (saved.x, saved.y) {
-                (Some(x), Some(y)) => {
-                    let _ = window.set_position(tauri::PhysicalPosition::new(x, y));
-                }
-                _ => {
-                    // Default: bottom-right, just left of where the minimap sits.
-                    if let Ok(Some(monitor)) = window.primary_monitor() {
-                        let scale = monitor.scale_factor();
-                        let size = monitor.size();
-                        let w = (PANEL_W * scale) as i32;
-                        let h = (PANEL_H * scale) as i32;
-                        let minimap = (size.height as f64 * 0.30) as i32;
-                        let margin = (12.0 * scale) as i32;
-                        let x = (size.width as i32 - minimap - w - margin).max(0);
-                        let y = (size.height as i32 - h - margin).max(0);
-                        let _ = window.set_position(tauri::PhysicalPosition::new(x, y));
-                    }
-                }
-            }
+            // Always start expanded; collapsing is a per-session choice (see settings.rs).
+            let _ = window.set_size(tauri::LogicalSize::new(PANEL_W, PANEL_H));
             let st = state.clone();
             window.on_window_event(move |event| {
                 if let tauri::WindowEvent::Moved(pos) = event {
@@ -143,6 +176,7 @@ fn main() {
                     let _ = settings::save(&s);
                 }
             });
+            place_window(&window, &state);
             let handle = app.handle().clone();
             let st = state.clone();
             tauri::async_runtime::spawn(async move {

@@ -110,11 +110,7 @@ pub fn set_collapsed(app: AppHandle, st: State<'_, Arc<App>>, collapsed: bool) -
             .set_size(tauri::LogicalSize::new(crate::PANEL_W, height))
             .map_err(|e| e.to_string())?;
     }
-    {
-        let mut s = st.settings.lock().unwrap();
-        s.collapsed = collapsed;
-        let _ = crate::settings::save(&s);
-    }
+    // Not persisted on purpose: the panel always starts expanded (see settings.rs).
     st.update(&app, |p| p.collapsed = collapsed);
     Ok(())
 }
