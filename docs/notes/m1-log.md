@@ -31,3 +31,30 @@
   Fixed with full stdio redirection + nohup.
 - `scripts/overlay-visual-test.sh` never completed because of that hang; re-test after the fix.
 - Session moved to the terminal TUI at the user's request (handoff prompt given).
+- 18:05 Startup fix. `%LOCALAPPDATA%\Featherstorm` turned out to be empty already (settings.json, log
+  and the Data Dragon cache all gone), so there was nothing stale left to delete; the fix makes the
+  stale case impossible anyway. New `core::placement` (pure geometry, 9 tests): the saved position is
+  used only when the panel's header is entirely on some monitor, otherwise the bottom-right default,
+  which now also stays above the taskbar (the taskbar is a topmost window too and covered the bottom
+  54 px of the old default on the desktop). `collapsed` is no longer persisted: the panel always
+  starts expanded. `Settings` is position-only; unknown keys in an old file are ignored.
+  The main.rs `Moved` handler still saves drags, but a programmatic `set_position` at startup did not
+  raise `Moved` (no settings.json after the first run), so the placement is saved explicitly.
+- 18:13 Release rebuild 1 m 45 s. Probe passes (client `None`, matteso#NA1, Data Dragon 16.17.1 re-cached).
+  On-screen: window at (3884,1692) 570x450 physical = exactly the computed default, expanded, header +
+  `idle` pill + "Ready. Start a game." + "matteso#NA1 · patch 16.17.1". Verified with the new
+  `scripts/win-rect.sh` (GetWindowRect in physical pixels) rather than eyeballing a 5120x2160 PNG;
+  `scripts/win-screenshot.sh out.png x,y,w,h` now crops. The user dragged the panel to (4448,149)
+  during the test and settings.json followed (`{"x":4448,"y":149}`), so drag persistence works.
+- `scripts/capture.sh start|stop|status`: both M0 watchers detached with `--dump` into
+  `m0/tests/fixtures/captured/`, tracked by pidfile (a `pgrep -f` pattern matched the very shell that
+  launched it, the gotcha from the notes). Running since 18:13 so the Practice Tool / draft payloads
+  are captured whenever the user plays.
+- 18:21 Rebuilt (1 m 23 s; the running exe has to be stopped first or cargo cannot replace it) and
+  verified both placement paths on the real machine with `win-rect.sh`: restart with the user's saved
+  (4448,149) -> kept (`[saved position]`); planted `{"x":9000,"y":9000,"collapsed":true}` -> panel at
+  (3884,1620) = default above the 72 px taskbar, expanded (`[default placement], saved was Some((9000,
+  9000))`); restored the user's position afterwards. Log now prints the monitor and work area
+  (`5120x2160 ... work area 5120x2088`). Step 1 + 2 of the handoff done; the overlay is running at the
+  user's chosen spot with the client open, capture.sh is recording. Next: Practice Tool dogfood (needs
+  the user at the keyboard), then a draft game for enemy-driven swaps.
