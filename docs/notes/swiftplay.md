@@ -30,7 +30,7 @@ Verified on this change: 221 core tests, 26 headless runtime tests, 19 browser t
 and 34 existing Python tests passed. Core/runtime Clippy passed with warnings denied.
 The UI pass kept both choice rows readable at 380 px and 320 px panel widths.
 The Windows/MSVC release build also passed, with the executable under the mirror's
-`overlay/target/swiftplay/release/featherstorm.exe`; the previous executable was not
+`overlay/target/swiftplay/release/recall.exe`; the previous executable was not
 replaced, and no running overlay was restarted.
 
 Verification does not substitute for an observed real Swiftplay assignment on the
@@ -48,7 +48,7 @@ lookup also differed from the actual champion-linked page, so it is not used as
 save confirmation.
 
 A user-authorized, guarded PUT to the exclusively linked Irelia temporary page
-renamed it to `Featherstorm Irelia Mid` (HTTP 201). Read-back confirmed the same page
+renamed it to `Recall Irelia Mid` (HTTP 201). Read-back confirmed the same page
 ID, valid rune content and champion association, unchanged player slots, and no
 changes to other pages. No page was deleted or created. This contract is now part
 of the automatic importer: reuse the linked temporary/app-owned page in place,
@@ -164,7 +164,7 @@ not a slow request, and it was wrong for this product.
 
 A real Swiftplay assignment on this executable, the client's behaviour when a role is changed after
 preparation, the shop's rendering of the labelled blocks, and the account's penalty state. The exact
-Windows artifact is `C:\Users\nilsm\code\featherstorm-win\overlay\target\swiftplay\release\featherstorm.exe`
+Windows artifact is `C:\Users\nilsm\code\recall-win\overlay\target\swiftplay\release\recall.exe`
 (SHA-256 `d1efd47fcbbfb80e310d3dc328d87157f49bf0e5fe2a4b85a963370ef2565de1`, rebuilt after the
 2026-09-06 game fixes; the first game was played on `e0019d27…`), built by
 `scripts/overlay-build.sh` and launched by `scripts/overlay-run.sh`, which now know only that path.

@@ -1,4 +1,4 @@
-//! Featherstorm core: everything that is not the window.
+//! Recall core: everything that is not the window.
 //!
 //! * `lcu`         - League client local API (lockfile auth): gameflow, champ select, imports
 //! * `live`        - Live Client Data API (in-game): gold, items, levels, abilities
@@ -10,8 +10,10 @@
 //! * `engine`      - the rules: enemy comp + live state -> ordered path, NEXT item, skill point
 //! * `itemset`     - plan -> LCU item set (shows up in the in-game shop)
 //! * `runes`       - pack rune page -> LCU perk page
+//! * `brand`       - the product name on the account (rune pages, item sets) and its legacy form
 //! * `state`       - what the panel renders
 pub mod aggregate;
+pub mod brand;
 pub mod champselect;
 pub mod coaching;
 pub mod ddragon;

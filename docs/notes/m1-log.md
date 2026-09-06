@@ -17,11 +17,11 @@
     matchup: vs Tristana line
   ```
 - 14:27 Release build (opt-level s, LTO, strip) at BelowNormal priority with -j 6 while the user was
-  gaming: 3 m 47 s, 9.6 MB `featherstorm.exe`. Headless probe passes on the release exe as well.
+  gaming: 3 m 47 s, 9.6 MB `recall.exe`. Headless probe passes on the release exe as well.
 - Pending: on-screen test with the League client open (user was gaming), Practice Tool dogfood, draft game.
 - 17:53 First on-screen run (release exe): launched, connected to the client (`connected to client on
   port 51493 as matteso#NA1`), panel rendered as a collapsed 380x64 strip at the top-middle of the
-  screen instead of expanded bottom-right. Cause: `%LOCALAPPDATA%\Featherstorm\settings.json` held
+  screen instead of expanded bottom-right. Cause: `%LOCALAPPDATA%\Recall\settings.json` held
   `{"x":3803,"y":322,"collapsed":true}` from an earlier run, and the saved position is honoured
   as-is. Fix next: validate saved position against the monitor, do not start collapsed unless the
   user collapsed it this session (or drop persisting `collapsed`), delete the stale settings.json.
@@ -31,7 +31,7 @@
   Fixed with full stdio redirection + nohup.
 - `scripts/overlay-visual-test.sh` never completed because of that hang; re-test after the fix.
 - Session moved to the terminal TUI at the user's request (handoff prompt given).
-- 18:05 Startup fix. `%LOCALAPPDATA%\Featherstorm` turned out to be empty already (settings.json, log
+- 18:05 Startup fix. `%LOCALAPPDATA%\Recall` turned out to be empty already (settings.json, log
   and the Data Dragon cache all gone), so there was nothing stale left to delete; the fix makes the
   stale case impossible anyway. New `core::placement` (pure geometry, 9 tests): the saved position is
   used only when the panel's header is entirely on some monitor, otherwise the bottom-right default,
@@ -59,7 +59,7 @@
   user's chosen spot with the client open, capture.sh is recording. Next: Practice Tool dogfood (needs
   the user at the keyboard), then a draft game for enemy-driven swaps.
 - 18:26-18:33 Practice Tool dogfood (user at the keyboard, Xayah). Panel fine in game (borderless,
-  `WindowMode=2`). All three imports landed: rune page "Featherstorm Xayah" became the current page
+  `WindowMode=2`). All three imports landed: rune page "Recall Xayah" became the current page
   (Slightly Magical Footwear showed up in the live data at 12:00, so it was active in game), the item set
   has the Start / 1..6 / situational / Vision blocks, spells were set. Live data followed the shop:
   Sheen -> Caulfield's -> Cloak -> Essence Reaver, and the skill points were Q1 W1 E3 at level 5, i.e.
@@ -100,7 +100,7 @@
   (87k games, patch 16.17), engine path Yun Tal > Greaves > Navori > Mortal (Soraka) > IE > GA with the why
   lines, spells Flash + Barrier, runes "Lethal Tempo / Inspiration", skills max E > W > Q.
 - Next: a real champ select with the new build. Expect in the log: `aggregate: champion 498 as ADC ...`,
-  `auto-import runes: Rune page 'Featherstorm Xayah ADC' set`, `auto-import spells: Flash + Barrier selected`,
+  `auto-import runes: Rune page 'Recall Xayah ADC' set`, `auto-import spells: Flash + Barrier selected`,
   `auto-import item set: ...` at lock. Also try any non-Xayah champion.
 - 19:25 First real draft game on the aggregate build (Xayah vs Yone, Vi, Katarina, Vayne, Lux). Live path
   Yun Tal > Greaves > Navori > IE > LDR > Maw (AP comp) with the why line; NEXT followed the shop. User asked
@@ -113,8 +113,8 @@
 - The log of that game shows the whole chain firing in a *one-second* ChampSelect phase (ReadyCheck ->
   ChampSelect 02:17:02, -> InProgress 02:17:03): a Quickplay-style queue where the champion is chosen in the
   lobby. `aggregate: champion 498 as ADC (op.gg emerald+ global, 87k games, patch 16.17)`, then
-  `auto-import runes: Rune page 'Featherstorm Xayah ADC' set`, `auto-import spells: Flash + Barrier selected`,
-  `auto-import item set: Item set 'Featherstorm Xayah' is in the client`, all inside that second. Enemies
+  `auto-import runes: Rune page 'Recall Xayah ADC' set`, `auto-import spells: Flash + Barrier selected`,
+  `auto-import item set: Item set 'Recall Xayah' is in the client`, all inside that second. Enemies
   were empty at that point (`vs []`), so the pushed item set had GA where the live plan later said Maw (AP
   comp). Known gap for Quickplay: enemy comps are only known in game, and the shop reads item sets at
   game start. Candidate fix: read the gameflow session's team data at GameStart and push once more.

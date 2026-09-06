@@ -1105,10 +1105,8 @@ mod tests {
                 .duration_since(SystemTime::UNIX_EPOCH)
                 .unwrap()
                 .as_nanos();
-            let path = std::env::temp_dir().join(format!(
-                "featherstorm-aggregate-{}-{stamp}",
-                std::process::id()
-            ));
+            let path = std::env::temp_dir()
+                .join(format!("recall-aggregate-{}-{stamp}", std::process::id()));
             std::fs::create_dir(&path).unwrap();
             Self(path)
         }
@@ -1371,7 +1369,11 @@ mod tests {
             fallback_position(Position::Jungle, &stats),
             Some(Position::Adc)
         );
-        assert_eq!(fallback_position(Position::Adc, &stats), None, "exact data exists");
+        assert_eq!(
+            fallback_position(Position::Adc, &stats),
+            None,
+            "exact data exists"
+        );
         assert_eq!(fallback_position(Position::Jungle, &[]), None);
         let irelia: Vec<PositionStat> = [(Position::Top, 83637), (Position::Mid, 53921)]
             .into_iter()
@@ -1445,12 +1447,16 @@ mod tests {
             (fallback.position, fallback.requested_position),
             (Position::Support, Some(Position::Jungle))
         );
-        assert_eq!(fallback.games, 87, "the Support sample, still labelled small");
+        assert_eq!(
+            fallback.games, 87,
+            "the Support sample, still labelled small"
+        );
         assert_eq!(fallback.provenance.cache_status, CacheStatus::Fresh);
     }
 
     #[tokio::test]
-    async fn fallback_tries_the_most_played_role_first_and_never_the_network_when_a_role_is_cached() {
+    async fn fallback_tries_the_most_played_role_first_and_never_the_network_when_a_role_is_cached()
+    {
         // Lulu listed as Support (87) and Mid (40); only the Support response is cached.
         // A Jungle assignment must use the cached Support build without any request.
         let cache = TestCache::new();

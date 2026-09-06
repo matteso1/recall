@@ -20,4 +20,4 @@ sleep 25
 scripts/win-screenshot.sh .screens/overlay-2-connected.png
 echo "=== log ==="
 scripts/overlay-log.sh 25
-echo "overlay running: $(tasklist.exe 2>/dev/null | tr -d '\r' | grep -c featherstorm.exe)"
+echo "overlay running: $(tasklist.exe 2>/dev/null | tr -d '\r' | grep -c recall.exe)"

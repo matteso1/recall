@@ -1,5 +1,5 @@
 //! Serialized, coalesced persistence for the local decision journal.
-use featherstorm_core::journal::Journal;
+use recall_core::journal::Journal;
 use std::fs::{self, OpenOptions};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -158,12 +158,12 @@ impl JournalWriter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use featherstorm_core::journal::Journal;
+    use recall_core::journal::Journal;
     use std::io::Write;
 
     fn test_dir() -> std::path::PathBuf {
         let dir = std::env::temp_dir().join(format!(
-            "featherstorm-journal-store-{}-{}",
+            "recall-journal-store-{}-{}",
             std::process::id(),
             next_file_nonce()
         ));

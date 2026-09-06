@@ -1,5 +1,5 @@
 //! Behavioral contracts from real shopping failures, not snapshots of rule ordering.
-use featherstorm_core::{
+use recall_core::{
     aggregate::{self, Aggregate, Position},
     ddragon::Catalog,
     engine::{self, Inputs, Plan},

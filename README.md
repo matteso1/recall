@@ -1,166 +1,137 @@
-# Featherstorm
+# Recall
 
-A local League of Legends companion that gives you one clear recommendation:
-**what to buy next, what it costs with your inventory, and why.** Learn through
-repeated good decisions; explanations and alternatives are optional.
+A small always-on-top panel for League of Legends that tells you **what to buy next,
+what it costs with the items you already hold, and why**. It prepares your runes, spells
+and shop item set in champion select, then follows the game and updates the
+recommendation as the enemy team's items become visible.
 
-This is a general champion-and-role tool. Xayah is a test fixture and the owner's
-main, not the product boundary. Loadouts come from each champion's own role data;
-the planner is shared across marksmen, mages, fighters, tanks, supports, and junglers.
+Recall reads only what the League client and the in-game Live Client Data API already
+show you. It never touches memory, packets, or anything hidden, and it never plays for you.
 
-## What is implemented
+*Recall was called Featherstorm until September 2026.*
 
-- Current-patch aggregate loadouts: starting items, core, boots, runes, spells, and
-  standard ability order. Most-picked builds are the baseline; higher observed win
-  rates are not treated as proof that a different build is better.
-- Inventory-aware purchasing: recursive component credit, exact combine prices,
-  repeated components, legal purchase baskets, save-for amounts, six-slot capacity,
-  item-family restrictions, actual Magical Footwear, and support/jungle requirements.
-- One compositional comparison of completion value, existing investment, visible
-  resistance/healing/dive pressure, coverage, and delay. No ordered slot-swapping
-  rules or preferred builds hidden in champion packs.
-- A compact next-action panel, with optional **Why & options**, **More protection**,
-  target pinning, and return to **Auto**. Player purchases are preserved; no automatic sales.
-- Champion-select imports with retry/session guards and in-place rune-page updates.
-  Spell imports preserve Flash's key and observe manual spell changes.
-- Swiftplay pre-queue preparation for both champion/role choices, with separate saved
-  runes, spells, role-specific shop sets, and confirmed per-choice readiness.
-- Independent local-data polling and bounded remote refreshes. Stale or unidentified
-  live data pauses actionable advice—even if the UI stops receiving updates.
-- A bounded, local recommendation/purchase journal and optional post-game feedback.
-  This is a decision recap, not a performance grade or a claim about wins.
-- Offline replay, real aggregates for eight champion/role fixtures, scenario
-  regressions, headless runtime tests, and browser tests.
+<p>
+  <img src="docs/images/champ-select.png" width="46%" alt="Champion select: loadout ready, build path, runes and spells imported">
+  <img src="docs/images/swiftplay-lobby.png" width="46%" alt="Swiftplay lobby: both champion choices prepared">
+</p>
 
-See [design](docs/design.md), [product principles](PRODUCT.md), and
-[verification notes](docs/notes/engine-v2.md).
+## What it does
 
-## Current boundaries
+- **One recommendation at a time.** The next item, the component to buy right now, the
+  remaining price, and a one-line reason. "Why & options" is there if you want it.
+- **Builds from real data, not hand-written defaults.** Starting items, core path, boots,
+  runes, spells and skill order come from what players of your champion and role run on
+  the current patch (op.gg's champion API, cached locally). If your champion has no data
+  for your assigned role, the same champion's most-played role is used and clearly labelled.
+- **Shop-legal purchasing.** Component credit, exact combine prices, six-slot capacity,
+  item families that exclude each other, Magical Footwear, support and jungle requirements,
+  Swiftplay's shop rules. When you cannot afford the next item, it says how much you are short.
+- **Situational adjustments you can see.** Anti-heal against a healer, a cleanse against a
+  verified suppression, armor or magic resist against what the enemy actually built. Nothing
+  changes for reasons the panel cannot state.
+- **Champion-select and Swiftplay preparation.** Rune page, summoner spells and an in-shop
+  item set are imported for you; in Swiftplay both of your choices are prepared before you queue.
+- **Honest states.** Stale data, unknown modes, or a missing build pauses the advice instead
+  of guessing. A short post-game recap shows the decisions; it never grades you.
 
-Supported live modes are standard Summoner's Rift, Swiftplay, and Practice Tool.
-ARAM/Arena and unknown modes pause recommendations instead of reusing ranked builds.
-Another champion's data is never substituted. When your champion has no data for
-your assigned role at this rank (Irelia in the jungle, for example), the same
-champion's most-played role is used as a clearly labelled starting point: the
-panel, the Swiftplay lobby view and the shop's item set all say which role's build
-it is, and your real role still decides spells (Smite for the jungle), starters
-(a jungle companion, the support quest) and what is legal to buy. A small sample
-is shown as weak evidence.
+## Getting started (Windows)
 
-Generic skill-point guidance is deliberately disabled for Aphelios, Udyr, Jayce,
-Elise, Nidalee, and Karma until their nonstandard leveling is modeled. Their
-itemization still uses the shared planner. Not every champion/passive interaction
-has been modeled or tested; recognized item effects are narrow and patch-sensitive.
-
-There is no combat positioning, wave-state inference, enemy cooldown tracking,
-recall-timing oracle, or local LLM. Visible equipment value is not enemy gold.
-The scoring weights are explicit heuristics, not a trained win-probability model.
-
-In Swiftplay, open the overlay in the lobby and wait for both choices to be ready
-before queueing. Loadouts are saved to the two choices, not to a shared active rune
-page. Picks, roles, skins, Flash keys, and subsequent manual rune/spell edits are
-preserved. Preparation pauses when queueing starts; launching after assignment
-cannot repair missed pre-game imports. The live panel follows the actual assigned
-champion and role and adapts after enemies become visible. Swiftplay starts every
-champion at level 3 with 1400 gold, disables Doran's items and sells Guardian's items;
-the planner knows that mode. The shop may not reload an item set already cached at
-game start. Only queue 480's pre-queue API is verified.
-
-## Build and run
-
-The Rust core runs in WSL/Linux. The actual overlay runs on Windows with the
-Windows Rust/MSVC toolchain, VS C++ Build Tools, and WebView2.
+There is no installer yet; Recall is built from source. You need the Rust toolchain with the
+MSVC target, Visual Studio C++ Build Tools, and WebView2 (already present on Windows 11).
 
 ```bash
-scripts/overlay-build.sh       # mirrors the sources, builds at below-normal priority, prints the exe path and SHA-256
-scripts/overlay-run.sh         # launches that exe (a running instance is replaced first)
-scripts/overlay-probe.sh --champion Irelia --role jungle --swiftplay   # headless check of the built exe; no client or game
+git clone https://github.com/matteso1/recall.git
+cd recall
+cargo build --manifest-path overlay/Cargo.toml --release -p recall
+overlay/target/release/recall.exe
 ```
 
-There is exactly one executable, and every script uses it:
-`C:\Users\<you>\code\featherstorm-win\overlay\target\swiftplay\release\featherstorm.exe`.
-The build refuses to run while that executable is running, because Cargo cannot
-replace a running program. Do not rebuild during a game.
+The project is developed from WSL with the build running on the Windows side; the scripts in
+`scripts/` (`overlay-build.sh`, `overlay-run.sh`, `overlay-probe.sh`) do that. See
+[docs/notes/dev-setup.md](docs/notes/dev-setup.md).
 
-The panel is draggable/collapsible. Auto-import switches, source region/tier, and
-saved position live in `%LOCALAPPDATA%\Featherstorm\settings.json`.
-Caches, logs, and the bounded decision journal also stay in that directory.
-The default source is global / emerald-plus; that population is not a personalized
-estimate for a beginner.
+Then:
 
-`featherstorm.exe --demo ingame` (or `champselect`, `idle`) is an explicitly
-labeled, read-only staged preview. It may fetch public catalog/aggregate data but
-does not connect to the client or import anything. `--probe` writes a diagnostic
-report using the actual champion/role when available, otherwise a labeled sample.
+1. Start League, then start Recall. The panel says **ready** while you are in the client.
+2. Pick a champion. Runes, spells and the item set are imported when the pick locks; the panel
+   shows the build path and the matchup notes. Turn any of the imports off in **Why & options**.
+3. In game, buy what the panel says when you recall, or pin a different target. Your own
+   purchases are always respected; nothing is ever sold.
+4. In **Swiftplay**, open Recall in the lobby and wait for both choices to read **Ready** before
+   you queue. Its champion select lasts one second, so preparation has to happen beforehand.
 
-## Verification
+Settings (auto-import switches, data region and tier, saved position), caches, logs and the
+decision journal live in `%LOCALAPPDATA%\Recall`.
 
-From the repository root:
+## Modes and limits
+
+Supported: Summoner's Rift (draft, blind, ranked), Swiftplay, Practice Tool. ARAM, Arena and
+unknown modes pause recommendations rather than reuse Rift builds.
+
+Recall never substitutes another champion's data. A small sample is shown as weak evidence.
+Skill-point guidance is off for Aphelios, Udyr, Jayce, Elise, Nidalee and Karma until their
+levelling is modelled. There is no wave-state inference, cooldown tracking, positioning advice
+or trained win-probability model; the scoring weights are explicit, reviewable heuristics.
+
+## Riot policy and privacy
+
+Recall uses two local interfaces Riot provides for this purpose: the League Client API
+(authenticated with the client's own lockfile) and the Live Client Data API. From them it reads
+your gold, inventory, abilities, the visible rosters and scoreboard, and the game time.
+
+It does not read process memory, capture packets, inject into the game, infer hidden positions,
+enemy gold or cooldowns, or automate any gameplay. The only things it writes to your account
+are rune pages and item sets named `Recall <champion> <role>`, which it also reuses and replaces;
+personal pages are never edited or deleted. Nothing leaves your machine except requests for
+public patch data and public build statistics.
+
+Recall isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or
+anyone officially involved in producing or managing Riot Games properties. Riot Games and
+League of Legends are trademarks or registered trademarks of Riot Games, Inc.
+
+## Roadmap
+
+- macOS support (the brain is portable; the window shell, screenshots and build scripts are Windows-only today).
+- A packaged installer and signed release builds.
+- More modes as their shops are verified (ARAM first).
+
+Open an issue if you want to help with any of these.
+
+## Development
+
+Layout: `overlay/core` is the platform-independent brain (Rust), `overlay/src-tauri` is the
+Windows window shell, `overlay/ui` is the panel (plain HTML, CSS, JS). `m0/` holds the original
+stdlib-only Python probes for the local APIs, still used for capturing fixtures. The design doc is
+[docs/design.md](docs/design.md); decisions and findings are in [docs/notes](docs/notes).
 
 ```bash
-cargo test --manifest-path overlay/Cargo.toml --locked -p featherstorm-core
-cargo clippy --manifest-path overlay/Cargo.toml --locked -p featherstorm-core --all-targets -- -D warnings
+cargo test --manifest-path overlay/Cargo.toml --locked -p recall-core
+cargo clippy --manifest-path overlay/Cargo.toml --locked -p recall-core --all-targets -- -D warnings
 cargo test --manifest-path tests/runtime/Cargo.toml --target-dir overlay/target --locked
 cargo clippy --manifest-path tests/runtime/Cargo.toml --target-dir overlay/target --locked --all-targets -- -D warnings
 python3 -m unittest discover -s m0/tests -v
 node --check overlay/ui/app.js
+cd tests/ui && npm ci && npx playwright install --with-deps chromium && npm test
 ```
 
-Browser tests use real serialized Rust plans and mock only the Tauri connection.
-They do not contact League:
+Browser tests render real serialized plans from the Rust core and mock only the window bridge.
+Nothing in the test suites contacts League or the network.
+
+Offline replay checks every recorded state of a captured game for legality:
 
 ```bash
-cd tests/ui
-npm ci
-npx playwright install --with-deps chromium
-npm test
-```
-
-Offline replay (from the repository root):
-
-```bash
-cargo run --manifest-path overlay/Cargo.toml --locked -p featherstorm-core --bin replay -- --fixtures
-cargo run --manifest-path overlay/Cargo.toml --locked -p featherstorm-core --bin replay -- --fixtures --json
-cargo run --manifest-path overlay/Cargo.toml --locked -p featherstorm-core --bin replay -- \
+cargo run --manifest-path overlay/Cargo.toml --locked -p recall-core --bin replay -- --fixtures
+cargo run --manifest-path overlay/Cargo.toml --locked -p recall-core --bin replay -- \
   --session m0/tests/fixtures/captured \
   --items m0/tests/fixtures/item_subset.json \
   --champions m0/tests/fixtures/champion_subset.json \
   --aggregate m0/tests/fixtures/opgg_xayah_adc.json
 ```
 
-Use a matching catalog, aggregate, and separately captured match directory.
-Replay tests legality and consistency on recorded states; it cannot tell you what
-would have happened if the player had followed a different recommendation.
+Headless checks of the built executable: `recall.exe --probe --champion Irelia --role jungle --swiftplay`
+plans a request against the real cache with no client or game; `recall.exe --demo champselect|ingame`
+shows the panel with staged data and imports nothing.
 
-## Local APIs and policy boundary
+## License
 
-LCU authentication comes from the client's lockfile. Live game observations come
-only from Riot's local Live Client Data API: own gold/inventory/abilities, visible
-rosters/items/scoreboard, and game time. No memory reading, injection, hidden
-positions, enemy gold, or cooldown inference; no automated gameplay.
-
-Public Data Dragon and op.gg aggregates provide the offline knowledge layer.
-op.gg's endpoint is not a licensed feed; six-hour caching is not permission to
-redistribute its data. Last validated caches can be used with a stale label;
-without compatible data, advice pauses.
-
-Featherstorm is an independent prototype, not Riot-approved or endorsed.
-Recommendations remain optional and explainable. Local API access alone does
-not certify compliance; review and registration are required before wider release.
-See [Riot's developer policies](https://developer.riotgames.com/docs/lol/).
-
-## Repository
-
-- `overlay/core/`: catalog, shop, aggregate evidence, planner, lessons, journal,
-  session guards, and replay CLI; no window dependency.
-- `overlay/src-tauri/`: Windows window, independent polling, local commands,
-  guarded imports, and asynchronous journal persistence.
-- `overlay/ui/`: compact action-first view; no item selection in JavaScript.
-- `m0/tests/fixtures/`: real aggregate/live captures, patch-matched catalog subsets,
-  and [source provenance](m0/tests/fixtures/AGGREGATE_SOURCES.md).
-- `tests/runtime/`, `tests/ui/`: shell-controller and browser regression harnesses.
-- `data/pack/`: factual matchup notes, labels, and weak champion-trait priors.
-  Legacy preferred build/rune/spell fields are not used as planner defaults.
-- `m0/`: original Python integration probes. `push_itemset.py` writes to the
-  client; use its `--dry-run` when only inspecting.
-- `docs/notes/`: implementation history and verification limitations.
+[MIT](LICENSE).

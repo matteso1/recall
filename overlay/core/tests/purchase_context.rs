@@ -1,6 +1,6 @@
-use featherstorm_core::ddragon::Catalog;
-use featherstorm_core::live::InvItem;
-use featherstorm_core::shop::{
+use recall_core::ddragon::Catalog;
+use recall_core::live::InvItem;
+use recall_core::shop::{
     compatible, compatible_with_context, quote, quote_with_context, ShopContext,
 };
 use serde_json::Value;

@@ -1,11 +1,11 @@
 //! Offline replay of visible-state captures. This command never fetches or writes data.
 
 use anyhow::{anyhow, bail, Context, Result};
-use featherstorm_core::aggregate::{self, Aggregate, Position};
-use featherstorm_core::ddragon::{normalize, Catalog};
-use featherstorm_core::engine::{self, Inputs, Plan};
-use featherstorm_core::live::{self, InvItem, LiveSnapshot, Me, Player};
-use featherstorm_core::{pack, shop};
+use recall_core::aggregate::{self, Aggregate, Position};
+use recall_core::ddragon::{normalize, Catalog};
+use recall_core::engine::{self, Inputs, Plan};
+use recall_core::live::{self, InvItem, LiveSnapshot, Me, Player};
+use recall_core::{pack, shop};
 use serde::Serialize;
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
@@ -19,7 +19,7 @@ const MAX_FILES: usize = 4096;
 const MAX_CAPTURE_BYTES: u64 = 2 * 1024 * 1024;
 const MAX_TOTAL_CAPTURE_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_DATA_BYTES: u64 = 32 * 1024 * 1024;
-const HELP: &str = "Featherstorm offline replay (stdout only, no network)
+const HELP: &str = "Recall offline replay (stdout only, no network)
 
 replay --session PATH --items PATH --champions PATH --aggregate PATH
        [--runes PATH] [--champion NAME] [--role ROLE] [--aggregate-role ROLE] [--json]
@@ -286,7 +286,11 @@ fn load_aggregate(
     let (role, fallback) = match (file_role, exact, requested_role) {
         (Some(file), _, Some(requested)) if file != requested => {
             if exact.is_some() {
-                bail!("this file holds {} data, not the requested {} role", file.label(), requested.label());
+                bail!(
+                    "this file holds {} data, not the requested {} role",
+                    file.label(),
+                    requested.label()
+                );
             }
             // Same-champion fallback: the assigned role is kept separately from the data's role.
             (file, true)
@@ -603,8 +607,9 @@ fn validate_plan(plan: &Plan, cat: &Catalog, snapshot: Option<&LiveSnapshot>) ->
         && !inventory
             .iter()
             .any(|item| item.count > 0 && cat.item(item.id).is_some_and(|item| item.effects.boots));
-    let swiftplay = snapshot
-        .is_some_and(|snapshot| engine::GameMode::parse(&snapshot.mode) == engine::GameMode::Swiftplay);
+    let swiftplay = snapshot.is_some_and(|snapshot| {
+        engine::GameMode::parse(&snapshot.mode) == engine::GameMode::Swiftplay
+    });
     let context = shop::ShopContext {
         champion: me.map(|me| me.player.champion.as_str()),
         spell_ids: me
@@ -1111,7 +1116,7 @@ fn run(options: &Options) -> Result<Value> {
 
 fn print_text(report: &Value) {
     println!(
-        "Featherstorm replay: {} plans / {} snapshots / {} session groups",
+        "Recall replay: {} plans / {} snapshots / {} session groups",
         report["plans"], report["snapshots"], report["sessions"]
     );
     println!("{}", report["session_grouping"].as_str().unwrap_or(""));
@@ -1507,7 +1512,7 @@ mod tests {
         }
         let mut plan = Plan::default();
         plan.score_trace
-            .push(featherstorm_core::decision::CandidateScore {
+            .push(recall_core::decision::CandidateScore {
                 total: f64::NAN,
                 ..Default::default()
             });

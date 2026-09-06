@@ -437,10 +437,7 @@ fn fit(
     };
     // A cleanse item's magic resistance is a side stat; its reason to exist is the active. It is
     // scored above as a cleanse only, never sold as "magic protection".
-    if let Some(mr) = e
-        .magic_resist
-        .filter(|v| *v > 0.0 && e.cleanse.is_none())
-    {
+    if let Some(mr) = e.magic_resist.filter(|v| *v > 0.0 && e.cleanse.is_none()) {
         let old: f64 = already
             .iter()
             .filter_map(|id| inp.catalog.item(*id))
@@ -799,8 +796,12 @@ pub(crate) fn select(
         // cleanse against suppression). An off-path item that merely happens to be affordable
         // (Stormrazor sharing IE's components) must not pull the player off the core item.
         let planned = Some(id) == baseline || pending.contains(&id) || f.score >= DETOUR_NEED;
-        let completion =
-            OWNED_CREDIT * credit + if q.affordable && planned { FINISH_NOW } else { 0.0 };
+        let completion = OWNED_CREDIT * credit
+            + if q.affordable && planned {
+                FINISH_NOW
+            } else {
+                0.0
+            };
         let phase = if Some(id) == baseline || completed_core >= 2 {
             1.0
         } else if completed_core >= 1 {
@@ -922,7 +923,13 @@ pub(crate) fn select(
             if pinned {
                 target.tag = Some("pinned".into());
             }
-            out.next = Some(engine::next_for_target(cat, &target, me, boots_locked, swiftplay));
+            out.next = Some(engine::next_for_target(
+                cat,
+                &target,
+                me,
+                boots_locked,
+                swiftplay,
+            ));
             out.learning = Some(coaching::explain(kind, reason, evidence));
             // Reorder only unowned commitments. A component detour stays outside the
             // six-item horizon, leaving the main build ready to resume afterwards.
@@ -957,7 +964,13 @@ pub(crate) fn select(
         }
     } else if let Some(id) = baseline {
         if let Some(target) = engine::item_by_id(cat, inp.pack, id, None) {
-            out.next = Some(engine::next_for_target(cat, &target, me, boots_locked, swiftplay));
+            out.next = Some(engine::next_for_target(
+                cat,
+                &target,
+                me,
+                boots_locked,
+                swiftplay,
+            ));
             out.learning = Some(coaching::explain(
                 DecisionKind::Core,
                 format!("{}: next in the current build", target.short),

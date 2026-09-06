@@ -33,7 +33,10 @@ impl Rect {
     }
     /// `other` lies entirely inside `self`.
     pub fn contains_rect(&self, other: &Rect) -> bool {
-        other.x >= self.x && other.y >= self.y && other.right() <= self.right() && other.bottom() <= self.bottom()
+        other.x >= self.x
+            && other.y >= self.y
+            && other.right() <= self.right()
+            && other.bottom() <= self.bottom()
     }
 }
 
@@ -49,7 +52,11 @@ impl Screen {
     /// A screen whose work area is the whole screen (no taskbar known).
     pub fn new(x: i32, y: i32, w: i32, h: i32, scale: f64) -> Self {
         let bounds = Rect::new(x, y, w, h);
-        Screen { bounds, work: bounds, scale }
+        Screen {
+            bounds,
+            work: bounds,
+            scale,
+        }
     }
     pub fn with_work_area(mut self, x: i32, y: i32, w: i32, h: i32) -> Self {
         self.work = Rect::new(x, y, w, h);
@@ -84,7 +91,11 @@ pub fn saved_position_usable(x: i32, y: i32, screens: &[Screen]) -> bool {
 
 /// The position to start at: the saved one when usable, else the default on the primary screen.
 /// `None` when nothing is known about the monitors (leave the window where the OS put it).
-pub fn startup_position(saved: Option<(i32, i32)>, primary: Option<&Screen>, screens: &[Screen]) -> Option<(i32, i32)> {
+pub fn startup_position(
+    saved: Option<(i32, i32)>,
+    primary: Option<&Screen>,
+    screens: &[Screen],
+) -> Option<(i32, i32)> {
     match saved {
         Some((x, y)) if saved_position_usable(x, y, screens) => Some((x, y)),
         _ => primary.or(screens.first()).map(default_position),
@@ -102,8 +113,14 @@ mod tests {
 
     #[test]
     fn default_is_bottom_right_clear_of_the_minimap() {
-        assert_eq!(default_position(&wide()), (5120 - 648 - 570 - 18, 2160 - 450 - 18));
-        assert_eq!(default_position(&Screen::new(0, 0, 1920, 1080, 1.0)), (1920 - 324 - 380 - 12, 1080 - 300 - 12));
+        assert_eq!(
+            default_position(&wide()),
+            (5120 - 648 - 570 - 18, 2160 - 450 - 18)
+        );
+        assert_eq!(
+            default_position(&Screen::new(0, 0, 1920, 1080, 1.0)),
+            (1920 - 324 - 380 - 12, 1080 - 300 - 12)
+        );
     }
 
     #[test]
@@ -133,22 +150,41 @@ mod tests {
         assert!(saved_position_usable(3803, 322, &screens));
         assert!(saved_position_usable(0, 0, &screens));
         assert!(saved_position_usable(5120 - 570, 2160 - 48, &screens));
-        assert_eq!(startup_position(Some((3803, 322)), Some(&wide()), &screens), Some((3803, 322)));
+        assert_eq!(
+            startup_position(Some((3803, 322)), Some(&wide()), &screens),
+            Some((3803, 322))
+        );
     }
 
     #[test]
     fn saved_position_off_screen_falls_back_to_default() {
         let screens = [wide()];
         let default = default_position(&wide());
-        for (x, y) in [(-1000, 322), (5000, 322), (100, 2200), (100, 2160 - 20), (100, -10), (i32::MAX, 0)] {
-            assert!(!saved_position_usable(x, y, &screens), "({x},{y}) should be rejected");
-            assert_eq!(startup_position(Some((x, y)), Some(&wide()), &screens), Some(default));
+        for (x, y) in [
+            (-1000, 322),
+            (5000, 322),
+            (100, 2200),
+            (100, 2160 - 20),
+            (100, -10),
+            (i32::MAX, 0),
+        ] {
+            assert!(
+                !saved_position_usable(x, y, &screens),
+                "({x},{y}) should be rejected"
+            );
+            assert_eq!(
+                startup_position(Some((x, y)), Some(&wide()), &screens),
+                Some(default)
+            );
         }
     }
 
     #[test]
     fn missing_saved_position_uses_the_default() {
-        assert_eq!(startup_position(None, Some(&wide()), &[wide()]), Some(default_position(&wide())));
+        assert_eq!(
+            startup_position(None, Some(&wide()), &[wide()]),
+            Some(default_position(&wide()))
+        );
     }
 
     #[test]
@@ -163,6 +199,9 @@ mod tests {
         assert!(!saved_position_usable(10, 10, &[]));
         assert_eq!(startup_position(Some((10, 10)), None, &[]), None);
         // A screen list without a primary still yields a default.
-        assert_eq!(startup_position(None, None, &[wide()]), Some(default_position(&wide())));
+        assert_eq!(
+            startup_position(None, None, &[wide()]),
+            Some(default_position(&wide()))
+        );
     }
 }

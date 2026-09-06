@@ -2,7 +2,7 @@
 //! Irelia Top and Mid data at this rank. The panel said it was waiting for build data forever.
 //! A same-champion fallback must give a legal purchase, keep the real role for every role rule,
 //! label the source role everywhere, and respect Swiftplay's shop (no Doran's, 1400 gold, level 3).
-use featherstorm_core::{
+use recall_core::{
     aggregate::{self, Aggregate, Position},
     ddragon::Catalog,
     engine::{self, GameMode, Inputs, PlannerPreferences},
@@ -24,9 +24,10 @@ fn catalog() -> Catalog {
 }
 
 fn irelia_mid() -> Aggregate {
-    let raw: Value =
-        serde_json::from_str(include_str!("../../../m0/tests/fixtures/opgg_irelia_mid.json"))
-            .unwrap();
+    let raw: Value = serde_json::from_str(include_str!(
+        "../../../m0/tests/fixtures/opgg_irelia_mid.json"
+    ))
+    .unwrap();
     aggregate::decode(&raw, 39, Position::Mid, "global", "emerald_plus").unwrap()
 }
 
@@ -78,7 +79,10 @@ fn plan_for(a: &Aggregate, live: Option<&LiveSnapshot>, mode: GameMode) -> engin
 fn the_recorded_irelia_jungle_state_gets_a_legal_labelled_purchase() {
     let cat = catalog();
     let snapshot = recorded_snapshot();
-    let me = snapshot.me.as_ref().expect("the recorded player is identified");
+    let me = snapshot
+        .me
+        .as_ref()
+        .expect("the recorded player is identified");
     assert_eq!(me.player.champion, "Irelia");
     assert_eq!(me.player.position, "JUNGLE");
     assert_eq!(snapshot.mode, "SWIFTPLAY");
@@ -88,7 +92,11 @@ fn the_recorded_irelia_jungle_state_gets_a_legal_labelled_purchase() {
     let a = irelia_mid_for_jungle();
     let p = plan_for(&a, Some(&snapshot), GameMode::parse(&snapshot.mode));
     assert_eq!(p.position.as_deref(), Some("Jungle"), "the real role stays");
-    assert_eq!(p.source_position.as_deref(), Some("Mid"), "the data role is labelled");
+    assert_eq!(
+        p.source_position.as_deref(),
+        Some("Mid"),
+        "the data role is labelled"
+    );
     let note = p.note.clone().expect("the fallback is explained");
     assert!(
         note.contains("No Jungle data for Irelia") && note.contains("Mid build"),
@@ -136,15 +144,28 @@ fn the_recorded_irelia_jungle_state_gets_a_legal_labelled_purchase() {
             swiftplay: true,
         },
     );
-    assert_eq!(quote.blocked, None, "the recommended purchase is legal in this shop");
+    assert_eq!(
+        quote.blocked, None,
+        "the recommended purchase is legal in this shop"
+    );
     if next.buy_now_affordable {
-        assert!(f64::from(buy.cost) <= me.gold, "{buy:?} vs {} gold", me.gold);
+        assert!(
+            f64::from(buy.cost) <= me.gold,
+            "{buy:?} vs {} gold",
+            me.gold
+        );
     }
 
-    assert_eq!(p.spell_ids, vec![4, 11], "the actual loadout is never rewritten");
+    assert_eq!(
+        p.spell_ids,
+        vec![4, 11],
+        "the actual loadout is never rewritten"
+    );
     assert!(p.skill.next.is_some(), "Irelia has a standard skill system");
     assert!(
-        !p.start.iter().any(|item| cat.item(item.id).unwrap().name.starts_with("Doran's")),
+        !p.start
+            .iter()
+            .any(|item| cat.item(item.id).unwrap().name.starts_with("Doran's")),
         "no Doran's starter in Swiftplay: {:?}",
         p.start
     );
@@ -164,18 +185,28 @@ fn the_recorded_irelia_jungle_state_gets_a_legal_labelled_purchase() {
 fn pre_queue_jungle_fallback_prepares_smite_and_a_companion_not_lane_spells() {
     let cat = catalog();
     let a = irelia_mid_for_jungle();
-    assert_eq!(a.spells.ids, vec![4, 14], "the Mid data says Flash + Ignite");
+    assert_eq!(
+        a.spells.ids,
+        vec![4, 14],
+        "the Mid data says Flash + Ignite"
+    );
     let p = plan_for(&a, None, GameMode::Swiftplay);
     assert_eq!(p.position.as_deref(), Some("Jungle"));
     assert_eq!(p.source_position.as_deref(), Some("Mid"));
-    assert_eq!(p.spell_ids, vec![4, 11], "Jungle needs Smite; Ignite is not imported");
+    assert_eq!(
+        p.spell_ids,
+        vec![4, 11],
+        "Jungle needs Smite; Ignite is not imported"
+    );
     assert_eq!(p.spells, vec!["Flash", "Smite"]);
     let starters: Vec<u32> = p.start.iter().map(|item| item.id).collect();
     for companion in [1101, 1102, 1103] {
         assert!(starters.contains(&companion), "{starters:?}");
     }
     assert!(
-        !starters.iter().any(|id| cat.item(*id).unwrap().name.starts_with("Doran's")),
+        !starters
+            .iter()
+            .any(|id| cat.item(*id).unwrap().name.starts_with("Doran's")),
         "{starters:?}"
     );
     assert!(p.context.iter().any(|line| line.contains("Smite")));
@@ -193,7 +224,10 @@ fn pre_queue_jungle_fallback_prepares_smite_and_a_companion_not_lane_spells() {
             .any(|id| cat.item(*id).unwrap().name.starts_with("Doran's")),
         "a jungle start and a Doran's item are mutually exclusive: {classic_starters:?}"
     );
-    assert!(!classic.context.iter().any(|line| line.contains("Swiftplay")));
+    assert!(!classic
+        .context
+        .iter()
+        .any(|line| line.contains("Swiftplay")));
 }
 
 #[test]
@@ -218,7 +252,11 @@ fn a_lane_assignment_with_only_jungle_data_never_imports_smite() {
     });
     assert_eq!(p.position.as_deref(), Some("Top"));
     assert_eq!(p.source_position.as_deref(), Some("Jungle"));
-    assert!(p.spell_ids.is_empty(), "no spell pair is invented: {:?}", p.spell_ids);
+    assert!(
+        p.spell_ids.is_empty(),
+        "no spell pair is invented: {:?}",
+        p.spell_ids
+    );
     assert!(
         !p.start.iter().any(|item| cat
             .item(item.id)
@@ -243,7 +281,10 @@ fn exact_role_data_is_unchanged_by_the_fallback_machinery() {
     assert_eq!(p.source_position, None);
     assert_eq!(p.spell_ids, a.spells.ids);
     assert!(p.note.is_none() || !p.note.as_deref().unwrap().contains("No Mid data"));
-    assert!(p.start.iter().any(|item| item.id == 1055), "Doran's Blade starts a classic lane");
+    assert!(
+        p.start.iter().any(|item| item.id == 1055),
+        "Doran's Blade starts a classic lane"
+    );
 }
 
 #[test]
@@ -252,11 +293,16 @@ fn swiftplay_starts_lane_champions_without_dorans_items() {
     let a = irelia_mid();
     let p = plan_for(&a, None, GameMode::Swiftplay);
     assert!(
-        !p.start.iter().any(|item| cat.item(item.id).unwrap().name.starts_with("Doran's")),
+        !p.start
+            .iter()
+            .any(|item| cat.item(item.id).unwrap().name.starts_with("Doran's")),
         "{:?}",
         p.start
     );
-    assert!(p.context.iter().any(|line| line.contains("Doran's items are disabled")));
+    assert!(p
+        .context
+        .iter()
+        .any(|line| line.contains("Doran's items are disabled")));
     assert_eq!(GameMode::parse("SWIFTPLAY"), GameMode::Swiftplay);
     assert_eq!(GameMode::parse("CLASSIC"), GameMode::Classic);
     assert_eq!(GameMode::parse("ARAM"), GameMode::Unknown);

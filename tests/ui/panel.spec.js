@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 // Real serialized production plans, not a parallel JS reconstruction of the planner.
 const overlay = fileURLToPath(new URL('../../overlay/', import.meta.url));
-const report = JSON.parse(execFileSync('cargo', ['run', '--quiet', '--locked', '-p', 'featherstorm-core', '--bin', 'replay', '--', '--fixtures', '--json'], {
+const report = JSON.parse(execFileSync('cargo', ['run', '--quiet', '--locked', '-p', 'recall-core', '--bin', 'replay', '--', '--fixtures', '--json'], {
   cwd: overlay, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 120_000,
 }));
 const records = report.records;

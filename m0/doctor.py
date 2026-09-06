@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Featherstorm doctor: can this machine reach the League client and the in-game API?
+"""Recall doctor: can this machine reach the League client and the in-game API?
 
 Run it first. It reports the environment (WSL/Windows, networking mode, transport),
 finds the League install and lockfile, and probes the LCU, the Live Client Data API
@@ -33,7 +33,7 @@ def main(argv=None) -> int:
 
     ok = True
     hints: list[str] = []
-    print("Featherstorm doctor")
+    print("Recall doctor")
     env = f"Python {platform.python_version()} on {platform.system()}"
     if is_wsl():
         env += f" (WSL, networking={wsl_networking_mode()})"
@@ -49,7 +49,7 @@ def main(argv=None) -> int:
         return 1
 
     league = find_league_dir()
-    row("League dir", league or "NOT FOUND (set FEATHERSTORM_LEAGUE_DIR)")
+    row("League dir", league or "NOT FOUND (set RECALL_LEAGUE_DIR)")
 
     lockfile = None
     try:

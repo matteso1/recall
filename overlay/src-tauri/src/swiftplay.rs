@@ -1,7 +1,7 @@
 //! Pre-queue preparation is independent of the actual, assigned match champion.
 use crate::{controller::now_ms, settings::Settings, App};
 use anyhow::{bail, Context, Result};
-use featherstorm_core::{
+use recall_core::{
     aggregate::{self, Position},
     ddragon::Catalog,
     engine::{self, Inputs},
@@ -602,7 +602,7 @@ fn rune_page_target(
     let title = {
         let p = progress.lock().unwrap();
         let slot = &p.view.slots[update.index];
-        format!("Featherstorm {} {}", slot.champion, slot.position)
+        recall_core::brand::loadout_name(&slot.champion, Some(&slot.position))
     };
     let mut target = swiftplay_page_update(page, &title)?;
     let runes = update
@@ -724,7 +724,7 @@ async fn sync_rune_page(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use featherstorm_core::{engine::Plan, lcu::Lockfile, state::Imports};
+    use recall_core::{engine::Plan, lcu::Lockfile, state::Imports};
     use serde_json::json;
     use std::{
         io::{Read, Write},
@@ -914,7 +914,7 @@ mod tests {
         let mut original = page_fixture("Irelia - Conqueror");
         original["subStyleId"] = json!(8300);
         original["selectedPerkIds"] = json!([8010, 9111, 9104, 8299, 8345, 8347, 5005, 5008, 5001]);
-        let named = page_fixture("Featherstorm Irelia Mid");
+        let named = page_fixture("Recall Irelia Mid");
         let (lcu, server) = scripted_client(vec![
             ("GET /lol-perks/v1/pages", json!([original])),
             ("GET /lol-lobby/v2/lobby", raw_lobby(&choices)),
@@ -949,7 +949,7 @@ mod tests {
             .unwrap();
         assert_eq!(p.lock().unwrap().view.slots[1].imports.runes, "done");
         let requests = server.join().unwrap();
-        assert_eq!(requests[11]["name"], "Featherstorm Irelia Mid");
+        assert_eq!(requests[11]["name"], "Recall Irelia Mid");
         assert_eq!(requests[11]["current"], false);
         assert_eq!(requests[11]["isTemporary"], true);
         assert_eq!(requests[11]["quickPlayChampionIds"], json!([39]));
@@ -967,7 +967,7 @@ mod tests {
             std::slice::from_ref(&update),
         )
         .unwrap();
-        let page = page_fixture("Featherstorm Irelia Mid");
+        let page = page_fixture("Recall Irelia Mid");
         let (lcu, server) = scripted_client(vec![
             ("GET /lol-perks/v1/pages", json!([page])),
             ("GET /lol-perks/v1/pages", json!([page])),
@@ -993,7 +993,7 @@ mod tests {
     async fn unconfirmed_or_invalid_linked_page_never_reports_success() {
         for invalid in [false, true] {
             let choices = lobby();
-            let page = page_fixture("Featherstorm Irelia Mid");
+            let page = page_fixture("Recall Irelia Mid");
             let mut unconfirmed = page.clone();
             if invalid {
                 unconfirmed["isValid"] = json!(false);
@@ -1073,7 +1073,7 @@ mod tests {
         let page = page_fixture("Irelia - Conqueror");
         let mut selected = page.clone();
         selected["current"] = json!(true);
-        let mut named = page_fixture("Featherstorm Irelia Mid");
+        let mut named = page_fixture("Recall Irelia Mid");
         named["current"] = json!(true);
         let (lcu, server) = scripted_client(vec![
             ("GET /lol-perks/v1/pages", json!([page])),
@@ -1278,11 +1278,11 @@ mod tests {
         let sets = vec![
             (
                 0,
-                json!({"uid":"xayah-adc","title":"Featherstorm Xayah ADC","blocks":[]}),
+                json!({"uid":"xayah-adc","title":"Recall Xayah ADC","blocks":[]}),
             ),
             (
                 1,
-                json!({"uid":"irelia-mid","title":"Featherstorm Irelia Mid","blocks":[]}),
+                json!({"uid":"irelia-mid","title":"Recall Irelia Mid","blocks":[]}),
             ),
         ];
         let foreign = json!({"uid":"user","title":"My set","blocks":[{"type":"keep"}]});
@@ -1401,7 +1401,7 @@ mod tests {
             &lcu,
             &choices,
             &[],
-            &[(0, json!({"title":"Featherstorm Xayah ADC"}))],
+            &[(0, json!({"title":"Recall Xayah ADC"}))],
             &progress(&choices),
         )
         .await

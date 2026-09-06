@@ -15,7 +15,7 @@ from typing import Any
 
 from ddragon import ChampionIndex, ItemIndex
 
-TITLE_PREFIX = "Featherstorm"
+TITLE_PREFIX = "Recall"
 MAX_BLOCK_TITLE = 30  # the in-game shop panel truncates longer block titles
 UID_NAMESPACE = uuid.UUID("6f1c3d8e-0a2b-4c5d-9e7f-1234567890ab")
 _COUNT_RE = re.compile(r"^(.*?)\s*[x×]\s*(\d+)$")

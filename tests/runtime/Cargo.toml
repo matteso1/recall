@@ -1,5 +1,5 @@
 [package]
-name = "featherstorm-controller-tests"
+name = "recall-controller-tests"
 version = "0.0.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 path = "lib.rs"
 
 [dependencies]
-featherstorm-core = { path = "../../overlay/core" }
+recall-core = { path = "../../overlay/core" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

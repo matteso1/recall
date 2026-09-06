@@ -1,6 +1,6 @@
 // An action-first view of the Rust decision. No item selection happens in JavaScript.
 const tauri = window.__TAURI__ || {};
-const invoke = tauri.core?.invoke || (async () => { throw new Error('Open Featherstorm to connect to League.'); });
+const invoke = tauri.core?.invoke || (async () => { throw new Error('Open Recall to connect to League.'); });
 const listen = tauri.event?.listen || (async () => {});
 const $ = id => document.getElementById(id);
 const DD = 'https://ddragon.leagueoflegends.com/cdn';

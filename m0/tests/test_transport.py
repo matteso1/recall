@@ -25,8 +25,8 @@ class CurlParsingTests(unittest.TestCase):
 
 class BackendChoiceTests(unittest.TestCase):
     def test_forced(self):
-        self.assertEqual(transport.choose_backend({"FEATHERSTORM_TRANSPORT": "curl"}), "curl")
-        self.assertEqual(transport.choose_backend({"FEATHERSTORM_TRANSPORT": "direct"}), "direct")
+        self.assertEqual(transport.choose_backend({"RECALL_TRANSPORT": "curl"}), "curl")
+        self.assertEqual(transport.choose_backend({"RECALL_TRANSPORT": "direct"}), "direct")
 
     def test_auto_is_a_known_backend(self):
         self.assertIn(transport.choose_backend({}), ("curl", "direct"))

@@ -226,7 +226,7 @@ impl Journal {
             active.recap.source = plan.source.as_ref().map(|source| bounded(source, 256));
         }
         let id_input = format!(
-            "featherstorm.learning.v1:{}:{}",
+            "recall.learning.v1:{}:{}",
             active.recap.session_id, self.next_decision
         );
         let id = Uuid::new_v5(&Uuid::NAMESPACE_OID, id_input.as_bytes()).to_string();
@@ -586,7 +586,7 @@ mod tests {
         fn new() -> Self {
             static NEXT: AtomicU64 = AtomicU64::new(0);
             let path = std::env::temp_dir().join(format!(
-                "featherstorm-journal-{}-{}-{}",
+                "recall-journal-{}-{}-{}",
                 std::process::id(),
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)

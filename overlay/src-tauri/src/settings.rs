@@ -2,9 +2,9 @@
 //!
 //! Only the position is written by the app itself (on drag). Whether the panel is collapsed is a
 //! per-session choice, and the saved position is validated against the monitors at startup (see
-//! `featherstorm_core::placement`), so a stale file cannot hide the panel. The other keys are for
-//! hand edits in `%LOCALAPPDATA%\Featherstorm\settings.json`; unknown keys are ignored.
-use featherstorm_core::aggregate;
+//! `recall_core::placement`), so a stale file cannot hide the panel. The other keys are for
+//! hand edits in `%LOCALAPPDATA%\Recall\settings.json`; unknown keys are ignored.
+use recall_core::aggregate;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -46,10 +46,17 @@ impl Default for Settings {
     }
 }
 
-/// %LOCALAPPDATA%\Featherstorm (logs, Data Dragon + aggregate caches, settings)
+/// %LOCALAPPDATA%\Recall (logs, Data Dragon + aggregate caches, settings). A folder left by the
+/// project's previous name is adopted once, so the saved position, caches and journal carry over.
 pub fn data_dir() -> PathBuf {
     let base = dirs::data_local_dir().unwrap_or_else(std::env::temp_dir);
-    let dir = base.join("Featherstorm");
+    let dir = base.join(recall_core::brand::NAME);
+    if !dir.exists() {
+        let legacy = base.join(recall_core::brand::LEGACY_NAME);
+        if legacy.is_dir() {
+            let _ = std::fs::rename(&legacy, &dir);
+        }
+    }
     let _ = std::fs::create_dir_all(&dir);
     dir
 }

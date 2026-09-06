@@ -4,7 +4,7 @@
 # The optional crop (physical pixels) keeps the file small when only the panel matters.
 # (Writes through \\wsl.localhost: folders created from Windows can be invisible to /mnt/c for a while.)
 set -euo pipefail
-OUT="${1:-$HOME/code/featherstorm/.screens/screenshot.png}"
+OUT="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.screens/screenshot.png}"
 CROP="${2:-}"
 mkdir -p "$(dirname "$OUT")"
 OUT_WIN="$(wslpath -w "$OUT")"

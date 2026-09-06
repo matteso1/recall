@@ -1,14 +1,14 @@
-//! `featherstorm.exe --probe`: no window at all. Loads Data Dragon, talks to the client if it is
+//! `recall.exe --probe`: no window at all. Loads Data Dragon, talks to the client if it is
 //! running, runs the engine on the live lobby (or a sample one), prints a JSON report to stdout
-//! and to %LOCALAPPDATA%\Featherstorm\probe.json, then exits. For checking the plumbing from
+//! and to %LOCALAPPDATA%\Recall\probe.json, then exits. For checking the plumbing from
 //! WSL while the screen is busy.
-use featherstorm_core::aggregate::{self, Position};
-use featherstorm_core::champselect::{self, Lobby};
-use featherstorm_core::ddragon;
-use featherstorm_core::engine::{self, Inputs};
-use featherstorm_core::lcu::Lcu;
-use featherstorm_core::live::{self, LiveClient, LiveSnapshot};
-use featherstorm_core::pack;
+use recall_core::aggregate::{self, Position};
+use recall_core::champselect::{self, Lobby};
+use recall_core::ddragon;
+use recall_core::engine::{self, Inputs};
+use recall_core::lcu::Lcu;
+use recall_core::live::{self, LiveClient, LiveSnapshot};
+use recall_core::pack;
 use serde_json::{json, Value};
 
 /// One coherent source for diagnostic planning. Sample inputs never mix with actual live data.
@@ -201,11 +201,11 @@ pub fn run() -> i32 {
                 "requested_position": a.requested_position.map(|p| p.label()),
                 "fallback": a.requested_position.is_some_and(|p| p != a.position),
                 "games": a.games,
-                "spells": a.spells.ids.iter().map(|&id| featherstorm_core::runes::spell_name(id).unwrap_or("?")).collect::<Vec<_>>(),
+                "spells": a.spells.ids.iter().map(|&id| recall_core::runes::spell_name(id).unwrap_or("?")).collect::<Vec<_>>(),
                 "runes": a.runes.as_ref().map(|r| {
                     r.perks
                         .iter()
-                        .map(|&id| featherstorm_core::runes::shard_name(id).map(str::to_string).unwrap_or_else(|| catalog.rune_name(id)))
+                        .map(|&id| recall_core::runes::shard_name(id).map(str::to_string).unwrap_or_else(|| catalog.rune_name(id)))
                         .collect::<Vec<_>>()
                 }),
                 "skills": a.skill_order.iter().collect::<String>(),
@@ -259,8 +259,8 @@ pub fn run() -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use featherstorm_core::champselect::Lobby;
-    use featherstorm_core::live::{LiveSnapshot, Me, Player};
+    use recall_core::champselect::Lobby;
+    use recall_core::live::{LiveSnapshot, Me, Player};
 
     fn catalog() -> ddragon::Catalog {
         ddragon::Catalog::from_json(

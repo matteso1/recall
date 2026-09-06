@@ -63,7 +63,7 @@ pub fn league_dirs_from_installs(json_text: &str) -> Vec<PathBuf> {
 }
 
 pub fn find_league_dir() -> Option<PathBuf> {
-    if let Ok(p) = std::env::var("FEATHERSTORM_LEAGUE_DIR") {
+    if let Ok(p) = std::env::var("RECALL_LEAGUE_DIR") {
         return Some(PathBuf::from(p));
     }
     let program_data =
@@ -87,11 +87,11 @@ pub fn find_league_dir() -> Option<PathBuf> {
 }
 
 pub fn lockfile_path() -> Result<PathBuf> {
-    if let Ok(p) = std::env::var("FEATHERSTORM_LOCKFILE") {
+    if let Ok(p) = std::env::var("RECALL_LOCKFILE") {
         return Ok(PathBuf::from(p));
     }
     Ok(find_league_dir()
-        .ok_or_else(|| anyhow!("League install not found (set FEATHERSTORM_LEAGUE_DIR)"))?
+        .ok_or_else(|| anyhow!("League install not found (set RECALL_LEAGUE_DIR)"))?
         .join("lockfile"))
 }
 

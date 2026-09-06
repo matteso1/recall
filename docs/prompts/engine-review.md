@@ -1,6 +1,6 @@
-# Featherstorm build engine: senior review and algorithm-design brief
+# Recall build engine: senior review and algorithm-design brief
 
-You are reviewing the "brain" of Featherstorm, a League of Legends build overlay, as a senior
+You are reviewing the "brain" of Recall, a League of Legends build overlay, as a senior
 engineer with a strong algorithms / applied-statistics background who also understands League at a
 high level. Treat this as an experiment in algorithm design: the question is not "does it work" (it
 does, in real games) but "is what happens under the hood actually clever, and what would make it

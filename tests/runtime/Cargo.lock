@@ -113,12 +113,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "featherstorm-controller-tests"
+name = "recall-controller-tests"
 version = "0.0.0"
 dependencies = [
  "anyhow",
  "dirs",
- "featherstorm-core",
+ "recall-core",
  "log",
  "serde",
  "serde_json",
@@ -126,7 +126,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "featherstorm-core"
+name = "recall-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",

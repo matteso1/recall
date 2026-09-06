@@ -1,7 +1,7 @@
 # M0 log
 
 ## 2026-09-05
-- Repo created at `~/code/featherstorm` (WSL). Design doc v0.1 committed verbatim.
+- Repo created at `~/code/recall` (WSL). Design doc v0.1 committed verbatim.
 - Environment: WSL2 NAT mode; League client running on Windows. Direct 127.0.0.1 from WSL
   refused as expected; Windows `curl.exe` via interop reaches the LCU in ~50 ms.
 - LCU verified live: gameflow phase `Lobby`, summoner matteso#NA1, one existing item set
@@ -12,7 +12,7 @@
 - Wrote `.wslconfig` with mirrored networking; not yet activated (needs `wsl --shutdown`).
 - Pending real-game verification: champ select watcher and live poller (unit-tested on
   hand-written fixtures only).
-- `push_itemset.py` run for real: `Featherstorm Xayah` (14 blocks) written next to `OP.GG Xayah`
+- `push_itemset.py` run for real: `Recall Xayah` (14 blocks) written next to `OP.GG Xayah`
   and read back from the client. `push_itemset.py --remove` undoes it.
 - 30 unit tests green (`python3 -m unittest discover -s m0/tests`). Doctor: LCU pipe OK.
 - Champ select fixture field names checked against `/help` types `ChampSelectSession`,

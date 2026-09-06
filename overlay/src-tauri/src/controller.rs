@@ -1,11 +1,11 @@
 //! Local planning transactions shared by observations and webview commands. No remote I/O.
 use crate::App;
-use featherstorm_core::aggregate::{Aggregate, Position};
-use featherstorm_core::ddragon::{normalize, Catalog};
-use featherstorm_core::engine::{self, BuildPreference, Inputs, Plan, PlannerPreferences};
-use featherstorm_core::journal::Feedback;
-use featherstorm_core::live::LiveSnapshot;
-use featherstorm_core::session;
+use recall_core::aggregate::{Aggregate, Position};
+use recall_core::ddragon::{normalize, Catalog};
+use recall_core::engine::{self, BuildPreference, Inputs, Plan, PlannerPreferences};
+use recall_core::journal::Feedback;
+use recall_core::live::LiveSnapshot;
+use recall_core::session;
 use std::sync::Arc;
 use tauri::AppHandle;
 

@@ -36,12 +36,21 @@ fn u32_of(v: &Value, key: &str) -> u32 {
 
 fn ids(v: Option<&Value>) -> Vec<u32> {
     v.and_then(Value::as_array)
-        .map(|a| a.iter().filter_map(Value::as_u64).filter(|&x| x > 0).map(|x| x as u32).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(Value::as_u64)
+                .filter(|&x| x > 0)
+                .map(|x| x as u32)
+                .collect()
+        })
         .unwrap_or_default()
 }
 
 pub fn extract(session: &Value) -> Lobby {
-    let my_cell = session.get("localPlayerCellId").and_then(Value::as_i64).unwrap_or(-1);
+    let my_cell = session
+        .get("localPlayerCellId")
+        .and_then(Value::as_i64)
+        .unwrap_or(-1);
     let phase = session
         .get("timer")
         .and_then(|t| t.get("phase"))
@@ -50,7 +59,12 @@ pub fn extract(session: &Value) -> Lobby {
         .to_string();
 
     let mut completed: HashSet<i64> = HashSet::new();
-    for group in session.get("actions").and_then(Value::as_array).into_iter().flatten() {
+    for group in session
+        .get("actions")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         for a in group.as_array().into_iter().flatten() {
             if a.get("type").and_then(Value::as_str) == Some("pick")
                 && a.get("completed").and_then(Value::as_bool).unwrap_or(false)
@@ -60,8 +74,17 @@ pub fn extract(session: &Value) -> Lobby {
         }
     }
 
-    let mut lobby = Lobby { phase, my_cell, ..Default::default() };
-    for p in session.get("myTeam").and_then(Value::as_array).into_iter().flatten() {
+    let mut lobby = Lobby {
+        phase,
+        my_cell,
+        ..Default::default()
+    };
+    for p in session
+        .get("myTeam")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         let cell = p.get("cellId").and_then(Value::as_i64).unwrap_or(-1);
         let champ = u32_of(p, "championId");
         let intent = u32_of(p, "championPickIntent");
@@ -81,7 +104,12 @@ pub fn extract(session: &Value) -> Lobby {
             lobby.allies.push(shown);
         }
     }
-    for p in session.get("theirTeam").and_then(Value::as_array).into_iter().flatten() {
+    for p in session
+        .get("theirTeam")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         let champ = u32_of(p, "championId");
         if champ > 0 {
             lobby.enemies.push(champ);
@@ -90,7 +118,10 @@ pub fn extract(session: &Value) -> Lobby {
     let bans = session.get("bans").cloned().unwrap_or(Value::Null);
     lobby.ally_bans = ids(bans.get("myTeamBans"));
     lobby.enemy_bans = ids(bans.get("theirTeamBans"));
-    lobby.is_custom = session.get("isCustomGame").and_then(Value::as_bool).unwrap_or(false);
+    lobby.is_custom = session
+        .get("isCustomGame")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
     lobby
 }
 
@@ -98,18 +129,30 @@ pub fn extract(session: &Value) -> Lobby {
 mod tests {
     use super::*;
 
-    const HOVER: &str = include_str!("../../../m0/tests/fixtures/champselect_practicetool_hover.json");
-    const LOCK: &str = include_str!("../../../m0/tests/fixtures/champselect_practicetool_lock.json");
+    const HOVER: &str =
+        include_str!("../../../m0/tests/fixtures/champselect_practicetool_hover.json");
+    const LOCK: &str =
+        include_str!("../../../m0/tests/fixtures/champselect_practicetool_lock.json");
     const DRAFT: &str = include_str!("../../../m0/tests/fixtures/champselect_session.json");
 
     #[test]
     fn real_practice_tool_hover_then_lock() {
         let hover = extract(&serde_json::from_str(HOVER).unwrap());
-        assert_eq!((hover.my_cell, hover.my_champion, hover.my_locked), (0, 498, false));
+        assert_eq!(
+            (hover.my_cell, hover.my_champion, hover.my_locked),
+            (0, 498, false)
+        );
         assert!(hover.is_custom);
         let lock = extract(&serde_json::from_str(LOCK).unwrap());
-        assert_eq!((lock.my_champion, lock.my_locked, lock.phase.as_str()), (498, true, "FINALIZATION"));
-        assert!(lock.my_spells.0 > 0 && lock.my_spells.1 > 0, "{:?}", lock.my_spells);
+        assert_eq!(
+            (lock.my_champion, lock.my_locked, lock.phase.as_str()),
+            (498, true, "FINALIZATION")
+        );
+        assert!(
+            lock.my_spells.0 > 0 && lock.my_spells.1 > 0,
+            "{:?}",
+            lock.my_spells
+        );
         assert!(lock.enemies.is_empty());
     }
 

@@ -2,7 +2,7 @@
 //! Shaco, Naafiri, Ashe, Yuumi). The panel briefly pointed at a Quicksilver Sash "for magic
 //! protection", at Stormrazor because it happened to be affordable with IE's components, at a
 //! Randuin's Omen nobody buys on Xayah, and at a Health Potion in Swiftplay's level-one instant.
-use featherstorm_core::{
+use recall_core::{
     aggregate::{self, Aggregate, Position},
     ddragon::Catalog,
     engine::{self, GameMode, Inputs, PlannerPreferences},
@@ -87,7 +87,11 @@ fn state(time: f64, level: u32, gold: f64, ids: &[u32]) -> LiveSnapshot {
 
 fn plan(snapshot: &LiveSnapshot) -> engine::Plan {
     let (cat, traits, a) = (catalog(), pack::load_traits().unwrap(), aggregate());
-    let enemies: Vec<String> = snapshot.enemies.iter().map(|p| p.champion.clone()).collect();
+    let enemies: Vec<String> = snapshot
+        .enemies
+        .iter()
+        .map(|p| p.champion.clone())
+        .collect();
     engine::plan_in_mode(
         &Inputs {
             champion: "Xayah",
@@ -111,7 +115,10 @@ fn an_affordable_off_path_item_never_displaces_the_next_core_item() {
     assert_eq!(next.id, 3031, "Infinity Edge stays the target: {next:?}");
     let buy = next.buy_now.expect("a component to buy");
     assert_ne!(buy.id, 3140, "no Quicksilver Sash detour");
-    assert!(next.buy_now_affordable, "a 600 g Cloak or a 1300 g B. F. Sword fits 1400 g");
+    assert!(
+        next.buy_now_affordable,
+        "a 600 g Cloak or a 1300 g B. F. Sword fits 1400 g"
+    );
     assert!(
         !p.why.iter().any(|line| line.contains("Quicksilver")),
         "{:?}",
@@ -123,12 +130,23 @@ fn an_affordable_off_path_item_never_displaces_the_next_core_item() {
 fn shared_components_do_not_switch_the_target_to_a_cheaper_off_path_item() {
     // 16:33: B. F. Sword and Cloak owned toward IE, 1422 gold. The panel said Stormrazor and the
     // player bought it, so IE was never completed.
-    let p = plan(&state(993.0, 15, 1422.0, &[3032, 3006, 6675, 3033, 1038, 1018]));
+    let p = plan(&state(
+        993.0,
+        15,
+        1422.0,
+        &[3032, 3006, 6675, 3033, 1038, 1018],
+    ));
     let next = p.next.expect("a recommendation");
-    assert_eq!(next.id, 3031, "Infinity Edge keeps its components: {next:?}");
+    assert_eq!(
+        next.id, 3031,
+        "Infinity Edge keeps its components: {next:?}"
+    );
     // Six slots are full, so the Pickaxe cannot be bought loose; the finished item needs 1600
     // (Pickaxe plus the combine), 178 more than the player holds. The honest action is saving.
-    let buy = next.buy_now.as_ref().expect("the finished item as a saving target");
+    let buy = next
+        .buy_now
+        .as_ref()
+        .expect("the finished item as a saving target");
     assert_eq!(buy.id, 3031, "{buy:?}");
     assert!(!next.buy_now_affordable);
     assert_eq!(next.save_gap, Some(178), "{next:?}");
@@ -144,8 +162,15 @@ fn the_anti_heal_reason_names_the_healer_not_a_lifesteal_boot() {
     // Yuumi is the healer the item is for.
     let p = plan(&state(581.0, 9, 315.0, &[3032, 3006, 6675]));
     let next = p.next.expect("a recommendation");
-    assert_eq!(next.id, 3033, "Mortal Reminder against the healer: {next:?}");
-    let reason = p.learning.as_ref().map(|tip| tip.reason.as_str()).unwrap_or("");
+    assert_eq!(
+        next.id, 3033,
+        "Mortal Reminder against the healer: {next:?}"
+    );
+    let reason = p
+        .learning
+        .as_ref()
+        .map(|tip| tip.reason.as_str())
+        .unwrap_or("");
     assert!(reason.contains("Yuumi"), "{reason}");
     assert!(!reason.contains("Naafiri"), "{reason}");
 }
@@ -155,8 +180,15 @@ fn swiftplays_level_one_instant_does_not_recommend_a_potion() {
     // 0:00 in Swiftplay: the client reports level 1 for a moment before the level-three start.
     let p = plan(&state(0.04, 1, 0.0, &[]));
     let next = p.next.expect("a recommendation");
-    assert_eq!(next.id, 3032, "Yun Tal is the first item, not a Health Potion: {next:?}");
-    assert!(!p.why.iter().any(|line| line.contains("Potion")), "{:?}", p.why);
+    assert_eq!(
+        next.id, 3032,
+        "Yun Tal is the first item, not a Health Potion: {next:?}"
+    );
+    assert!(
+        !p.why.iter().any(|line| line.contains("Potion")),
+        "{:?}",
+        p.why
+    );
 }
 
 #[test]

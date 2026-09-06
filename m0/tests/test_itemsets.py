@@ -28,7 +28,7 @@ class ItemSetTests(unittest.TestCase):
         s, warnings = itemsets.build_item_set(self.spec, self.items, self.champs)
         self.assertEqual(warnings, [])
         self.assertEqual(s["associatedChampions"], [498])
-        self.assertEqual(s["title"], "Featherstorm Xayah")
+        self.assertEqual(s["title"], "Recall Xayah")
         self.assertEqual((s["type"], s["map"], s["mode"]), ("custom", "any", "any"))
         ids = [i["id"] for b in s["blocks"] for i in b["items"]]
         self.assertTrue(all(i.isdigit() for i in ids))
@@ -64,7 +64,7 @@ class ItemSetTests(unittest.TestCase):
     def test_upsert_is_idempotent_and_remove_works(self):
         s, _ = itemsets.build_item_set(self.spec, self.items, self.champs)
         p1 = itemsets.upsert(self.existing, s)
-        self.assertEqual([x["title"] for x in p1["itemSets"]], ["OP.GG Xayah", "Featherstorm Xayah"])
+        self.assertEqual([x["title"] for x in p1["itemSets"]], ["OP.GG Xayah", "Recall Xayah"])
         p2 = itemsets.upsert(p1, s)
         self.assertEqual(len(p2["itemSets"]), 2)
         p3 = itemsets.remove(p2, s["title"])

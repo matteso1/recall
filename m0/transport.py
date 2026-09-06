@@ -9,7 +9,7 @@ Both listen on Windows 127.0.0.1 with a self-signed certificate. Two backends:
                      Needed in WSL NAT mode, where 127.0.0.1 is the Linux VM.
 
 Backend choice is automatic (see choose_backend) and can be forced with
-FEATHERSTORM_TRANSPORT=direct|curl.
+RECALL_TRANSPORT=direct|curl.
 """
 from __future__ import annotations
 
@@ -134,7 +134,7 @@ class WinCurlTransport(Transport):
 
 def choose_backend(env: Optional[dict] = None) -> str:
     env = os.environ if env is None else env
-    forced = env.get("FEATHERSTORM_TRANSPORT")
+    forced = env.get("RECALL_TRANSPORT")
     if forced in ("direct", "curl"):
         return forced
     if is_wsl() and wsl_networking_mode() != "mirrored":

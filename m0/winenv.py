@@ -91,7 +91,7 @@ def parse_riot_client_installs(text: str) -> list[str]:
 
 
 def find_league_dir() -> Optional[Path]:
-    env = os.environ.get("FEATHERSTORM_LEAGUE_DIR")
+    env = os.environ.get("RECALL_LEAGUE_DIR")
     if env:
         return Path(env)
     installs = program_data_dir() / "Riot Games" / "RiotClientInstalls.json"
@@ -133,13 +133,13 @@ def parse_lockfile(text: str) -> Lockfile:
 
 
 def lockfile_path(league_dir: Optional[Path] = None) -> Path:
-    env = os.environ.get("FEATHERSTORM_LOCKFILE")
+    env = os.environ.get("RECALL_LOCKFILE")
     if env:
         return Path(env)
     league_dir = league_dir or find_league_dir()
     if league_dir is None:
         raise ClientNotRunning(
-            "could not locate the League install (set FEATHERSTORM_LEAGUE_DIR or FEATHERSTORM_LOCKFILE)"
+            "could not locate the League install (set RECALL_LEAGUE_DIR or RECALL_LOCKFILE)"
         )
     return league_dir / "lockfile"
 

@@ -2,7 +2,7 @@
 # Print the on-screen rectangle (physical pixels) of every visible top-level window of a Windows
 # process, to check where the overlay actually landed. Usage: scripts/win-rect.sh [process-name]
 set -euo pipefail
-PROC="${1:-featherstorm}"
+PROC="${1:-recall}"
 powershell.exe -NoProfile -NonInteractive -Command "
 Add-Type -TypeDefinition @'
 using System; using System.Runtime.InteropServices; using System.Text;

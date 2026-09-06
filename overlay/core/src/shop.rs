@@ -923,7 +923,10 @@ mod tests {
         let classic = ShopContext::default();
         for doran in [1055, 1054, 1056, 1086, 1120] {
             let blocked = quote_with_context(&cat, doran, &[], 1400.0, &swiftplay);
-            assert!(!blocked.affordable && blocked.blocked.is_some(), "{doran} in Swiftplay");
+            assert!(
+                !blocked.affordable && blocked.blocked.is_some(),
+                "{doran} in Swiftplay"
+            );
             assert!(
                 quote_with_context(&cat, doran, &[], 500.0, &classic).affordable,
                 "{doran} in classic"
@@ -935,7 +938,10 @@ mod tests {
                 "{guardian} in Swiftplay"
             );
             let blocked = quote_with_context(&cat, guardian, &[], 1400.0, &classic);
-            assert!(!blocked.affordable && blocked.blocked.is_some(), "{guardian} in classic");
+            assert!(
+                !blocked.affordable && blocked.blocked.is_some(),
+                "{guardian} in classic"
+            );
         }
         // Ordinary items are unaffected by the mode.
         assert!(quote_with_context(&cat, 1038, &[], 1400.0, &swiftplay).affordable);

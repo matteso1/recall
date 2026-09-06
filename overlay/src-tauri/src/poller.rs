@@ -1,18 +1,18 @@
 //! Background loop: find the client, follow the gameflow, poll champ select / live data, fetch the
 //! aggregate build for the champion in play, run the engine, publish panel state, auto-import.
 use crate::{controller, App};
-use featherstorm_core::aggregate::{self, Aggregate, Position};
-use featherstorm_core::champselect::{self, Lobby};
-use featherstorm_core::ddragon::{self, Catalog};
-use featherstorm_core::engine::Plan;
-use featherstorm_core::lcu::Lcu;
-use featherstorm_core::live::{self, LiveClient, LiveSnapshot};
-use featherstorm_core::pack::ChampionPack;
-use featherstorm_core::runes;
-use featherstorm_core::session::{
+use recall_core::aggregate::{self, Aggregate, Position};
+use recall_core::champselect::{self, Lobby};
+use recall_core::ddragon::{self, Catalog};
+use recall_core::engine::Plan;
+use recall_core::lcu::Lcu;
+use recall_core::live::{self, LiveClient, LiveSnapshot};
+use recall_core::pack::ChampionPack;
+use recall_core::runes;
+use recall_core::session::{
     self, AggregateKey, ImportTracker, LiveFreshness, SessionTracker,
 };
-use featherstorm_core::state::{Flash, LiveView, LobbyView, SourceStatus};
+use recall_core::state::{Flash, LiveView, LobbyView, SourceStatus};
 use serde_json::Value;
 use std::sync::Arc;
 use std::time::Duration;
@@ -288,7 +288,7 @@ struct ClientObservation {
     observed_at_ms: u64,
     session: Option<Value>,
     session_at_ms: u64,
-    swiftplay: Option<featherstorm_core::swiftplay::SwiftplayLobby>,
+    swiftplay: Option<recall_core::swiftplay::SwiftplayLobby>,
     swiftplay_mode: bool,
     queue_known: bool,
     lobby_at_ms: u64,
@@ -371,7 +371,7 @@ fn watch_client(app: AppHandle, st: Arc<App>) -> watch::Receiver<ClientObservati
                             == Some(480);
                         let parsed = raw
                             .as_ref()
-                            .map(featherstorm_core::swiftplay::SwiftplayLobby::from_lobby)
+                            .map(recall_core::swiftplay::SwiftplayLobby::from_lobby)
                             .transpose();
                         match parsed {
                             Ok(lobby) => {
@@ -650,7 +650,7 @@ fn rune_signature(plan: &Plan) -> Option<String> {
 }
 
 fn itemset_signature(plan: &Plan) -> String {
-    let ids = |items: &[featherstorm_core::engine::PlanItem]| {
+    let ids = |items: &[recall_core::engine::PlanItem]| {
         items
             .iter()
             .map(|item| item.id.to_string())
@@ -760,7 +760,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                     .await
             } else {
                 swiftplay.stop();
-                featherstorm_core::state::SwiftplayView {
+                recall_core::state::SwiftplayView {
                     // A fresh but incomplete choice needs an actionable explanation,
                     // not the stale-connection message. It still cannot claim readiness.
                     observed_at_ms: fresh.then_some(client.lobby_at_ms),

@@ -24,7 +24,7 @@
 ## Item set schema (`LolItemSetsItemSets` / `LolItemSetsItemSet`)
 ```json
 {"accountId": 0, "timestamp": 0, "itemSets": [{
-  "uid": "uuid", "title": "Featherstorm Xayah", "type": "custom", "map": "any", "mode": "any",
+  "uid": "uuid", "title": "Recall Xayah", "type": "custom", "map": "any", "mode": "any",
   "sortrank": 0, "startedFrom": "blank",
   "associatedChampions": [498], "associatedMaps": [], "preferredItemSlots": [],
   "blocks": [{"type": "Starting Items", "hideIfSummonerSpell": "", "showIfSummonerSpell": "",

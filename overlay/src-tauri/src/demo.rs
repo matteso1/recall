@@ -1,12 +1,12 @@
-//! `featherstorm.exe --demo <champselect|ingame|idle>`: show the panel with a realistic sample state
+//! `recall.exe --demo <champselect|ingame|idle>`: show the panel with a realistic sample state
 //! and no client, for design work and screenshots. Real Data Dragon, real aggregate, the real engine;
 //! only the lobby and the live numbers are staged (the Swiftplay game of 2026-09-05).
 use crate::App;
-use featherstorm_core::aggregate::{self, Position};
-use featherstorm_core::ddragon;
-use featherstorm_core::engine::{self, Inputs};
-use featherstorm_core::live;
-use featherstorm_core::state::{Flash, Imports, LiveView, LobbyView};
+use recall_core::aggregate::{self, Position};
+use recall_core::ddragon;
+use recall_core::engine::{self, Inputs};
+use recall_core::live;
+use recall_core::state::{Flash, Imports, LiveView, LobbyView};
 use std::sync::Arc;
 use tauri::AppHandle;
 

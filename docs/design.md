@@ -1,6 +1,6 @@
-# Featherstorm — design
+# Recall — design
 
-Working name: Featherstorm. Owner: matteso. Platform: Windows / League of Legends.
+Working name: Recall. Owner: matteso. Platform: Windows / League of Legends.
 Revision: action-first, universal build engine, September 2026.
 
 ## 1. The problem
@@ -9,7 +9,7 @@ A beginner reaches the shop and does not know what to buy. A popular build is a
 useful starting point, but it does not account for this inventory, affordable
 upgrades, the visible enemy items, or an explicit preference for more protection.
 
-Featherstorm supplies one best-supported next purchase and a short reason.
+Recall supplies one best-supported next purchase and a short reason.
 Learning happens through repeated, concrete decisions. It is not a quiz,
 self-reflection exercise, or a replacement for practicing mechanics.
 
@@ -49,7 +49,7 @@ claims that another app cannot adapt builds.
 Read the identified champion, assigned role, current spells, and visible rosters.
 Prepare the champion/role's aggregate loadout. Auto-import switches are independent;
 buttons retry manually. Keep Flash on its existing key and respect observed manual
-spell edits. Reuse an editable Featherstorm rune page without deleting it first.
+spell edits. Reuse an editable Recall rune page without deleting it first.
 
 A matchup note is either curated factual context or an explicitly labeled
 aggregate matchup record. Counters are whole-game outcomes, not lane win rates or
@@ -228,7 +228,7 @@ not itself an exemption from policy.
 
 Riot prohibits previously unknown session information, unfair advantages, and
 products that remove player decisions. Registration/review requirements still
-apply to products using undocumented APIs. Featherstorm is an independent local
+apply to products using undocumented APIs. Recall is an independent local
 prototype, **not certified or endorsed**. Recheck current policy and obtain the
 necessary review before distributing or expanding the scope.
 See [Riot's policies](https://developer.riotgames.com/docs/lol/).

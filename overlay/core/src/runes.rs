@@ -149,7 +149,7 @@ pub fn replacement_page_id(pages: &Value, name: &str) -> Option<u64> {
         .filter_map(|page| {
             let page_name = page.get("name")?.as_str()?;
             if page.get("isDeletable").and_then(Value::as_bool) != Some(true)
-                || !(page_name == "Featherstorm" || page_name.starts_with("Featherstorm "))
+                || !crate::brand::owns(page_name)
             {
                 return None;
             }
@@ -168,7 +168,7 @@ pub async fn import(lcu: &Lcu, page: Value) -> Result<String> {
     let name = page
         .get("name")
         .and_then(Value::as_str)
-        .unwrap_or("Featherstorm")
+        .unwrap_or(crate::brand::NAME)
         .to_string();
     let pages = lcu.perk_pages().await?;
     let Some(all_pages) = pages.as_array() else {
@@ -200,56 +200,53 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_page_from_the_previous_name_is_reused_and_a_personal_page_never_is() {
+        let pages = json!([
+            {"id": 4, "name": "Featherstorm Ahri MID", "isDeletable": true},
+            {"id": 9, "name": "Featherstorming", "isDeletable": true},
+            {"id": 2, "name": "My main page", "isDeletable": true}
+        ]);
+        assert_eq!(replacement_page_id(&pages, "Recall Ahri MID"), Some(4));
+        let personal = json!([{"id": 2, "name": "My main page", "isDeletable": true}]);
+        assert_eq!(replacement_page_id(&personal, "Recall Ahri MID"), None);
+    }
+
+    #[test]
     fn replacement_reuses_one_owned_page_without_deleting_unrelated_pages() {
         let pages = json!([
-            {"id": 10, "name": "Featherstorming", "isDeletable": true, "current": true},
-            {"id": 7, "name": "Featherstorm Ahri MID", "isDeletable": true},
-            {"id": 3, "name": "Featherstorm Lulu SUPPORT", "isDeletable": true, "current": true},
-            {"id": 1, "name": "Featherstorm Xayah ADC", "isDeletable": false}
+            {"id": 10, "name": "Recalling", "isDeletable": true, "current": true},
+            {"id": 7, "name": "Recall Ahri MID", "isDeletable": true},
+            {"id": 3, "name": "Recall Lulu SUPPORT", "isDeletable": true, "current": true},
+            {"id": 1, "name": "Recall Xayah ADC", "isDeletable": false}
         ]);
-        assert_eq!(
-            replacement_page_id(&pages, "Featherstorm Ahri MID"),
-            Some(7)
-        );
-        assert_eq!(
-            replacement_page_id(&pages, "Featherstorm Ornn TOP"),
-            Some(3)
-        );
-        assert_eq!(
-            replacement_page_id(&pages, "Featherstorm Xayah ADC"),
-            Some(3)
-        );
+        assert_eq!(replacement_page_id(&pages, "Recall Ahri MID"), Some(7));
+        assert_eq!(replacement_page_id(&pages, "Recall Ornn TOP"), Some(3));
+        assert_eq!(replacement_page_id(&pages, "Recall Xayah ADC"), Some(3));
         assert_eq!(
             replacement_page_id(
                 &json!([
-                    {"id": 10, "name": "Featherstorming", "isDeletable": true},
+                    {"id": 10, "name": "Recalling", "isDeletable": true},
                     {"id": 11, "name": "My personal page", "isDeletable": true}
                 ]),
-                "Featherstorm Ahri MID"
+                "Recall Ahri MID"
             ),
             None
         );
-        assert_eq!(
-            replacement_page_id(&json!([]), "Featherstorm Ahri MID"),
-            None
-        );
-        assert_eq!(
-            replacement_page_id(&Value::Null, "Featherstorm Ahri MID"),
-            None
-        );
+        assert_eq!(replacement_page_id(&json!([]), "Recall Ahri MID"), None);
+        assert_eq!(replacement_page_id(&Value::Null, "Recall Ahri MID"), None);
     }
 
     #[test]
     fn replacement_is_independent_of_page_response_order() {
         let pages = json!([
-            {"id": 6, "name": "Featherstorm Xayah", "isDeletable": true},
-            {"id": 2, "name": "Featherstorm Ahri", "isDeletable": true},
-            {"name": "Featherstorm Lulu", "isDeletable": true}
+            {"id": 6, "name": "Recall Xayah", "isDeletable": true},
+            {"id": 2, "name": "Recall Ahri", "isDeletable": true},
+            {"name": "Recall Lulu", "isDeletable": true}
         ]);
         let mut reversed = pages.clone();
         reversed.as_array_mut().unwrap().reverse();
-        assert_eq!(replacement_page_id(&pages, "Featherstorm Ornn"), Some(2));
-        assert_eq!(replacement_page_id(&reversed, "Featherstorm Ornn"), Some(2));
+        assert_eq!(replacement_page_id(&pages, "Recall Ornn"), Some(2));
+        assert_eq!(replacement_page_id(&reversed, "Recall Ornn"), Some(2));
     }
 
     // A local disposable HTTP server: these tests never read a lockfile or contact League.
@@ -320,20 +317,17 @@ mod tests {
     #[tokio::test]
     async fn refresh_updates_in_place_and_never_deletes_the_old_page() {
         let pages = json!([
-            {"id": 7, "name": "Featherstorm Xayah ADC", "isDeletable": true},
+            {"id": 7, "name": "Recall Xayah ADC", "isDeletable": true},
             {"id": 8, "name": "My personal page", "isDeletable": true}
         ]);
         let (client, server) = mock_client(vec![(200, pages), (200, json!({"id": 7}))]);
-        let page = page_value(&RunePageIds::default(), "Featherstorm Ahri MID");
-        assert_eq!(
-            import(&client, page).await.unwrap(),
-            "Featherstorm Ahri MID"
-        );
+        let page = page_value(&RunePageIds::default(), "Recall Ahri MID");
+        assert_eq!(import(&client, page).await.unwrap(), "Recall Ahri MID");
         let requests = server.join().unwrap();
         assert_eq!(requests[0].0, "GET /lol-perks/v1/pages HTTP/1.1");
         assert_eq!(requests[1].0, "PUT /lol-perks/v1/pages/7 HTTP/1.1");
         assert_eq!(requests[1].1["id"], 7);
-        assert_eq!(requests[1].1["name"], "Featherstorm Ahri MID");
+        assert_eq!(requests[1].1["name"], "Recall Ahri MID");
         assert_eq!(requests[1].1["current"], true);
     }
 
@@ -342,13 +336,13 @@ mod tests {
         let (client, server) = mock_client(vec![
             (
                 200,
-                json!([{"id": 7, "name": "Featherstorm Xayah ADC", "isDeletable": true}]),
+                json!([{"id": 7, "name": "Recall Xayah ADC", "isDeletable": true}]),
             ),
             (500, json!({"message": "test failure"})),
         ]);
         assert!(import(
             &client,
-            page_value(&RunePageIds::default(), "Featherstorm Ahri MID")
+            page_value(&RunePageIds::default(), "Recall Ahri MID")
         )
         .await
         .is_err());
@@ -379,7 +373,7 @@ mod tests {
                 perks: vec![8008, 8009, 9103, 8014, 8304, 8345, 5005, 5008, 5001],
                 ..Default::default()
             },
-            "Featherstorm Xayah",
+            "Recall Xayah",
         );
         assert_eq!(page["primaryStyleId"], 8000);
         assert_eq!(page["selectedPerkIds"].as_array().unwrap().len(), 9);

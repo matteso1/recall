@@ -18,7 +18,7 @@ mod settings;
 #[path = "../../overlay/src-tauri/src/swiftplay.rs"]
 mod swiftplay;
 
-use featherstorm_core::{
+use recall_core::{
     aggregate::Aggregate,
     champselect::Lobby,
     ddragon::{normalize, Catalog},
@@ -33,7 +33,7 @@ use std::sync::{Arc, Mutex};
 
 #[derive(Default)]
 pub struct AggState {
-    pub refresh: featherstorm_core::session::RefreshGate<featherstorm_core::session::AggregateKey>,
+    pub refresh: recall_core::session::RefreshGate<recall_core::session::AggregateKey>,
     pub value: Option<Arc<Aggregate>>,
     pub error: Option<String>,
     pub task: Option<tokio::task::JoinHandle<()>>,
@@ -96,7 +96,7 @@ mod commands {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use featherstorm_core::{
+    use recall_core::{
         aggregate::{self, Position},
         engine::BuildPreference,
         journal::Feedback,
@@ -166,8 +166,8 @@ mod tests {
                 ..Default::default()
             }),
             catalog: Mutex::new(Some(catalog.clone())),
-            pack: featherstorm_core::pack::load_xayah().unwrap(),
-            traits: featherstorm_core::pack::load_traits().unwrap(),
+            pack: recall_core::pack::load_xayah().unwrap(),
+            traits: recall_core::pack::load_traits().unwrap(),
             lcu: Mutex::new(None),
             lobby: Mutex::new(None),
             summoner_id: Mutex::new(None),

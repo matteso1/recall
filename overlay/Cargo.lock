@@ -870,13 +870,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "featherstorm"
+name = "recall"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "dirs",
  "env_logger",
- "featherstorm-core",
+ "recall-core",
  "log",
  "serde",
  "serde_json",
@@ -886,7 +886,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "featherstorm-core"
+name = "recall-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",

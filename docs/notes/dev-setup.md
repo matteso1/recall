@@ -39,7 +39,7 @@ to 127.0.0.1 hits the Linux VM and is refused (confirmed).
   (elevated through `Start-Process -Verb RunAs`; the UAC prompt must be clicked on the Windows side
   within 120 s or Windows cancels it - it took three tries).
 - `scripts/cargo-win.sh` mirrors `overlay/`, `data/pack/` and the test fixtures to
-  `C:\Users\nilsm\code\featherstorm-win` with rsync and runs `cargo.exe` there.
+  `C:\Users\nilsm\code\recall-win` with rsync and runs `cargo.exe` there.
 
 ## M1 build plan (Tauri) - original options, kept for the record
 - Build on Windows with the existing Rust MSVC toolchain; `cargo install tauri-cli` there.
@@ -48,7 +48,7 @@ to 127.0.0.1 hits the Linux VM and is refused (confirmed).
 - Source location options: (a) keep the repo in WSL and run `cargo.exe` via interop on the
   `\\wsl.localhost\...` path (untested; UNC paths and MSVC link steps may misbehave, and
   builds over the 9P bridge are slow); (b) a Windows-side clone at
-  `C:\Users\nilsm\code\featherstorm`, synced through GitHub; (c) move the whole repo to
+  `C:\Users\nilsm\code\recall`, synced through GitHub; (c) move the whole repo to
   `/mnt/c/...` so both sides see the same files (WSL git/python get slower).
   Default plan: (b).
 - Overlay testing needs League in borderless/windowed mode (exclusive fullscreen hides

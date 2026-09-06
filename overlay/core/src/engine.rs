@@ -679,7 +679,10 @@ pub fn plan_in_mode(inp: &Inputs, preferences: &PlannerPreferences, mode: GameMo
         .aggregate
         .filter(|a| cat.champion_key(inp.champion) == Some(a.champion_key))
     else {
-        p.note = Some(format!("Build data for {} has not loaded yet", inp.champion));
+        p.note = Some(format!(
+            "Build data for {} has not loaded yet",
+            inp.champion
+        ));
         return p;
     };
     // The assigned role drives every role rule; the source role only says where the items,
@@ -943,7 +946,14 @@ pub fn plan_in_mode(inp: &Inputs, preferences: &PlannerPreferences, mode: GameMo
         p.context
             .push("Your Magical Footwear rune locks boots until the free pair arrives".into());
     }
-    let selected = decision::select(inp, base, preferences, boots_locked, &p.spell_ids, swiftplay);
+    let selected = decision::select(
+        inp,
+        base,
+        preferences,
+        boots_locked,
+        &p.spell_ids,
+        swiftplay,
+    );
     p.path = selected.path;
     p.options = selected.options;
     p.next = selected.next;

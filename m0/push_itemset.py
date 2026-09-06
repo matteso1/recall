@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Push (or remove) a Featherstorm item set in the League client so it shows in the in-game shop.
+"""Push (or remove) a Recall item set in the League client so it shows in the in-game shop.
 
 Reads a names-based spec (default: data/itemsets/xayah.json), resolves names through
 Data Dragon, merges the set into the account's existing sets and writes them back.
-Re-running replaces the previous Featherstorm set of the same title.
+Re-running replaces the previous Recall set of the same title.
 """
 from __future__ import annotations
 

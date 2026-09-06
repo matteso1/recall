@@ -1,4 +1,4 @@
-# Featherstorm learning build engine
+# Recall learning build engine
 
 The owner approved the senior review and the itemization-companion scope, then clarified the target audience as beginner League players. This spec turns that approval into an executable design. No additional approval is needed for ordinary implementation choices.
 

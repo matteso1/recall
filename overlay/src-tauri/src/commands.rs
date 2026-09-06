@@ -1,13 +1,13 @@
 //! Imports into the client (runes, summoner spells, item set) and the commands the webview invokes.
 //! The poller calls the `do_*` functions for auto-import; the buttons call the same code.
 use crate::{controller, App};
-use featherstorm_core::engine::{BuildPreference, Plan};
-use featherstorm_core::itemset;
-use featherstorm_core::journal::Feedback;
-use featherstorm_core::lcu::Lcu;
-use featherstorm_core::runes;
-use featherstorm_core::session;
-use featherstorm_core::state::PanelState;
+use recall_core::engine::{BuildPreference, Plan};
+use recall_core::itemset;
+use recall_core::journal::Feedback;
+use recall_core::lcu::Lcu;
+use recall_core::runes;
+use recall_core::session;
+use recall_core::state::PanelState;
 use serde_json::Value;
 use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
@@ -297,10 +297,7 @@ pub async fn do_import_runes_for_plan(
     let result = async {
         let ids = plan.runes.clone().ok_or("no rune page in this build")?;
         session::validate_rune_page(&ids, &catalog)?;
-        let name = match &plan.position {
-            Some(pos) => format!("Featherstorm {} {pos}", plan.champion),
-            None => format!("Featherstorm {}", plan.champion),
-        };
+        let name = recall_core::brand::loadout_name(&plan.champion, plan.position.as_deref());
         let page = runes::page_value(&ids, &name);
         import_rune_page(&lcu, &guard, st, &page).await?;
         Ok::<String, String>(format!("Rune page '{name}' set ({})", plan.runes_summary))

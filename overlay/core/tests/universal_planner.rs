@@ -1,5 +1,5 @@
 //! Every role uses its own real aggregate. Xayah is not a fallback or an eligibility gate.
-use featherstorm_core::{
+use recall_core::{
     aggregate::{self, Position},
     ddragon::Catalog,
     engine::{self, Inputs},

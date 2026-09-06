@@ -1,4 +1,4 @@
-//! Featherstorm overlay: a small always-on-top panel driven by the core "brain".
+//! Recall overlay: a small always-on-top panel driven by the core "brain".
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
@@ -11,25 +11,25 @@ mod rune_queue;
 mod settings;
 mod swiftplay;
 
-use featherstorm_core::aggregate::Aggregate;
-use featherstorm_core::champselect::Lobby;
-use featherstorm_core::ddragon::{normalize, Catalog};
-use featherstorm_core::engine::{Plan, PlannerPreferences};
-use featherstorm_core::journal::Journal;
-use featherstorm_core::lcu::Lcu;
-use featherstorm_core::live::LiveSnapshot;
-use featherstorm_core::pack::{ChampionPack, Traits};
-use featherstorm_core::placement::{self, Screen};
-use featherstorm_core::state::PanelState;
+use recall_core::aggregate::Aggregate;
+use recall_core::champselect::Lobby;
+use recall_core::ddragon::{normalize, Catalog};
+use recall_core::engine::{Plan, PlannerPreferences};
+use recall_core::journal::Journal;
+use recall_core::lcu::Lcu;
+use recall_core::live::LiveSnapshot;
+use recall_core::pack::{ChampionPack, Traits};
+use recall_core::placement::{self, Screen};
+use recall_core::state::PanelState;
 use std::sync::{Arc, Mutex};
 use tauri::{Emitter, Manager};
 
-pub use featherstorm_core::placement::{PANEL_H, PANEL_H_COLLAPSED, PANEL_W};
+pub use recall_core::placement::{PANEL_H, PANEL_H_COLLAPSED, PANEL_W};
 
 /// The aggregate (op.gg) build for the champion currently in play, and when to retry a failed fetch.
 #[derive(Default)]
 pub struct AggState {
-    pub refresh: featherstorm_core::session::RefreshGate<featherstorm_core::session::AggregateKey>,
+    pub refresh: recall_core::session::RefreshGate<recall_core::session::AggregateKey>,
     pub value: Option<Arc<Aggregate>>,
     pub error: Option<String>,
     pub task: Option<tokio::task::JoinHandle<()>>,
@@ -85,10 +85,10 @@ impl App {
 }
 
 fn init_logging() {
-    let path = settings::data_dir().join("featherstorm.log");
+    let path = settings::data_dir().join("recall.log");
     let mut builder = env_logger::Builder::new();
     builder.filter_level(log::LevelFilter::Info);
-    if let Ok(env) = std::env::var("FEATHERSTORM_LOG") {
+    if let Ok(env) = std::env::var("RECALL_LOG") {
         builder.parse_filters(&env);
     }
     match std::fs::OpenOptions::new()
@@ -182,7 +182,7 @@ fn place_window(window: &tauri::WebviewWindow, state: &App) {
 
 fn main() {
     init_logging();
-    log::info!("featherstorm {} starting", env!("CARGO_PKG_VERSION"));
+    log::info!("recall {} starting", env!("CARGO_PKG_VERSION"));
     if std::env::args().any(|a| a == "--probe") {
         std::process::exit(probe::run());
     }
@@ -196,8 +196,8 @@ fn main() {
         })
     };
 
-    let pack = featherstorm_core::pack::load_xayah().expect("data pack");
-    let traits = featherstorm_core::pack::load_traits().expect("champion traits");
+    let pack = recall_core::pack::load_xayah().expect("data pack");
+    let traits = recall_core::pack::load_traits().expect("champion traits");
     let saved = settings::load();
     let (journal, journal_sink, journal_writer) = if demo.is_some() {
         journal_store::disabled()
@@ -283,5 +283,5 @@ fn main() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running Featherstorm");
+        .expect("error while running Recall");
 }

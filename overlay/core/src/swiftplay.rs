@@ -55,10 +55,7 @@ pub fn linked_rune_page(pages: &Value, champion: u32) -> Result<&Value> {
 /// Do not consume a custom-page slot or select a single global page for both picks.
 pub fn swiftplay_page_update(page: &Value, name: &str) -> Result<Value> {
     let old_name = page["name"].as_str().unwrap_or_default();
-    if page["isEditable"] != true
-        || !(page["isTemporary"] == true
-            || old_name == "Featherstorm"
-            || old_name.starts_with("Featherstorm "))
+    if page["isEditable"] != true || !(page["isTemporary"] == true || crate::brand::owns(old_name))
     {
         bail!(
             "Personal rune page preserved; select a recommended page for automatic Swiftplay runes"
@@ -256,8 +253,8 @@ mod tests {
     #[test]
     fn named_swiftplay_page_keeps_temporary_and_global_selection_without_creating_pages() {
         let original = linked_page_fixture();
-        let target = swiftplay_page_update(&original, "Featherstorm Irelia Mid").unwrap();
-        assert_eq!(target["name"], "Featherstorm Irelia Mid");
+        let target = swiftplay_page_update(&original, "Recall Irelia Mid").unwrap();
+        assert_eq!(target["name"], "Recall Irelia Mid");
         for key in [
             "id",
             "current",
@@ -270,7 +267,7 @@ mod tests {
             assert_eq!(target[key], original[key], "{key}");
         }
         assert_eq!(
-            swiftplay_page_update(&target, "Featherstorm Irelia Mid").unwrap(),
+            swiftplay_page_update(&target, "Recall Irelia Mid").unwrap(),
             target
         );
     }
@@ -280,13 +277,13 @@ mod tests {
         let mut page = linked_page_fixture();
         page["isTemporary"] = json!(false);
         page["name"] = json!("My Irelia");
-        assert!(swiftplay_page_update(&page, "Featherstorm Irelia Mid").is_err());
-        page["name"] = json!("Featherstorming");
-        assert!(swiftplay_page_update(&page, "Featherstorm Irelia Mid").is_err());
-        page["name"] = json!("Featherstorm Irelia Mid");
-        assert!(swiftplay_page_update(&page, "Featherstorm Irelia Mid").is_ok());
+        assert!(swiftplay_page_update(&page, "Recall Irelia Mid").is_err());
+        page["name"] = json!("Recalling");
+        assert!(swiftplay_page_update(&page, "Recall Irelia Mid").is_err());
+        page["name"] = json!("Recall Irelia Mid");
+        assert!(swiftplay_page_update(&page, "Recall Irelia Mid").is_ok());
         page["isEditable"] = json!(false);
-        assert!(swiftplay_page_update(&page, "Featherstorm Irelia Mid").is_err());
+        assert!(swiftplay_page_update(&page, "Recall Irelia Mid").is_err());
     }
     use serde_json::json;
 

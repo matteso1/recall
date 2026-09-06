@@ -13,7 +13,7 @@ const UID_NAMESPACE: Uuid = Uuid::from_bytes([
 ]);
 
 pub fn title(champion: &str) -> String {
-    format!("Featherstorm {champion}")
+    crate::brand::loadout_name(champion, None)
 }
 
 fn clip(title: &str) -> String {
@@ -147,12 +147,18 @@ pub fn upsert(payload: &Value, set: Value) -> Value {
         .and_then(Value::as_str)
         .unwrap_or("")
         .to_string();
+    // A set of the same title is replaced, and so is the one an older build wrote under the
+    // project's previous name, so the shop never shows two tabs for one loadout.
+    let legacy = crate::brand::legacy_name(&title);
     let mut sets: Vec<Value> = payload
         .get("itemSets")
         .and_then(Value::as_array)
         .map(|a| {
             a.iter()
-                .filter(|s| s.get("title").and_then(Value::as_str) != Some(title.as_str()))
+                .filter(|s| {
+                    let existing = s.get("title").and_then(Value::as_str);
+                    existing != Some(title.as_str()) && existing != legacy.as_deref()
+                })
                 .cloned()
                 .collect()
         })
@@ -192,6 +198,22 @@ mod tests {
     use crate::pack::{load_traits, load_xayah};
 
     #[test]
+    fn upsert_replaces_the_set_an_older_build_wrote_under_the_previous_name() {
+        let payload = json!({"itemSets": [
+            {"uid": "a", "title": "Featherstorm Xayah"},
+            {"uid": "b", "title": "OP.GG Xayah"}
+        ]});
+        let out = upsert(&payload, json!({"uid": "c", "title": "Recall Xayah"}));
+        let titles: Vec<&str> = out["itemSets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|s| s["title"].as_str().unwrap())
+            .collect();
+        assert_eq!(titles, ["OP.GG Xayah", "Recall Xayah"]);
+    }
+
+    #[test]
     fn role_specific_itemsets_keep_both_choices_and_foreign_sets_on_reimport() {
         let cat = catalog();
         let mut plan = Plan {
@@ -203,8 +225,8 @@ mod tests {
         plan.position = Some("Mid".into());
         let mid = build_for_role(&plan, None, &cat, 498).unwrap();
         assert_ne!(adc["uid"], mid["uid"]);
-        assert_eq!(adc["title"], "Featherstorm Xayah ADC");
-        assert_eq!(mid["title"], "Featherstorm Xayah Mid");
+        assert_eq!(adc["title"], "Recall Xayah ADC");
+        assert_eq!(mid["title"], "Recall Xayah Mid");
         let original = json!({"accountId":42,"itemSets":[{"uid":"foreign","title":"My build","blocks":[{"type":"Keep"}]}]});
         let merged = upsert(&upsert(&upsert(&original, adc.clone()), mid), adc);
         let sets = merged["itemSets"].as_array().unwrap();
@@ -218,7 +240,7 @@ mod tests {
             assert_eq!(set["associatedChampions"], json!([498]));
             assert_eq!(set["associatedMaps"], json!([11]));
         }
-        assert_eq!(build(&plan, None, &cat, 498)["title"], "Featherstorm Xayah");
+        assert_eq!(build(&plan, None, &cat, 498)["title"], "Recall Xayah");
     }
 
     #[test]
@@ -233,7 +255,7 @@ mod tests {
         plan.position = Some("ADC".into());
         let adc = build_for_role(&plan, None, &cat, 498).unwrap();
         assert_eq!(bottom["uid"], adc["uid"]);
-        assert_eq!(bottom["title"], "Featherstorm Xayah ADC");
+        assert_eq!(bottom["title"], "Recall Xayah ADC");
     }
 
     #[test]
@@ -275,7 +297,7 @@ mod tests {
             live: None,
         });
         let set = build(&plan, Some(&pack), &cat, 498);
-        assert_eq!(set["title"], "Featherstorm Xayah");
+        assert_eq!(set["title"], "Recall Xayah");
         assert_eq!(set["associatedChampions"], json!([498]));
         let blocks = set["blocks"].as_array().unwrap();
         assert!(blocks.len() >= 10);
@@ -317,7 +339,7 @@ mod tests {
         assert_eq!(p1["itemSets"].as_array().unwrap().len(), 2);
         let p2 = upsert(&p1, set.clone());
         assert_eq!(p2["itemSets"].as_array().unwrap().len(), 2);
-        let p3 = remove(&p2, "Featherstorm Xayah");
+        let p3 = remove(&p2, "Recall Xayah");
         assert_eq!(p3["itemSets"].as_array().unwrap().len(), 1);
         assert_eq!(set["uid"], build(&plan, Some(&pack), &cat, 498)["uid"]);
     }

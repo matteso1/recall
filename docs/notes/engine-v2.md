@@ -44,7 +44,7 @@ See [fixture provenance](../../m0/tests/fixtures/AGGREGATE_SOURCES.md).
 - Rune refreshes PUT one existing editable app page in place. A failed update does
   not delete the page or fall through to POST. Non-app pages are never deleted.
 - `journal.rs` and the asynchronous store keep bounded decision/purchase receipts
-  in `%LOCALAPPDATA%\Featherstorm\decisions.json`. Corruption is preserved before
+  in `%LOCALAPPDATA%\Recall\decisions.json`. Corruption is preserved before
   new writes; failures are visible. This is not a training dataset with outcome labels.
 - `replay` exercises production plans on offline fixtures/captures and emits
   machine-readable JSON when requested, including score traces and data-gap counts.
@@ -54,8 +54,8 @@ See [fixture provenance](../../m0/tests/fixtures/AGGREGATE_SOURCES.md).
 Fresh core verification:
 
 ```sh
-cargo test --manifest-path overlay/Cargo.toml --locked -p featherstorm-core
-cargo clippy --manifest-path overlay/Cargo.toml --locked -p featherstorm-core --all-targets -- -D warnings
+cargo test --manifest-path overlay/Cargo.toml --locked -p recall-core
+cargo clippy --manifest-path overlay/Cargo.toml --locked -p recall-core --all-targets -- -D warnings
 ```
 
 **208 passing Rust core/CLI/integration tests:** 146 library, 16 replay, 23 planner
@@ -109,7 +109,7 @@ not run the poller or replace a Windows/Tauri build.
 Release-mode command, from `overlay/`:
 
 ```sh
-cargo run --release --locked -p featherstorm-core --bin replay -- \
+cargo run --release --locked -p recall-core --bin replay -- \
   --session ../m0/tests/fixtures/captured \
   --items ../m0/tests/fixtures/item_subset.json \
   --champions ../m0/tests/fixtures/champion_subset.json \
