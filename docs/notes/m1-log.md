@@ -194,3 +194,11 @@ deviation is measured descriptively, not treated as evidence of better decisions
   Phase classes are now `phase-*`, the dot is gone, and the tag is an outlined uppercase label coloured by
   phase (gold in the lobby and champ select, teal in game, amber without a client). A browser test checks
   the tag's box against the header in every phase; demo and live screenshots confirmed the fix.
+
+## 2026-09-06 (renamed to Recall)
+- Everything but the WSL checkout path says Recall. `core/brand.rs` owns the account-facing name and
+  still recognises `Featherstorm ...` rune pages and item sets as ours. Verified live: the first start of
+  `recall.exe` adopted `%LOCALAPPDATA%\Featherstorm` as `Recall`, and the two prepared Swiftplay pages were
+  renamed in place (same page ids) to "Recall Xayah ADC" and "Recall Morgana Support".
+- Repo renamed to `matteso1/recall` (private). MIT license, player-facing README, macOS support is issue #1.
+- Commit history on both branches was rewritten to remove AI trailers and session links.
