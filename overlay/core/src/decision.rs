@@ -88,6 +88,49 @@ impl Archetype {
     }
 }
 
+/// Which damage family an item feeds, from its Data Dragon stats and described penetration.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Family {
+    Physical,
+    Magical,
+    Mixed,
+}
+
+pub(crate) fn family(item: &Item) -> Family {
+    let ad = item.stat("FlatPhysicalDamageMod").unwrap_or(0.0)
+        + item.stat("PercentAttackSpeedMod").unwrap_or(0.0)
+        + item.stat("FlatCritChanceMod").unwrap_or(0.0)
+        + item.effects.flat_armor_pen.unwrap_or(0.0)
+        + item.effects.percent_armor_pen.unwrap_or(0.0);
+    let ap = item.stat("FlatMagicDamageMod").unwrap_or(0.0)
+        + item.effects.flat_magic_pen.unwrap_or(0.0)
+        + item.effects.percent_magic_pen.unwrap_or(0.0);
+    match (ad > 0.0, ap > 0.0) {
+        (true, false) => Family::Physical,
+        (false, true) => Family::Magical,
+        _ => Family::Mixed,
+    }
+}
+
+/// Whether a finished item belongs with the chosen core line. A core of on-hit items (Kraken,
+/// Blade of the Ruined King, Terminus on Katarina) is a physical build even on an AP champion:
+/// its tail and boots must not be the AP crowd's Lich Bane, Shadowflame and Sorcerer's Shoes.
+/// Mixed items (Nashor's, Gunblade, Guinsoo's, defensive items without damage) fit either.
+pub(crate) fn coherent(inp: &Inputs, id: u32) -> bool {
+    coherent_with(Archetype::from_build(inp), inp.catalog, id)
+}
+
+fn coherent_with(archetype: Archetype, cat: &Catalog, id: u32) -> bool {
+    let Some(item) = cat.item(id) else {
+        return true;
+    };
+    match family(item) {
+        Family::Magical => archetype.physical < 0.75,
+        Family::Physical => archetype.magical < 0.75,
+        Family::Mixed => true,
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 struct Needs {
     armor: f64,
@@ -620,16 +663,24 @@ fn pool(inp: &Inputs) -> BTreeMap<u32, f64> {
     };
     // Late items that almost nobody playing this champion buys (Randuin's Omen on Xayah at
     // 0.3%) are not candidates: a situational score must not resurrect them. Core lines and
-    // boots stay regardless of their share.
+    // boots stay regardless of their share. Items from the other damage family (the AP crowd's
+    // Zhonya's and Shadowflame behind Katarina's on-hit core line, whether they come from late
+    // items, boots or another core line) are not candidates either: a build is one family.
+    let archetype = Archetype::from_build(inp);
+    let fits = |id: u32| a.core.ids.contains(&id) || coherent_with(archetype, inp.catalog, id);
     for line in a
         .late
         .iter()
         .filter(|line| line.pick_rate >= MIN_LATE_PICK)
         .chain(a.core_lines.iter())
         .chain(std::iter::once(&a.core))
+        .chain(a.boots_lines.iter())
         .chain(a.boots.iter())
     {
         for &id in &line.ids {
+            if !fits(id) {
+                continue;
+            }
             result
                 .entry(id)
                 .and_modify(|v: &mut f64| *v = v.max(line.pick_rate))

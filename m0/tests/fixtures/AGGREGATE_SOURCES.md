@@ -42,3 +42,11 @@ Swiftplay game of the same day, with player identifiers replaced by `PlayerN#TES
 overlay at champion select on 2026-09-06 (patch 16.17, 86k games) and copied from the aggregate cache.
 Public payload, unchanged. The snapshots `swiftplay_morgana_support_1514.json`, `_1526.json` and
 `_1604.json` are from the recorded Swiftplay game of the same day, identifiers replaced by `PlayerN#TEST`.
+
+## opgg_katarina_mid.json (2026-09-06)
+
+`https://lol-api-champion.op.gg/api/global/champions/ranked/55/mid?tier=emerald_plus`, fetched by the
+overlay at champion select on 2026-09-06 (patch 16.17, 143k games) and copied from the aggregate cache.
+Public payload, unchanged. Its most-played core line is on-hit while its late items are mostly AP: the
+build-coherence fixture. `swiftplay_katarina_mid_0200.json` and `_1126.json` are from the recorded
+Swiftplay game of the same day, identifiers replaced by `PlayerN#TEST`.

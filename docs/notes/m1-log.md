@@ -225,3 +225,16 @@ deviation is measured descriptively, not treated as evidence of better decisions
   their prices. A target that was shown and can still be finished now stays the target
   (`PlannerPreferences.last_target`; pins override it, buying it or running short of gold releases it).
   Regression tests in `overlay/core/tests/swiftplay_support_regressions.rs` from the recorded states.
+
+## 2026-09-06 (Nautilus Support, Zed Mid, Katarina Mid)
+- Nautilus: clean, nothing to fix. Zed: clean apart from an Executioner's detour coming back after a
+  Long Sword purchase (a component shared with the planned path now counts as an answer).
+- Katarina exposed a data-shape problem: op.gg's single most-played line is on-hit (Kraken, Blade of
+  the Ruined King, Terminus, 16%), but the AP crowd is larger overall, so the late items and boots
+  (Lich Bane, Shadowflame, Zhonya's, Sorcerer's Shoes) belong to the other family. The panel built a
+  hybrid. New rule (`decision::coherent`): the core line's damage family, from its items' stats, decides
+  which finished items may fill the tail, which boots line is taken (the most-played pair of that family)
+  and which items are candidates at all; mixed items (Nashor's, Guinsoo's, Gunblade) and plain defense
+  fit either. Tests in `overlay/core/tests/build_coherence.rs` from the recorded game.
+- Auto-start: `scripts/autostart-install.sh` puts a hidden PowerShell watcher in the Startup folder; it
+  started the overlay with the client on the first try.

@@ -172,6 +172,9 @@ pub struct Aggregate {
     /// First items of the other popular core lines (e.g. Essence Reaver next to Yun Tal): alternatives, not late items.
     pub core_alternatives: Vec<u32>,
     pub boots: Option<Picked>,
+    /// Every boots line by pick rate, so a build can take the most-played pair of its own damage family.
+    #[serde(default)]
+    pub boots_lines: Vec<Picked>,
     /// Finished items seen in final builds, by pick rate (components and boots included, filter them).
     pub late: Vec<Picked>,
     /// (enemy champion key, games, wins) in this position
@@ -523,10 +526,12 @@ pub fn decode(
             }
         }
     }
-    let boots = list(data, "boots")
-        .first()
+    let boots_lines: Vec<Picked> = list(data, "boots")
+        .iter()
         .map(|v| picked(v))
-        .filter(|p| !p.ids.is_empty());
+        .filter(|p| !p.ids.is_empty())
+        .collect();
+    let boots = boots_lines.first().cloned();
     let mut late: Vec<Picked> = list(data, "last_items")
         .iter()
         .map(|v| picked(v))
@@ -592,6 +597,7 @@ pub fn decode(
         core_lines: cores,
         core_alternatives,
         boots,
+        boots_lines,
         late,
         counters,
     })

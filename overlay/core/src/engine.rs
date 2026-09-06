@@ -367,7 +367,15 @@ fn baseline_path(inp: &Inputs, a: &Aggregate) -> Vec<PlanItem> {
         }
     }
     if !path.iter().any(|p| p.role == "boots") {
-        if let Some(id) = a.boots.as_ref().and_then(|b| b.ids.first()).copied() {
+        // The most-played boots that belong with the core line's damage family: an on-hit core
+        // does not get the AP crowd's Sorcerer's Shoes.
+        let boots = a
+            .boots_lines
+            .iter()
+            .chain(a.boots.iter())
+            .filter_map(|b| b.ids.first().copied())
+            .find(|&id| decision::coherent(inp, id));
+        if let Some(id) = boots {
             if let Some(i) = item_by_id(
                 cat,
                 inp.pack,
@@ -386,6 +394,7 @@ fn baseline_path(inp: &Inputs, a: &Aggregate) -> Vec<PlanItem> {
             continue;
         };
         if a.core_alternatives.contains(&id)
+            || !decision::coherent(inp, id)
             || path.iter().any(|p| p.id == id)
             || !cat
                 .item(id)
