@@ -39,6 +39,11 @@ const ORDER_PRIOR: f64 = 3.0;
 const FINISH_NOW: f64 = 3.0;
 const OWNED_CREDIT: f64 = 3.0;
 const MAX_NEED_SCORE: f64 = 5.0;
+/// Share of this champion's final builds a late item needs before it can be a candidate.
+const MIN_LATE_PICK: f64 = 0.02;
+/// Situational score at which an off-path item counts as a real detour (a verified cleanse scores
+/// 3.2, anti-heal against a healer about 2.7; incidental stats stay well below 1).
+const DETOUR_NEED: f64 = 1.5;
 
 #[derive(Clone, Copy, Debug, Default)]
 struct Archetype {
@@ -137,6 +142,7 @@ impl Needs {
         let mut weighted_magic = 0.0;
         let mut strongest_physical = 0.0;
         let mut strongest_magic = 0.0;
+        let mut strongest_healing: f64 = 0.0;
         let mut strongest_pressure: f64 = 1.0;
         let own_role = inp.aggregate.map(engine::actual_position);
         let mut names: BTreeSet<String> = inp.enemies.iter().cloned().collect();
@@ -218,7 +224,11 @@ impl Needs {
                 });
                 if sustain > 0.0 {
                     n.healing = (n.healing + sustain * 2.0).min(1.0);
-                    n.healing_name = name.clone();
+                    // The reason names the biggest healing source, not the first one seen.
+                    if sustain * 2.0 > strongest_healing {
+                        strongest_healing = sustain * 2.0;
+                        n.healing_name = name.clone();
+                    }
                     n.healing_observed = true;
                 }
             }
@@ -231,8 +241,10 @@ impl Needs {
                                 || (own_role == Some(crate::aggregate::Position::Adc)
                                     && r == crate::aggregate::Position::Support)
                         });
-                    n.healing = (n.healing + if in_lane { 0.8 } else { 0.55 }).min(1.0);
-                    if n.healing_name.is_empty() {
+                    let contribution = if in_lane { 0.8 } else { 0.55 };
+                    n.healing = (n.healing + contribution).min(1.0);
+                    if contribution > strongest_healing {
+                        strongest_healing = contribution;
                         n.healing_name = name.clone();
                     }
                 }
@@ -423,7 +435,12 @@ fn fit(
     } else {
         0.9 + 0.9 * n.pressure
     };
-    if let Some(mr) = e.magic_resist.filter(|v| *v > 0.0) {
+    // A cleanse item's magic resistance is a side stat; its reason to exist is the active. It is
+    // scored above as a cleanse only, never sold as "magic protection".
+    if let Some(mr) = e
+        .magic_resist
+        .filter(|v| *v > 0.0 && e.cleanse.is_none())
+    {
         let old: f64 = already
             .iter()
             .filter_map(|id| inp.catalog.item(*id))
@@ -551,9 +568,13 @@ fn pool(inp: &Inputs) -> BTreeMap<u32, f64> {
     let Some(a) = inp.aggregate else {
         return result;
     };
+    // Late items that almost nobody playing this champion buys (Randuin's Omen on Xayah at
+    // 0.3%) are not candidates: a situational score must not resurrect them. Core lines and
+    // boots stay regardless of their share.
     for line in a
         .late
         .iter()
+        .filter(|line| line.pick_rate >= MIN_LATE_PICK)
         .chain(a.core_lines.iter())
         .chain(std::iter::once(&a.core))
         .chain(a.boots.iter())
@@ -773,7 +794,13 @@ pub(crate) fn select(
         let prior = ordinal
             .map(|o| ORDER_PRIOR / (1.0 + o as f64))
             .unwrap_or(0.2 * pick.sqrt());
-        let completion = OWNED_CREDIT * credit + if q.affordable { FINISH_NOW } else { 0.0 };
+        // "Affordable right now" is a reason to buy something you were building anyway (the next
+        // planned item) or a detour with a real, verified need (anti-heal against a healer, a
+        // cleanse against suppression). An off-path item that merely happens to be affordable
+        // (Stormrazor sharing IE's components) must not pull the player off the core item.
+        let planned = Some(id) == baseline || pending.contains(&id) || f.score >= DETOUR_NEED;
+        let completion =
+            OWNED_CREDIT * credit + if q.affordable && planned { FINISH_NOW } else { 0.0 };
         let phase = if Some(id) == baseline || completed_core >= 2 {
             1.0
         } else if completed_core >= 1 {

@@ -172,3 +172,20 @@ deviation is measured descriptively, not treated as evidence of better decisions
 - Verified offline only: 233 core, 35 runtime, 20 browser, 34 Python tests; replay of the capture 18/18
   legal; the built exe's headless probe for Irelia as Jungle returns the labelled Top build with
   Flash + Smite. No game was played and nothing on the account was touched.
+
+## 2026-09-06 (first full Swiftplay game on the fallback build: Xayah ADC, 20:36, 6/5/7)
+- Pre-queue preparation was right every time the player changed choices (Xayah ADC, Soraka
+  Jungle with Smite via the labelled fallback, Soraka Mid, Shen in three roles, Morgana Support)
+  and the in-game plan used exact ADC data: Yun Tal, Greaves, Navori, Mortal Reminder all bought
+  as recommended. The decision journal holds 32 entries for the match.
+- Defects found in the log and fixed in the decision layer (`overlay/core/tests/swiftplay_game_regressions.rs`):
+  a Quicksilver Sash offered twice as "magic protection" because any affordable finished item got
+  the finish-now bonus (now only planned items or real detours with a situational score of at least
+  1.5, and cleanse items never count as magic defense); Stormrazor displacing Infinity Edge through
+  the shared B. F. Sword and Cloak (the player bought it and IE was never completed; the target now
+  stays IE with an honest 178 g saving gap since the six slots were full); a Randuin's Omen with a
+  0.3% pick rate shown for six seconds (late items need a 2% pick rate); "anti-heal for Naafiri"
+  where Yuumi was the healer (the reason names the strongest healing source); a Health Potion at the
+  level-one instant of a Swiftplay start (the opening branch is classic-only).
+- Header chip: WebView2 stacked the state dot above the label; the dot is now a pseudo-element of
+  one inline chip and the pre-queue state reads "lobby".

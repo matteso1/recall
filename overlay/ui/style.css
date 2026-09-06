@@ -21,8 +21,9 @@ button.error { color: var(--danger); border-color: var(--danger); }
 .panel { height: 100%; display: flex; flex-direction: column; overflow: hidden; background: linear-gradient(180deg, #010a13f7, #091428fa); }
 .header { height: 30px; flex: none; display: flex; align-items: center; gap: 7px; padding: 0 4px 0 10px; border-bottom: 1px solid var(--gold-frame); cursor: move; user-select: none; }
 .brand { color: var(--gold); font: 700 10px/1 Cinzel, serif; letter-spacing: .1em; white-space: nowrap; }
-.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; white-space: nowrap; color: var(--muted); }
-.dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+/* One inline run of text with the state dot drawn before it: nothing inside can wrap or stack. */
+.chip { display: inline-block; flex: none; font-size: 10px; line-height: 1; white-space: nowrap; color: var(--muted); }
+.chip::before { content: ''; display: inline-block; width: 4px; height: 4px; margin: 0 4px 1px 0; border-radius: 50%; background: currentColor; vertical-align: middle; }
 .chip.ingame { color: var(--teal); }
 .chip.champselect, .chip.loading, .chip.swiftplay { color: var(--gold); }
 .chip.noclient { color: var(--amber); }

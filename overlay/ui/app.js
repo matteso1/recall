@@ -237,7 +237,7 @@ function render(s) {
   renderedFresh = freshLive(s);
   renderedSwiftplayFresh = freshSwiftplay(s);
   loadIconMaps();
-  $('pill-text').textContent = s.demo ? 'demo' : ({ noclient: 'no client', idle: 'ready', champselect: 'select', loading: 'loading', ingame: 'in game' })[s.phase] || s.phase;
+  $('pill-text').textContent = s.demo ? 'demo' : ({ noclient: 'no client', idle: 'ready', swiftplay: 'lobby', champselect: 'select', loading: 'loading', ingame: 'in game' })[s.phase] || s.phase;
   $('pill').className = `chip ${s.phase}`;
   $('panel').classList.toggle('collapsed', !!s.collapsed);
   $('collapse').textContent = s.collapsed ? '+' : '−';

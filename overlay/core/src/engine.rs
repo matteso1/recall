@@ -966,7 +966,9 @@ pub fn plan_in_mode(inp: &Inputs, preferences: &PlannerPreferences, mode: GameMo
                     .item(i.id)
                     .is_none_or(|item| !item.tags.iter().any(|t| t == "Consumable"))
         });
-        if live.game_time < 90.0
+        // Swiftplay's level-one instant before the level-three start is not a classic opening.
+        if !swiftplay
+            && live.game_time < 90.0
             && m.player.level == 1
             && preferences.pinned_item.is_none()
             && !manual_opening

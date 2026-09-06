@@ -38,7 +38,7 @@ async function openPanel(page, state) {
     };
   }, state);
   await page.goto(new URL('../../overlay/ui/index.html', import.meta.url).href);
-  await expect(page.locator('#pill-text')).toHaveText(state.demo ? 'demo' : state.phase === 'swiftplay' ? 'swiftplay' : 'in game');
+  await expect(page.locator('#pill-text')).toHaveText(state.demo ? 'demo' : state.phase === 'swiftplay' ? 'lobby' : 'in game');
 }
 
 function swiftplayFixture() {
