@@ -865,10 +865,18 @@ pub(crate) fn select(
         .collect();
     let baseline = pending.first().copied();
     note_declined_detour(cat, &ids, &pending, &mut out.preferences);
-    let baseline_cost = baseline
-        .and_then(|id| remaining(inp, id, me, boots_locked, swiftplay).remaining_cost)
+    let baseline_quote = baseline.map(|id| remaining(inp, id, me, boots_locked, swiftplay));
+    let baseline_cost = baseline_quote
+        .as_ref()
+        .and_then(|q| q.remaining_cost)
         .unwrap_or(1)
         .max(1);
+    // Boots are not a reason to stall the first core item: while nothing is finished and the
+    // core item's next component is buyable, affordable boots do not get the finish-now bonus
+    // (Swiftplay's 1400-gold start otherwise opens with Sorcerer's Shoes over a Lost Chapter).
+    let core_can_progress = baseline_quote
+        .as_ref()
+        .is_some_and(|q| q.buy_now.is_some() && q.blocked.is_none());
     let mut ranked = Vec::new();
     for (&id, &pick) in &choices {
         let Some(item) = cat.item(id) else { continue };
@@ -896,7 +904,9 @@ pub(crate) fn select(
                 || completed_core >= 1 && situational_component
                 || completed_core >= 2 && item.is_finished(cat) && f.score > 0.25
         };
-        if !eligible {
+        // A detour the player answered with another purchase is never the target again this
+        // game; it stays on the path and among the options.
+        if !eligible || out.preferences.declined_detours.contains(&id) {
             continue;
         }
         // No progression can currently fit in a full bag: keep it as a future target,
@@ -909,10 +919,11 @@ pub(crate) fn select(
         // planned item) or a detour with a real, verified need (anti-heal against a healer, a
         // cleanse against suppression). An off-path item that merely happens to be affordable
         // (Stormrazor sharing IE's components) must not pull the player off the core item.
-        let planned = (Some(id) == baseline || pending.contains(&id) || f.score >= DETOUR_NEED)
-            && !out.preferences.declined_detours.contains(&id);
+        let planned = Some(id) == baseline || pending.contains(&id) || f.score >= DETOUR_NEED;
+        let boots_too_early =
+            item.effects.boots && Some(id) != baseline && completed_core == 0 && core_can_progress;
         let completion = OWNED_CREDIT * credit
-            + if q.affordable && planned {
+            + if q.affordable && planned && !boots_too_early {
                 FINISH_NOW
             } else {
                 0.0

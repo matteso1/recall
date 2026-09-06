@@ -238,3 +238,12 @@ deviation is measured descriptively, not treated as evidence of better decisions
   fit either. Tests in `overlay/core/tests/build_coherence.rs` from the recorded game.
 - Auto-start: `scripts/autostart-install.sh` puts a hidden PowerShell watcher in the Startup folder; it
   started the overlay with the client on the first try.
+
+## 2026-09-06 (Annie Mid, 19:31)
+- A coherent AP build (Malignance, Rocketbelt, Shadowflame, Void Staff against Vayne's visible magic
+  resist); the coherence rule left it alone. Two defects, tests in `swiftplay_mage_regressions.rs`:
+  the 1400-gold Swiftplay start opened with Sorcerer's Shoes because affordable boots got the finish-now
+  bonus over a Lost Chapter (boots no longer get it while nothing is finished and the core item's next
+  component is buyable); an Oblivion Orb the player declined came back six times because its anti-heal
+  score alone beat the next core item's prior (a declined detour is never the target again this game;
+  it stays on the path and among the options).

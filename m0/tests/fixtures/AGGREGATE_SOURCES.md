@@ -50,3 +50,10 @@ overlay at champion select on 2026-09-06 (patch 16.17, 143k games) and copied fr
 Public payload, unchanged. Its most-played core line is on-hit while its late items are mostly AP: the
 build-coherence fixture. `swiftplay_katarina_mid_0200.json` and `_1126.json` are from the recorded
 Swiftplay game of the same day, identifiers replaced by `PlayerN#TEST`.
+
+## opgg_annie_mid.json (2026-09-06)
+
+`https://lol-api-champion.op.gg/api/global/champions/ranked/1/mid?tier=emerald_plus`, fetched by the
+overlay at champion select on 2026-09-06 (patch 16.17, 36k games) and copied from the aggregate cache.
+Public payload, unchanged. `swiftplay_annie_mid_start.json`, `_0955.json`, `_1111.json` and `_1127.json`
+are from the recorded Swiftplay game of the same day, identifiers replaced by `PlayerN#TEST`.
