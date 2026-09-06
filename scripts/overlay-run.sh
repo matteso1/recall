@@ -9,6 +9,7 @@ if [ ! -f "$(wslpath -u "$EXE_WIN")" ]; then
     exit 1
 fi
 taskkill.exe /IM featherstorm.exe /F >/dev/null 2>&1 || true
-cmd.exe /c start "" "$EXE_WIN" 2>/dev/null
+# Fully detach: a GUI exe that inherits our stdout keeps the caller's pipe open forever.
+nohup cmd.exe /c start "" "$EXE_WIN" >/dev/null 2>&1 </dev/null &
 sleep 2
 echo "running: $(tasklist.exe 2>/dev/null | tr -d '\r' | grep -c featherstorm.exe) process(es)"
