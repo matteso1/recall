@@ -27,3 +27,11 @@ replaced with `PlayerN#TEST`; champions, positions, items, gold, runes, scores a
 The existing `opgg_xayah_adc.json` fixture predates this acquisition. Its original population and retrieval time are not reconstructed here; its source patch and provider timestamp remain in the JSON. Its popular core sample is 882 wins / 1,542 games; the alternate order has 384 wins / 639 games. Their 95% Wilson intervals overlap, and the independent-binomial Newcombe interval for the alternate-minus-popular observed rate is about −1.66 to +7.37 percentage points.
 
 Repeated requests on a patch share underlying matches. Fixture snapshots, cache snapshots, different regions, and overlapping tiers must not be added together to manufacture larger sample sizes. Tests preserve each response's original counts. Patch archives hold one latest snapshot per request and patch; they do not pool observations or apply an undocumented previous-patch prior.
+
+## opgg_wukong_jungle.json (2026-09-06)
+
+`https://lol-api-champion.op.gg/api/global/champions/ranked/62/jungle?tier=emerald_plus`, fetched by the
+overlay at champion select on 2026-09-06 (patch 16.17, 121k games) and copied from the aggregate cache.
+Public payload, unchanged. The paired snapshots `swiftplay_wukong_jungle_start.json` (0:00.7, level 3,
+1400 gold, nothing bought) and `swiftplay_wukong_jungle_1100.json` (11:00) come from the recorded
+Swiftplay game of the same day, with player identifiers replaced by `PlayerN#TEST`.

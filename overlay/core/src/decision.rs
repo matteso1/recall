@@ -509,6 +509,50 @@ fn fit(
     }
 }
 
+/// `part` is `whole` itself or somewhere in its recipe tree.
+fn builds_into(cat: &Catalog, part: u32, whole: u32) -> bool {
+    part == whole
+        || cat
+            .item(whole)
+            .is_some_and(|item| item.from.iter().any(|&child| builds_into(cat, part, child)))
+}
+
+/// An offered detour the player answered by buying something else is declined for the rest of
+/// the game. Progress toward the detour, consumables and trinkets are not an answer.
+fn note_declined_detour(cat: &Catalog, ids: &[u32], preferences: &mut PlannerPreferences) {
+    let Some(detour) = preferences.offered_detour else {
+        return;
+    };
+    let mut inventory = ids.to_vec();
+    inventory.sort_unstable();
+    if ids.contains(&detour) {
+        preferences.offered_detour = None;
+        preferences.offered_inventory.clear();
+        return;
+    }
+    let mut before = preferences.offered_inventory.clone();
+    let declined = inventory.iter().any(|&id| {
+        if let Some(index) = before.iter().position(|&b| b == id) {
+            before.swap_remove(index);
+            return false;
+        }
+        cat.item(id).is_some_and(|item| {
+            !item
+                .tags
+                .iter()
+                .any(|t| t == "Consumable" || t == "Trinket")
+                && !builds_into(cat, id, detour)
+        })
+    });
+    if declined {
+        if !preferences.declined_detours.contains(&detour) {
+            preferences.declined_detours.push(detour);
+        }
+        preferences.offered_detour = None;
+        preferences.offered_inventory.clear();
+    }
+}
+
 fn owned_ids(me: Option<&Me>) -> Vec<u32> {
     me.into_iter()
         .flat_map(|m| &m.player.items)
@@ -645,6 +689,7 @@ pub(crate) fn select(
         ..Default::default()
     };
     let Some(agg) = inp.aggregate else { return out };
+    note_declined_detour(cat, &ids, &mut out.preferences);
     let choices = pool(inp);
     let mut path = commitment(inp, me);
     let full_committed = path.len() == 6;
@@ -730,7 +775,16 @@ pub(crate) fn select(
             break;
         };
         if let Some(mut item) = engine::item_by_id(cat, inp.pack, id, Some(f.reason)) {
-            if f.score > 0.2 {
+            // A named need is worth a tag at any real score; the generic label needs a clear one,
+            // so a Guardian Angel hovering around the threshold does not flicker between polls.
+            let named = matches!(
+                f.kind,
+                DecisionKind::AntiHeal
+                    | DecisionKind::Cleanse
+                    | DecisionKind::ArmorPen
+                    | DecisionKind::MagicPen
+            );
+            if f.score > 0.2 && named || f.score >= 0.75 {
                 item.tag = Some(
                     match f.kind {
                         DecisionKind::AntiHeal => "anti-heal",
@@ -795,7 +849,8 @@ pub(crate) fn select(
         // planned item) or a detour with a real, verified need (anti-heal against a healer, a
         // cleanse against suppression). An off-path item that merely happens to be affordable
         // (Stormrazor sharing IE's components) must not pull the player off the core item.
-        let planned = Some(id) == baseline || pending.contains(&id) || f.score >= DETOUR_NEED;
+        let planned = (Some(id) == baseline || pending.contains(&id) || f.score >= DETOUR_NEED)
+            && !out.preferences.declined_detours.contains(&id);
         let completion = OWNED_CREDIT * credit
             + if q.affordable && planned {
                 FINISH_NOW
@@ -871,6 +926,18 @@ pub(crate) fn select(
         }
     }
     out.scores = ranked.iter().map(|r| r.0.clone()).collect();
+    if let Some((score, _, _, _)) = ranked.first() {
+        // Remember an affordable detour together with the bag it was offered against.
+        if Some(score.id) != baseline
+            && !pending.contains(&score.id)
+            && out.preferences.offered_detour != Some(score.id)
+        {
+            out.preferences.offered_detour = Some(score.id);
+            let mut inventory = ids.clone();
+            inventory.sort_unstable();
+            out.preferences.offered_inventory = inventory;
+        }
+    }
     if let Some((score, f, q, credit)) = ranked.first() {
         if let Some(mut target) = engine::item_by_id(cat, inp.pack, score.id, None) {
             let pinned = out.preferences.pinned_item == Some(score.id);

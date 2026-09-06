@@ -975,6 +975,9 @@ fn run(options: &Options) -> Result<Value> {
     }
     let mut records = Vec::new();
     let mut prior: BTreeMap<String, ActionSignature> = BTreeMap::new();
+    // The shell carries the plan's effective preferences (pin state, offered and declined
+    // detours) from one poll to the next; replay does the same within a session.
+    let mut carried: BTreeMap<String, engine::PlannerPreferences> = BTreeMap::new();
     let mut duplicate_times = 0;
     let mut seen_times = BTreeSet::new();
     for case in cases {
@@ -993,8 +996,10 @@ fn run(options: &Options) -> Result<Value> {
             enemies: &enemies,
             live: case.live.as_ref(),
         };
+        let preferences = carried.remove(&case.session).unwrap_or_default();
         let start = Instant::now();
-        let plan = engine::plan(&inputs);
+        let plan = engine::plan_with_preferences(&inputs, &preferences);
+        carried.insert(case.session.clone(), plan.preferences.clone());
         let latency = start.elapsed().as_secs_f64() * 1_000_000.0;
         let assessment = validate_plan(&plan, &cat, case.live.as_ref());
         let signature = ActionSignature {

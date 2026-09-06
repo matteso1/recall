@@ -202,3 +202,16 @@ deviation is measured descriptively, not treated as evidence of better decisions
   renamed in place (same page ids) to "Recall Xayah ADC" and "Recall Morgana Support".
 - Repo renamed to `matteso1/recall` (private). MIT license, player-facing README, macOS support is issue #1.
 - Commit history on both branches was rewritten to remove AI trailers and session links.
+
+## 2026-09-06 (second Swiftplay game: Wukong Jungle, 15:40, surrendered)
+- 75 recorded states, all legal on replay. Runes, Smite and the jungle data were right from the first
+  poll. Three defects, each now a regression test (`overlay/core/tests/swiftplay_jungle_regressions.rs`):
+  the level-three start pointed at a Trinity Force component instead of the jungle companion, because
+  the previous fix had made the whole opening branch classic-only (Swiftplay now keeps only the role
+  mechanics as starters and opens at level 3); the panel alternated between Black Cleaver and an
+  affordable Executioner's Calling five times in 2.5 minutes as gold crossed 450 (a detour is now offered
+  once, and buying anything else instead declines it for the game: `PlannerPreferences.offered_detour`,
+  `declined_detours`, carried by the shell and by replay); the "(situational)" tag on Guardian Angel
+  flickered around its 0.2 threshold (named needs keep 0.2, the generic label needs 0.75).
+- A recorded Irelia state exposed a related bug: with one companion owned, the opening branch pointed
+  at a second, blocked one. One companion now satisfies the group.

@@ -78,6 +78,15 @@ pub enum BuildPreference {
 pub struct PlannerPreferences {
     pub mode: BuildPreference,
     pub pinned_item: Option<u32>,
+    /// A detour (an item outside the planned path, offered because it was affordable and met a
+    /// verified need) and the inventory it was offered against. Buying something else instead
+    /// declines it: it is not re-offered every time gold crosses its price again.
+    #[serde(default)]
+    pub offered_detour: Option<u32>,
+    #[serde(default)]
+    pub offered_inventory: Vec<u32>,
+    #[serde(default)]
+    pub declined_detours: Vec<u32>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
@@ -809,9 +818,15 @@ pub fn plan_in_mode(inp: &Inputs, preferences: &PlannerPreferences, mode: GameMo
         }
     }
     if swiftplay {
+        // Swiftplay starts at level 3 with 1400 gold and no Doran's items: the aggregate's ranked
+        // opening (Doran's, potions, biscuits) does not apply. Only the role mechanics do, and a
+        // jungle companion or support quest is still the first purchase.
         starter_ids.retain(|id| {
-            !cat.item(*id)
-                .is_some_and(|i| normalize(&i.name).starts_with("dorans"))
+            cat.item(*id).is_some_and(|i| {
+                i.exclusive_groups()
+                    .iter()
+                    .any(|group| matches!(*group, "JungleCompanion" | "SupportQuest"))
+            })
         });
         p.context.push(
             "Swiftplay: you start at level 3 with 1400 gold; Doran's items are disabled and Guardian's items are sold"
@@ -976,18 +991,28 @@ pub fn plan_in_mode(inp: &Inputs, preferences: &PlannerPreferences, mode: GameMo
                     .item(i.id)
                     .is_none_or(|item| !item.tags.iter().any(|t| t == "Consumable"))
         });
-        // Swiftplay's level-one instant before the level-three start is not a classic opening.
-        if !swiftplay
-            && live.game_time < 90.0
-            && m.player.level == 1
+        // A classic opening is the level-one shop; Swiftplay's is the level-three start with
+        // 1400 gold (its level-one instant before that has nothing to buy).
+        let opening_moment = if swiftplay {
+            m.player.level <= 3
+        } else {
+            m.player.level == 1
+        };
+        if live.game_time < 90.0
+            && opening_moment
             && preferences.pinned_item.is_none()
             && !manual_opening
         {
             let mut seen = std::collections::HashMap::new();
+            // One companion satisfies the whole group: never point at a second one.
+            let companion_owned = jungle_companions
+                .iter()
+                .any(|id| m.player.item_count(*id) > 0);
             if let Some(id) = starter_ids.iter().copied().find(|id| {
                 let count = seen.entry(*id).or_insert(0);
                 *count += 1;
-                m.player.item_count(*id) < *count
+                !(companion_owned && jungle_companions.contains(id))
+                    && m.player.item_count(*id) < *count
                     && cat
                         .item(*id)
                         .is_some_and(|i| i.purchasable && i.in_store && i.on_sr)
