@@ -19,10 +19,12 @@ overlay needs was exercised against the real client and a real game.
 | Push a hardcoded Xayah item set into the client | done, visible in the in-game shop; block titles kept to 30 chars because the shop panel truncates |
 | Data Dragon name -> id resolution with local cache | done |
 
-**M1 - Xayah overlay: in progress** (started 2026-09-05). Rust workspace in `overlay/`: a
-platform-independent brain crate (`core`, 24 tests, runs in WSL) and a Tauri shell (`src-tauri`)
-built on the Windows side. Builds clean; the headless probe passes and the panel renders on the target
-machine (position remembered, validated against the monitors); the Practice Tool dogfood is next. See [docs/notes/m1-overlay.md](docs/notes/m1-overlay.md)
+**M1 - overlay: in progress** (started 2026-09-05). Rust workspace in `overlay/`: a
+platform-independent brain crate (`core`, 33 tests, runs in WSL) and a Tauri shell (`src-tauri`)
+built on the Windows side. The base build for *any* champion (rune page, summoner spells, skill order,
+starters, core items, boots) is what players run on the current patch, fetched from op.gg's champion API
+when you pick and put into the client automatically; the hand-curated Xayah pack adds matchup lines and
+the enemy-comp rules. Practice Tool dogfood done; the first draft game with the aggregate is next. See [docs/notes/m1-overlay.md](docs/notes/m1-overlay.md)
 and [docs/notes/m1-log.md](docs/notes/m1-log.md).
 
 ## Setup (WSL + Windows)
@@ -80,7 +82,7 @@ m0/                     "prove the pipe" scripts and library modules
   itemsets.py           names-based spec -> LCU item set; upsert/remove
   tests/                unit tests with JSON fixtures
 overlay/                M1 Tauri overlay: core/ (brain), src-tauri/ (window + poller + commands), ui/ (panel)
-data/pack/              the data pack: xayah.json (build, runes, spells, matchups), champion_traits.json
+data/pack/              hand-curated rules: xayah.json (matchups, alternatives, offline fallback build), champion_traits.json
 data/itemsets/          M0 item-set spec by item *name* (superseded by data/pack for the overlay)
 data/cache/             Data Dragon cache (gitignored)
 scripts/cargo-win.sh    run cargo for the overlay on the Windows toolchain

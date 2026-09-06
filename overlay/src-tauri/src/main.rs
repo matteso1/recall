@@ -6,8 +6,9 @@ mod poller;
 mod probe;
 mod settings;
 
+use featherstorm_core::aggregate::{Aggregate, Position};
 use featherstorm_core::champselect::Lobby;
-use featherstorm_core::ddragon::Catalog;
+use featherstorm_core::ddragon::{normalize, Catalog};
 use featherstorm_core::engine::Plan;
 use featherstorm_core::lcu::Lcu;
 use featherstorm_core::pack::{ChampionPack, Traits};
@@ -17,6 +18,15 @@ use std::sync::{Arc, Mutex};
 use tauri::{Emitter, Manager};
 
 pub use featherstorm_core::placement::{PANEL_H, PANEL_H_COLLAPSED, PANEL_W};
+
+/// The aggregate (op.gg) build for the champion currently in play, and when to retry a failed fetch.
+#[derive(Default)]
+pub struct AggState {
+    pub key: Option<(u32, Option<Position>)>,
+    pub value: Option<Arc<Aggregate>>,
+    pub error: Option<String>,
+    pub next_try_ms: u64,
+}
 
 /// Everything the poller and the commands share. Locks are held only for quick copies.
 pub struct App {
@@ -29,11 +39,17 @@ pub struct App {
     pub summoner_id: Mutex<Option<u64>>,
     pub plan: Mutex<Option<Plan>>,
     pub settings: Mutex<settings::Settings>,
+    pub aggregate: Mutex<AggState>,
 }
 
 impl App {
     pub fn snapshot(&self) -> PanelState {
         self.panel.lock().unwrap().clone()
+    }
+
+    /// The hand-curated pack, if it is for this champion (M1: Xayah).
+    pub fn pack_for(&self, champion: &str) -> Option<&ChampionPack> {
+        (normalize(champion) == normalize(&self.pack.champion)).then_some(&self.pack)
     }
 
     /// Mutate the panel state and push it to the webview if anything changed.
@@ -151,6 +167,7 @@ fn main() {
         summoner_id: Mutex::new(None),
         plan: Mutex::new(None),
         settings: Mutex::new(saved),
+        aggregate: Mutex::new(AggState::default()),
     });
 
     tauri::Builder::default()

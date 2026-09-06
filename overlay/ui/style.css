@@ -91,4 +91,6 @@ button.act.done { border-color: rgba(126, 226, 168, 0.5); background: rgba(126, 
 button.act.error { border-color: rgba(255, 159, 122, 0.5); }
 button.act:disabled { opacity: 0.6; cursor: progress; }
 .small { font-size: 11px; color: var(--dim); }
+.small.src { opacity: 0.75; }
+.small.warn { color: var(--warn); }
 .toast { font-size: 11px; color: var(--warn); }

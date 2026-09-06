@@ -7,11 +7,12 @@ Two Rust crates in `overlay/` (a cargo workspace) plus a static web UI.
 |---|---|
 | `lcu.rs` | lockfile discovery + authenticated HTTPS to the client: gameflow phase, champ select session, summoner, item sets, rune pages, summoner spells |
 | `live.rs` | Live Client Data (`:2999`): `summarize()` -> me (gold, items, ability levels, KDA), allies, enemies |
-| `champselect.rs` | session -> `Lobby` (my cell/champion/position, ally + enemy champion ids, bans) |
+| `champselect.rs` | session -> `Lobby` (my cell/champion/position/spells, ally + enemy champion ids, bans) |
+| `aggregate.rs` | what players run on this patch, per champion + position, from op.gg's champion API: summoner spells, rune page, skill order, starters, core items, boots, late items, counters; cached 6 h under `%LOCALAPPDATA%\Featherstorm\aggregate`, stale cache used offline |
 | `ddragon.rs` | Data Dragon catalog cached under `%LOCALAPPDATA%\Featherstorm\ddragon\<patch>`: items, champions, runes, by id and by normalised name |
 | `pack.rs` | the data pack, embedded at compile time from `data/pack/` (`xayah.json`, `champion_traits.json`) |
 | `placement.rs` | panel geometry: the default position (bottom-right, left of the minimap, above the taskbar), and whether a saved position is still usable (its header must be entirely on a monitor) |
-| `engine.rs` | rules -> `Plan`: ordered path with tags/why, NEXT item with components and "buy now", skill point, matchup line |
+| `engine.rs` | aggregate base + pack rules -> `Plan`: ordered path with tags/why, NEXT item with components and "buy now", skill point, rune page, spells, matchup line, source line |
 | `itemset.rs` | `Plan` -> LCU item set (block titles capped at 30 chars) |
 | `runes.rs` | pack rune page -> LCU perk page; summoner spell ids |
 | `state.rs` | `PanelState`, the JSON the panel renders |
@@ -19,7 +20,10 @@ Two Rust crates in `overlay/` (a cargo workspace) plus a static web UI.
 Run the tests from WSL: `cd overlay && cargo test -p featherstorm-core`.
 
 ## Rules (engine.rs), in the order they run
-1. Lane matchup from the pack (line, optional first item / start / spells).
+0. Base build: the aggregate's start, core items, boots, skill order, rune page and spells (any champion). The
+   pack's non-damage slots (armor pen, defensive) fill the path to six, else the most popular finished items
+   (never a component, an alternative first item, or a second armor-pen item). No aggregate: the pack's path.
+1. Lane matchup from the pack (line, optional first item / start / spells, with a why line for a spell change).
 2. Healing on their team -> anti-heal item replaces the armor-pen slot (`Mortal Reminder over LDR: Soraka heals`).
 3. Two or more tanks -> armor pen one slot earlier.
 4. Lockdown ult -> the defensive slot becomes the cleanse item (Mercurial).
@@ -39,12 +43,20 @@ back to Data Dragon class tags. Every rule that changes the path pushes one line
   the panel always starts expanded, collapsing is not persisted.
 - `poller.rs`: 1 s loop. Finds the client, follows the gameflow phase, polls champ select (1 s)
   or live data (2 s), runs the engine, publishes `PanelState` on the `state` event when it changed.
-  Flashes the recommended skill for 3.5 s on level-up.
-- `commands.rs`: `get_state`, `import_item_set`, `import_runes`, `import_spells`, `set_collapsed`, `quit`.
-  Import results, gameflow changes and plan changes are logged at info level, so a dogfood game leaves a trace.
+  Flashes the recommended skill for 3.5 s on level-up. Fetches the aggregate for (champion, assigned
+  position) when that changes (retry every 30 s on failure) and auto-imports: rune page + summoner spells
+  once per champion as soon as it is picked or hovered, the item set once locked and again when enemy
+  locks change the path (`auto_*` settings).
+- `commands.rs`: `do_import_*` (used by the poller's auto-import and by the buttons): rune page from the plan's
+  ids (replaces its own `Featherstorm <champion> <position>` page), spells with Flash kept on the player's key,
+  one item set per champion. Import results, gameflow changes and plan changes are logged at info level.
 - `probe.rs`: `featherstorm.exe --probe` runs the pipeline once without a window and prints JSON
   (also saved to `%LOCALAPPDATA%\Featherstorm\probe.json`).
 - `ui/`: plain HTML/CSS/JS, no bundler. `window.__TAURI__` (withGlobalTauri) for events and commands.
+
+## Settings (`%LOCALAPPDATA%\Featherstorm\settings.json`)
+`x`, `y` (written on drag), `auto_runes`, `auto_spells`, `auto_itemset` (default true), `region` (`global`, or
+`na`, `euw`, `kr`, ...), `tier` (`emerald_plus`, `diamond_plus`, `all`, ...). Unknown keys are ignored.
 
 ## Building and running (from WSL)
 ```bash
@@ -62,8 +74,9 @@ scripts/capture.sh [start|stop|status]    # M0 watchers dumping raw champ-select
 Run `scripts/capture.sh start` first so the raw payloads land in `m0/tests/fixtures/captured/` (gitignored;
 scrub the interesting ones into named fixtures afterwards).
 1. Start the overlay with the client open: panel shows "In lobby" and the summoner name.
-2. Practice Tool as Xayah: champ select shows the path, matchup line (none in Practice Tool), the
-   Runes / Spells / Item set buttons; each button turns green with a check when the client accepted it.
+2. Practice Tool as Xayah: champ select shows the path, the source line (op.gg, games, patch), the
+   Runes / Summoner spells / Item set buttons turning green on their own (auto-import at pick, item set at
+   lock); clicking re-imports. Pick a non-Xayah champion: same, without matchup line or why lines.
 3. In game: NEXT shows the first path item with components, "Buy now" flips to affordable
    components as gold comes in, bought components get a check, the path line checks off finished
    items, the skill key flashes on level-up.
@@ -80,6 +93,7 @@ build. The WSL repo stays the source of truth.
 
 ## Panel state contract (what `ui/app.js` renders)
 `phase` (noclient | idle | champselect | loading | ingame), `summoner`, `champion`, `supported`,
-`lobby {allies, enemies, my_position}`, `plan` (see `engine::Plan`), `live {game_time, gold, level, kda}`,
+`lobby {allies, enemies, my_position}`, `plan` (see `engine::Plan`: `source`, `position`, `note`, `start`, `path`,
+`options`, `next`, `skill`, `why`, `matchup`, `runes` (ids), `runes_summary`, `spells`, `spell_ids`), `live {game_time, gold, level, kda}`,
 `flash {skill, until_ms}`, `imports {itemset, runes, spells}` (idle | working | done | error: ...),
 `message`, `collapsed`, `ddragon`, `version`.

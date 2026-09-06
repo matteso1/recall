@@ -2,6 +2,7 @@
 //! running, runs the engine on the live lobby (or a sample one), prints a JSON report to stdout
 //! and to %LOCALAPPDATA%\Featherstorm\probe.json, then exits. For checking the plumbing from
 //! WSL while the screen is busy.
+use featherstorm_core::aggregate::{self, Position};
 use featherstorm_core::champselect;
 use featherstorm_core::ddragon;
 use featherstorm_core::engine::{self, Inputs};
@@ -77,6 +78,36 @@ pub fn run() -> i32 {
             None => json!(null),
         };
 
+        // The aggregate build for the sample champion (what every champion gets at champ select).
+        let agg = aggregate::load(
+            &crate::settings::data_dir().join("aggregate"),
+            aggregate::DEFAULT_REGION,
+            aggregate::DEFAULT_TIER,
+            catalog.champion_key(&pack.champion).unwrap_or(498),
+            Some(Position::Adc),
+        )
+        .await;
+        report["aggregate"] = match &agg {
+            Ok(a) => json!({
+                "source": a.describe(),
+                "patch": a.patch,
+                "position": a.position.label(),
+                "games": a.games,
+                "spells": a.spells.ids.iter().map(|&id| featherstorm_core::runes::spell_name(id).unwrap_or("?")).collect::<Vec<_>>(),
+                "runes": a.runes.as_ref().map(|r| {
+                    r.perks
+                        .iter()
+                        .map(|&id| featherstorm_core::runes::shard_name(id).map(str::to_string).unwrap_or_else(|| catalog.rune_name(id)))
+                        .collect::<Vec<_>>()
+                }),
+                "skills": a.skill_order.iter().collect::<String>(),
+                "starters": a.starters.ids.iter().map(|&id| catalog.item_name(id)).collect::<Vec<_>>(),
+                "core": a.core.ids.iter().map(|&id| catalog.item_name(id)).collect::<Vec<_>>(),
+                "boots": a.boots.as_ref().and_then(|b| b.ids.first()).map(|&id| catalog.item_name(id)),
+            }),
+            Err(e) => json!({ "error": e.to_string() }),
+        };
+
         let live_enemies: Vec<String> = snap
             .as_ref()
             .map(|s| s.enemies.iter().map(|p| p.champion.clone()).collect())
@@ -86,9 +117,22 @@ pub fn run() -> i32 {
         } else {
             live_enemies
         };
-        let plan = engine::plan(&Inputs { pack: &pack, traits: &traits, catalog: &catalog, enemies: &enemies, live: snap.as_ref() });
+        let plan = engine::plan(&Inputs {
+            champion: &pack.champion,
+            pack: Some(&pack),
+            aggregate: agg.as_ref().ok(),
+            traits: &traits,
+            catalog: &catalog,
+            enemies: &enemies,
+            live: snap.as_ref(),
+        });
         report["engine"] = json!({
             "enemies": enemies,
+            "source": plan.source,
+            "start": plan.start.iter().map(|p| p.name.clone()).collect::<Vec<_>>(),
+            "spells": plan.spells,
+            "runes": plan.runes_summary,
+            "skill_label": plan.skill.label,
             "path": plan.path.iter().map(|p| match &p.tag {
                 Some(t) => format!("{} ({})", p.short, t),
                 None => p.short.clone(),

@@ -24,6 +24,10 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   whenever the user may be gaming (see the shared-machine rule: no windows/League/screenshots then).
 - Never hold a `std::sync::Mutex` guard across an `.await` (clone out, then await).
 - The data pack (`data/pack/*.json`) is embedded with `include_str!`; a pack change needs a rebuild.
+- Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's
+  champion API per champion + position at champ select (cached 6 h under `%LOCALAPPDATA%\Featherstorm\aggregate`).
+  A real response is the fixture `m0/tests/fixtures/opgg_xayah_adc.json`. The pack is rules + offline fallback.
+  Do not "fix" a recommendation by editing the pack's defaults; fix the rule or the source.
 
 ## Conventions
 - `m0/` is stdlib-only Python so it also runs under a bare Windows Python. Scripts import

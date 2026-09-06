@@ -75,3 +75,30 @@
   pack now carries the aggregate page; Cut Down vs 2+ tanks is a candidate rule for later.
   (4) With 2 rune pages owned and both in use (op.gg + ours), the import replaces only its own page; a
   user with two foreign pages gets "all 2 rune pages are in use; delete one in the client and retry".
+- 18:45 User feedback on the above: hand-tuning pack defaults is the wrong fix; runes and spells should come
+  from the aggregate for every champion and be put in the client automatically (design doc 6.1 said so all
+  along; the Xayah pack was the M1 shortcut). Probed sources from WSL: lolalytics `ax.lolalytics.com/mega`
+  404, u.gg `stats2.u.gg` behind Cloudflare ("Just a moment..."), op.gg `lol-api-champion.op.gg/api/<region>/
+  champions/ranked/<key>/<position>?tier=` answers in 0.3 s with no headers needed: summoner_spells,
+  runes (top pages with perk ids), core_items, boots, starter_items, last_items, skills, skill_masteries,
+  summary.positions (role rates), counters; `meta.version` is the patch. Xayah ADC: Flash + Barrier 84%,
+  exactly the "OP.GG adc Xayah" page in the client, Doran's Bow start (item 1086, new this season, the hand
+  pack still said Doran's Blade), core Yun Tal > Navori > IE (the pack's ER line is second at 25%).
+  Bad champion 404, bad position 422, off-role (Xayah support) returns a 1-game sample.
+- 19:30 `core::aggregate` (decode, position choice with a 200-game floor and fallback to the main position,
+  6 h disk cache with stale fallback, positions index for champions without an assigned position) + engine
+  rewire: aggregate = base (start, core, boots, skill order, runes, spells) for any champion, pack = late
+  slots + matchups + rules; no-pack champions fill from popular finished items (no components, no alternative
+  first items, one armor-pen item). `Inputs` gains champion / pack Option / aggregate. Item set title per
+  champion, "Other popular items" block, situational blocks only with a pack. Real response saved as
+  `m0/tests/fixtures/opgg_xayah_adc.json`; item fixture regenerated with 21 more items. 33 core tests.
+- Shell: aggregate fetched per (champion, position) in champ select and in game (retry 30 s), auto-import of
+  runes + spells at pick/hover (once per champion), item set at lock and on path change; `do_import_*` shared
+  with the buttons; settings `auto_runes|auto_spells|auto_itemset|region|tier`; Flash stays on the key it is
+  on (`runes::order_spells`). First Windows build failed on a mutex guard held across an await (the rule
+  from CLAUDE.md), second passed (1 m 33 s). Probe on the release exe: aggregate fetched from inside the exe
+  (87k games, patch 16.17), engine path Yun Tal > Greaves > Navori > Mortal (Soraka) > IE > GA with the why
+  lines, spells Flash + Barrier, runes "Lethal Tempo / Inspiration", skills max E > W > Q.
+- Next: a real champ select with the new build. Expect in the log: `aggregate: champion 498 as ADC ...`,
+  `auto-import runes: Rune page 'Featherstorm Xayah ADC' set`, `auto-import spells: Flash + Barrier selected`,
+  `auto-import item set: ...` at lock. Also try any non-Xayah champion.

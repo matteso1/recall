@@ -40,7 +40,7 @@ Key takeaways:
 ## 5. User experience
 ### 5.1 Champ select
 - Overlay detects champ select via the LCU API and reads: your champion, your assigned role, all 10 champions as they lock in.
-- Panel shows: recommended runes + summoners (importable with one click, auto-import optional), starting item, and a **live-updating build path** that shifts as enemies lock in.
+- Panel shows: the runes + summoners most players run on this patch (set in the client automatically when you pick; the buttons re-import), starting item, and a **live-updating build path** that shifts as enemies lock in.
 - Small tag next to any item that changed from the default, e.g. `Mortal Reminder (Soraka)`.
 - Lane matchup line: "vs Tristana — loses lvl 2 all-in, wins after 2 items. Don't fight before 3."
 ### 5.2 Loading screen
@@ -74,7 +74,7 @@ Single compact panel, default bottom-right above the minimap area, draggable, ho
 - Champion pool: mark your mains so their builds are pre-cached and tuned
 ## 6. How the build brain works
 ### 6.1 Data layer
-- **Base builds:** per champion + role, scraped/aggregated per patch from public stats (U.GG / Lolalytics-style aggregates via their public pages or a licensed feed) — full 6-item paths, skill orders, rune pages, starting items. Refreshed each patch.
+- **Base builds:** per champion + position, from op.gg's champion API (the JSON behind op.gg's own champion pages), fetched when you pick in champ select and cached for six hours: rune page, summoner spells, skill order, starting items, core items, boots, late items, counters. Nothing in the base build is hand-tuned; a new patch shows up on its own. The rune page and spells are put into the client automatically at pick (settings can turn that off).
 - **Matchup builds:** per champion + role + lane opponent where sample size allows (first item, start item, summoner swap).
 - **Champion trait tags:** each champion tagged with: damage type (AD/AP/mixed), healing/shielding provided, tankiness scaling, hard CC (and whether it's a lockdown ult), burst/assassin, poke/sustain, mobility. Manually maintained, small file, patched when champs change.
 - **Item trait tags:** each item tagged with what it answers: anti-heal, armor pen, magic pen, MR, armor, anti-burst, anti-CC (QSS), sustain, mobility.
@@ -142,7 +142,7 @@ How we stay inside the lines:
 **M0 — Prove the pipe (1–2 weeks)**
 Python script: connect to LCU, print champ select as champs lock in; connect to Live Client Data, print your items/gold every 2s. Push a hardcoded Xayah item set into the client. Confirms every integration works before writing UI.
 **M1 — Xayah-only overlay (3–4 weeks)**
-Tauri overlay with the panel from §5.3. Data pack for Xayah only (all matchups, full paths). Rule engine with the ~10 core comp rules. Manual rune/spell/item-set import buttons. Dogfood in real games.
+Tauri overlay with the panel from §5.3. Data pack for Xayah only (all matchups, full paths). Rule engine with the ~10 core comp rules. Manual rune/spell/item-set import buttons. Dogfood in real games. *Status 2026-09-05:* built; after the first dogfood the base build moved from the hand pack to the op.gg aggregate for every champion, with auto-import at pick; the pack keeps the Xayah matchups and rules.
 **M2 — All ADCs (3–4 weeks)**
 Extend data pack to every bot-lane champion. Auto-import toggle. Skill level-up highlight. Reasoning tooltips. Settings panel.
 **M3 — All roles + polish (ongoing)**
@@ -150,7 +150,7 @@ Full roster. Patch-day data refresh pipeline. Live adjustments (enemy armor → 
 **Later / maybe**
 Loading-screen scouting (needs production key), TFT/Arena (no — Riot restricts Arena item WR display), macOS.
 ## 10. Open questions
-- **Data licensing.** Scraping U.GG/op.gg at scale is against their terms. Options: license a feed, aggregate from Riot's Match-v5 API ourselves (needs production key and real infra), or start with a hand-curated pack for a small champion pool and expand. For v1 with one role, hand-curation plus Skill Capped–style reasoning is realistic.
+- **Data licensing.** Scraping U.GG/op.gg at scale is against their terms. Options: license a feed, aggregate from Riot's Match-v5 API ourselves (needs production key and real infra), or start with a hand-curated pack for a small champion pool and expand. *Decided 2026-09-05:* the base build comes from op.gg's champion API, one small request per champion pick, cached six hours; that is one user's champ selects, not scraping at scale, but it is their site data and not a licensed feed. U.GG and Lolalytics sit behind bot protection. If op.gg closes the endpoint the source is one file (`overlay/core/src/aggregate.rs`) and the hand pack still works as the offline fallback. Hand-curation is kept only for what an aggregate cannot know: matchup lines, alternatives, the enemy-comp rules.
 - **Component ordering.** Which component to buy first inside an item is itself meta-dependent (e.g. B.F. Sword vs Pickaxe first). Base builds should include component order, not just finished items.
 - **Fullscreen.** League in exclusive fullscreen breaks every overlay. Detect and nudge the user to borderless, like the other apps do.
 - **What counts as "behind"?** Gold diff vs lane opponent at 10/15 min is the obvious signal; needs tuning so the panel doesn't flip-flop.

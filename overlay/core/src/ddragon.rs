@@ -51,6 +51,8 @@ pub struct Catalog {
     pub runes: HashMap<u32, Rune>,
     /// Style (tree) name -> id, e.g. Precision -> 8000
     pub styles: HashMap<String, u32>,
+    /// Style id -> display name
+    pub style_names: HashMap<u32, String>,
     item_by_name: HashMap<String, u32>,
     champ_by_name: HashMap<String, u32>,
     rune_by_name: HashMap<String, u32>,
@@ -131,6 +133,7 @@ impl Catalog {
             let style_id = u32_of(style, "id");
             if let Some(name) = style.get("name").and_then(Value::as_str) {
                 cat.styles.insert(normalize(name), style_id);
+                cat.style_names.insert(style_id, name.to_string());
             }
             for (slot, s) in style.get("slots").and_then(Value::as_array).into_iter().flatten().enumerate() {
                 for r in s.get("runes").and_then(Value::as_array).into_iter().flatten() {
@@ -187,6 +190,14 @@ impl Catalog {
 
     pub fn style_id(&self, name: &str) -> Option<u32> {
         self.styles.get(&normalize(name)).copied()
+    }
+
+    pub fn rune_name(&self, id: u32) -> String {
+        self.runes.get(&id).map(|r| r.name.clone()).unwrap_or_else(|| format!("rune {id}"))
+    }
+
+    pub fn style_name(&self, id: u32) -> String {
+        self.style_names.get(&id).cloned().unwrap_or_else(|| format!("style {id}"))
     }
 }
 

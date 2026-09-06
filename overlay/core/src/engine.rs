@@ -1,8 +1,13 @@
-//! The build brain. Explicit, readable rules turn (enemy comp, live state) into an ordered
-//! path, the literal "buy this next", the next skill point, and one line of why per change.
+//! The build brain. The base build is what players run on this patch (the aggregate, per champion
+//! and position: start, core items, boots, skill order, rune page, summoner spells). The hand-curated
+//! pack, when there is one for the champion, adds the late slots, the lane matchup lines, the item
+//! alternatives and the explicit rules that adapt the path to the enemy comp and the live game.
+//! Every change carries one line of why. Without a pack the rules that only need item roles still run.
+use crate::aggregate::{Aggregate, Position, RunePageIds};
 use crate::ddragon::{normalize, Catalog};
 use crate::live::{LiveSnapshot, Me, Player};
-use crate::pack::{ChampionPack, Traits};
+use crate::pack::{ChampionPack, SkillOrder, Traits};
+use crate::runes;
 use serde::Serialize;
 use std::collections::HashMap;
 
@@ -13,7 +18,7 @@ pub struct PlanItem {
     pub short: String,
     pub cost: u32,
     pub owned: bool,
-    /// damage | boots | armor_pen | defensive
+    /// damage | boots | armor_pen | defensive | start
     pub role: String,
     pub why: Option<String>,
     /// Set when a rule changed this slot, e.g. "Soraka"
@@ -66,21 +71,37 @@ pub struct EnemyProfile {
 #[derive(Clone, Debug, Default, Serialize, PartialEq)]
 pub struct Plan {
     pub champion: String,
+    /// "ADC", when the base build comes from the aggregate
+    pub position: Option<String>,
+    /// Where the base build comes from, e.g. "op.gg emerald+ global, 88k games, patch 16.17"
+    pub source: Option<String>,
+    /// e.g. "Xayah is rarely played Support: showing the ADC build"
+    pub note: Option<String>,
     pub start: Vec<PlanItem>,
     pub path: Vec<PlanItem>,
+    /// Other popular finished items that did not make the path
+    pub options: Vec<PlanItem>,
     pub next: Option<NextItem>,
     pub skill: SkillPlan,
     /// One line per change, most important first
     pub why: Vec<String>,
     pub matchup: Option<String>,
     pub matchup_champion: Option<String>,
+    /// The rune page to import (ids the client takes as-is)
+    pub runes: Option<RunePageIds>,
     pub runes_summary: String,
     pub spells: Vec<String>,
+    pub spell_ids: Vec<u32>,
     pub enemy: EnemyProfile,
 }
 
 pub struct Inputs<'a> {
-    pub pack: &'a ChampionPack,
+    /// Display name of our champion
+    pub champion: &'a str,
+    /// Hand-curated rules for this champion, if the pack knows it
+    pub pack: Option<&'a ChampionPack>,
+    /// What players run on this patch, if it could be fetched
+    pub aggregate: Option<&'a Aggregate>,
     pub traits: &'a Traits,
     pub catalog: &'a Catalog,
     /// Enemy champion display names
@@ -90,6 +111,42 @@ pub struct Inputs<'a> {
 
 /// Item ids that mean "this enemy is stacking armor".
 const ARMOR_ITEM_MIN_COST: u32 = 900;
+const PATH_LEN: usize = 6;
+
+/// Short labels for the path line; a pack's own shorts win.
+const SHORTS: &[(&str, &str)] = &[
+    ("Infinity Edge", "IE"), ("Essence Reaver", "ER"), ("Lord Dominik's Regards", "LDR"), ("Guardian Angel", "GA"),
+    ("Bloodthirster", "BT"), ("Phantom Dancer", "PD"), ("Rapid Firecannon", "RFC"), ("Statikk Shiv", "Shiv"),
+    ("Kraken Slayer", "Kraken"), ("The Collector", "Collector"), ("Navori Flickerblade", "Navori"),
+    ("Yun Tal Wildarrows", "Yun Tal"), ("Berserker's Greaves", "Greaves"), ("Mortal Reminder", "Mortal"),
+    ("Mercurial Scimitar", "Merc"), ("Maw of Malmortius", "Maw"), ("Immortal Shieldbow", "Shieldbow"),
+    ("Runaan's Hurricane", "Hurricane"), ("Blade of The Ruined King", "BotRK"), ("Plated Steelcaps", "Steelcaps"),
+    ("Mercury's Treads", "Mercs"), ("Boots of Swiftness", "Swifties"), ("Sorcerer's Shoes", "Sorcs"),
+    ("Ionian Boots of Lucidity", "Lucidity"), ("Rabadon's Deathcap", "Deathcap"), ("Zhonya's Hourglass", "Zhonya's"),
+    ("Banshee's Veil", "Banshee's"), ("Void Staff", "Void"), ("Luden's Companion", "Luden's"),
+    ("Liandry's Torment", "Liandry's"), ("Rylai's Crystal Scepter", "Rylai's"), ("Morellonomicon", "Morello"),
+    ("Sterak's Gage", "Sterak's"), ("Death's Dance", "DD"), ("Black Cleaver", "Cleaver"), ("Serylda's Grudge", "Serylda's"),
+    ("Youmuu's Ghostblade", "Youmuu's"), ("Edge of Night", "EoN"), ("Trinity Force", "Triforce"),
+    ("Spear of Shojin", "Shojin"), ("Sunfire Aegis", "Sunfire"), ("Randuin's Omen", "Randuin's"),
+    ("Force of Nature", "FoN"), ("Kaenic Rookern", "Rookern"), ("Jak'Sho, The Protean", "Jak'Sho"),
+    ("Doran's Blade", "Doran's"), ("Doran's Bow", "Doran's Bow"), ("Doran's Ring", "Doran's"),
+    ("Doran's Shield", "Doran's"), ("Health Potion", "Potion"), ("Stealth Ward", "Ward"),
+];
+
+fn short_of(pack: Option<&ChampionPack>, name: &str) -> String {
+    if let Some(s) = pack.and_then(|p| p.short_opt(name)) {
+        return s;
+    }
+    let key = normalize(name);
+    if let Some((_, s)) = SHORTS.iter().find(|(n, _)| normalize(n) == key) {
+        return s.to_string();
+    }
+    if name.chars().count() <= 12 {
+        name.to_string()
+    } else {
+        name.split_whitespace().next().unwrap_or(name).to_string()
+    }
+}
 
 pub fn profile(traits: &Traits, catalog: &Catalog, enemies: &[String]) -> EnemyProfile {
     let mut p = EnemyProfile { names: enemies.to_vec(), ..Default::default() };
@@ -159,13 +216,13 @@ fn join(names: &[String]) -> String {
     }
 }
 
-fn make_item(cat: &Catalog, pack: &ChampionPack, name: &str, role: &str, why: Option<String>) -> Option<PlanItem> {
-    let id = cat.item_id(name)?;
+fn item_by_id(cat: &Catalog, pack: Option<&ChampionPack>, id: u32, role: &str, why: Option<String>) -> Option<PlanItem> {
+    let item = cat.item(id)?;
     Some(PlanItem {
         id,
-        name: cat.item_name(id),
-        short: pack.short(name),
-        cost: cat.item_cost(id),
+        name: item.name.clone(),
+        short: short_of(pack, &item.name),
+        cost: item.total,
         owned: false,
         role: role.to_string(),
         why,
@@ -173,12 +230,16 @@ fn make_item(cat: &Catalog, pack: &ChampionPack, name: &str, role: &str, why: Op
     })
 }
 
+fn make_item(cat: &Catalog, pack: Option<&ChampionPack>, name: &str, role: &str, why: Option<String>) -> Option<PlanItem> {
+    item_by_id(cat, pack, cat.item_id(name)?, role, why)
+}
+
 fn position_of(path: &[PlanItem], name: &str, cat: &Catalog) -> Option<usize> {
     let id = cat.item_id(name)?;
     path.iter().position(|p| p.id == id)
 }
 
-fn replace(path: &mut [PlanItem], idx: usize, cat: &Catalog, pack: &ChampionPack, name: &str, tag: &str, why: &str) -> bool {
+fn replace(path: &mut [PlanItem], idx: usize, cat: &Catalog, pack: Option<&ChampionPack>, name: &str, tag: &str, why: &str) -> bool {
     let role = path[idx].role.clone();
     match make_item(cat, pack, name, &role, Some(why.to_string())) {
         Some(mut item) => {
@@ -199,9 +260,107 @@ fn move_up(path: &mut [PlanItem], idx: usize) -> bool {
     true
 }
 
-/// The enemy in our lane: a champion the pack/traits place in our role, else a Marksman for bot.
-fn lane_opponent(inp: &Inputs) -> Option<String> {
-    let role = inp.pack.role.as_str();
+fn has_tag(cat: &Catalog, id: u32, tag: &str) -> bool {
+    cat.item(id).map(|i| i.tags.iter().any(|t| t == tag)).unwrap_or(false)
+}
+
+/// A legendary you keep: not a component, not boots, not a consumable.
+fn is_finished(cat: &Catalog, id: u32) -> bool {
+    cat.item(id)
+        .map(|i| i.into.is_empty() && i.total >= 2000 && !i.tags.iter().any(|t| t == "Boots" || t == "Consumable" || t == "Trinket"))
+        .unwrap_or(false)
+}
+
+/// Role of an item we know nothing else about, from its Data Dragon tags.
+fn role_by_tags(cat: &Catalog, id: u32) -> &'static str {
+    if has_tag(cat, id, "Boots") {
+        "boots"
+    } else if has_tag(cat, id, "ArmorPenetration") || has_tag(cat, id, "MagicPenetration") {
+        "armor_pen"
+    } else if has_tag(cat, id, "Armor") || has_tag(cat, id, "SpellBlock") {
+        "defensive"
+    } else {
+        "damage"
+    }
+}
+
+/// The path before any rule: aggregate core + boots, then the pack's late slots (armor pen,
+/// defensive), then the most popular finished items until six. Pack-only when there is no aggregate.
+fn base_path(cat: &Catalog, pack: Option<&ChampionPack>, agg: Option<&Aggregate>) -> Vec<PlanItem> {
+    let mut path: Vec<PlanItem> = Vec::new();
+    let Some(a) = agg.filter(|a| !a.core.ids.is_empty()) else {
+        if let Some(p) = pack {
+            path = p
+                .core
+                .iter()
+                .filter_map(|c| make_item(cat, pack, &c.item, c.role.as_deref().unwrap_or("damage"), c.why.clone()))
+                .collect();
+        }
+        return path;
+    };
+    let core_why = Some(format!("core line in {:.0}% of games", a.core.pick_rate * 100.0));
+    for &id in &a.core.ids {
+        if let Some(item) = item_by_id(cat, pack, id, role_by_tags(cat, id), core_why.clone()) {
+            path.push(item);
+        }
+    }
+    if !path.iter().any(|p| p.role == "boots") {
+        if let Some(b) = a.boots.as_ref().and_then(|b| b.ids.first().copied()) {
+            if let Some(item) = item_by_id(cat, pack, b, "boots", Some("the boots most players take".into())) {
+                let at = 1.min(path.len());
+                path.insert(at, item);
+            }
+        }
+    }
+    if let Some(p) = pack {
+        for c in &p.core {
+            if path.len() >= PATH_LEN {
+                break;
+            }
+            let role = c.role.as_deref().unwrap_or("damage");
+            if role == "damage" || role == "boots" || position_of(&path, &c.item, cat).is_some() {
+                continue;
+            }
+            if let Some(item) = make_item(cat, pack, &c.item, role, c.why.clone()) {
+                path.push(item);
+            }
+        }
+    }
+    for l in &a.late {
+        if path.len() >= PATH_LEN {
+            break;
+        }
+        let Some(&id) = l.ids.first() else { continue };
+        if path.iter().any(|p| p.id == id) || a.core_alternatives.contains(&id) || !is_finished(cat, id) {
+            continue;
+        }
+        let role = role_by_tags(cat, id);
+        if role == "armor_pen" && path.iter().any(|p| p.role == "armor_pen") {
+            continue;
+        }
+        let why = Some(format!("in {:.0}% of finished builds", l.pick_rate * 100.0));
+        if let Some(item) = item_by_id(cat, pack, id, role, why) {
+            path.push(item);
+        }
+    }
+    path
+}
+
+/// Popular finished items that are not in the path (for the item set and the tooltip).
+fn options(cat: &Catalog, pack: Option<&ChampionPack>, agg: Option<&Aggregate>, path: &[PlanItem]) -> Vec<PlanItem> {
+    let Some(a) = agg else { return Vec::new() };
+    a.late
+        .iter()
+        .filter_map(|l| l.ids.first().copied().map(|id| (id, l.pick_rate)))
+        .filter(|(id, _)| is_finished(cat, *id) && !path.iter().any(|p| p.id == *id))
+        .take(6)
+        .filter_map(|(id, rate)| item_by_id(cat, pack, id, role_by_tags(cat, id), Some(format!("in {:.0}% of finished builds", rate * 100.0))))
+        .collect()
+}
+
+/// The enemy in our lane: a champion the traits place in our role, else a Marksman for bot.
+fn lane_opponent(inp: &Inputs, role: Option<&str>) -> Option<String> {
+    let role = role?;
     for name in inp.enemies {
         if let Some(t) = inp.traits.get(name) {
             if t.roles.iter().any(|r| r == role) {
@@ -219,6 +378,16 @@ fn lane_opponent(inp: &Inputs) -> Option<String> {
         }
     }
     None
+}
+
+fn role_name(position: Position) -> &'static str {
+    match position {
+        Position::Top => "top",
+        Position::Jungle => "jungle",
+        Position::Mid => "middle",
+        Position::Adc => "bottom",
+        Position::Support => "utility",
+    }
 }
 
 fn is_armor_item(cat: &Catalog, id: u32) -> bool {
@@ -241,56 +410,67 @@ fn fed_assassin(profile: &EnemyProfile, enemies: &[Player]) -> Option<String> {
         .map(|p| p.champion.clone())
 }
 
-pub fn skill_sequence(order: &crate::pack::SkillOrder) -> Vec<char> {
-    let key = |s: &String| s.chars().next().unwrap_or('Q').to_ascii_uppercase();
-    let idx = |c: char| match c {
+fn ability_index(c: char) -> usize {
+    match c {
         'Q' => 0,
         'W' => 1,
         'E' => 2,
         _ => 3,
-    };
+    }
+}
+
+/// Ability per level for 18 levels: the given opening, then the max order; R at 6 / 11 / 16.
+pub fn sequence(first: &[char], max: &[char]) -> Vec<char> {
     let mut counts = [0u8; 4];
     let mut seq = Vec::with_capacity(18);
     for level in 1..=18usize {
         let ability = if matches!(level, 6 | 11 | 16) {
             'R'
-        } else if level <= order.first.len() {
-            key(&order.first[level - 1])
+        } else if let Some(&c) = first.get(level - 1).filter(|&&c| c != 'R' && counts[ability_index(c)] < 5) {
+            c
         } else {
-            order
-                .max
-                .iter()
-                .map(key)
-                .find(|&c| c != 'R' && counts[idx(c)] < 5)
-                .unwrap_or('Q')
+            max.iter().copied().find(|&c| c != 'R' && counts[ability_index(c)] < 5).unwrap_or('Q')
         };
-        counts[idx(ability)] += 1;
+        counts[ability_index(ability)] += 1;
         seq.push(ability);
     }
     seq
 }
 
-pub fn skill_plan(order: &crate::pack::SkillOrder, me: Option<&Me>) -> SkillPlan {
-    let seq = skill_sequence(order);
+fn chars(v: &[String]) -> Vec<char> {
+    v.iter().filter_map(|s| s.chars().next()).map(|c| c.to_ascii_uppercase()).collect()
+}
+
+pub fn skill_sequence(order: &SkillOrder) -> Vec<char> {
+    sequence(&chars(&order.first), &chars(&order.max))
+}
+
+pub fn skill_label(max: &[char]) -> String {
+    if max.is_empty() {
+        String::new()
+    } else {
+        format!("max {}", max.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" > "))
+    }
+}
+
+pub fn skill_plan(seq: &[char], label: &str, me: Option<&Me>) -> SkillPlan {
     match me {
-        None => SkillPlan { next: seq.first().copied(), point_available: false, label: order.label.clone(), levels: [0; 4] },
+        None => SkillPlan { next: seq.first().copied(), point_available: false, label: label.to_string(), levels: [0; 4] },
         Some(m) => {
             let spent = m.abilities.total() as usize;
             SkillPlan {
                 next: seq.get(spent).copied(),
                 point_available: (spent as u32) < m.player.level,
-                label: order.label.clone(),
+                label: label.to_string(),
                 levels: [m.abilities.q, m.abilities.w, m.abilities.e, m.abilities.r],
             }
         }
     }
 }
 
-fn component_ids(cat: &Catalog, pack: &ChampionPack, item: &PlanItem) -> Vec<u32> {
+fn component_ids(cat: &Catalog, pack: Option<&ChampionPack>, item: &PlanItem) -> Vec<u32> {
     let from_pack = pack
-        .core
-        .iter()
-        .find(|c| normalize(&c.item) == normalize(&item.name))
+        .and_then(|p| p.core.iter().find(|c| normalize(&c.item) == normalize(&item.name)))
         .and_then(|c| c.components.as_ref())
         .map(|names| names.iter().filter_map(|n| cat.item_id(n)).collect::<Vec<u32>>());
     match from_pack {
@@ -299,7 +479,7 @@ fn component_ids(cat: &Catalog, pack: &ChampionPack, item: &PlanItem) -> Vec<u32
     }
 }
 
-pub fn next_item(cat: &Catalog, pack: &ChampionPack, path: &[PlanItem], me: Option<&Me>) -> Option<NextItem> {
+pub fn next_item(cat: &Catalog, pack: Option<&ChampionPack>, path: &[PlanItem], me: Option<&Me>) -> Option<NextItem> {
     let target = path.iter().find(|p| !p.owned)?;
     let mut inventory: HashMap<u32, u32> = HashMap::new();
     if let Some(m) = me {
@@ -346,24 +526,35 @@ pub fn next_item(cat: &Catalog, pack: &ChampionPack, path: &[PlanItem], me: Opti
     })
 }
 
+fn spell_ids_of(names: &[String]) -> Vec<u32> {
+    names.iter().filter_map(|n| runes::spell_id(n).map(|id| id as u32)).collect()
+}
+
 pub fn plan(inp: &Inputs) -> Plan {
-    let (cat, pack) = (inp.catalog, inp.pack);
-    let alt = &pack.alternatives;
+    let (cat, pack, agg) = (inp.catalog, inp.pack, inp.aggregate);
     let enemy = profile(inp.traits, cat, inp.enemies);
     let mut why: Vec<String> = Vec::new();
+    let mut path = base_path(cat, pack, agg);
 
-    // Base path from the pack.
-    let mut path: Vec<PlanItem> = pack
-        .core
-        .iter()
-        .filter_map(|c| make_item(cat, pack, &c.item, c.role.as_deref().unwrap_or("damage"), c.why.clone()))
-        .collect();
+    // Start, spells and runes: the aggregate's picks, else the pack's.
+    let mut start_ids: Vec<u32> = agg
+        .map(|a| a.starters.ids.clone())
+        .filter(|v| !v.is_empty())
+        .or_else(|| pack.map(|p| p.start.iter().filter_map(|n| cat.item_id(n)).collect()))
+        .unwrap_or_default();
+    let mut spell_ids: Vec<u32> = agg
+        .map(|a| a.spells.ids.clone())
+        .filter(|v| v.len() == 2)
+        .or_else(|| pack.map(|p| spell_ids_of(&p.spells)))
+        .unwrap_or_default();
+    let runes_page: Option<RunePageIds> = agg
+        .and_then(|a| a.runes.clone())
+        .or_else(|| pack.and_then(|p| runes::page_ids(&p.runes, cat).ok()));
 
-    // Lane matchup: line, optional first-item / start / spell overrides.
-    let opponent = lane_opponent(inp);
-    let matchup = opponent.as_deref().and_then(|o| pack.matchup(o));
-    let mut spells = pack.spells.clone();
-    let mut start_names = pack.start.clone();
+    // Lane matchup: line, optional first-item / start / spell overrides (pack only).
+    let role = pack.map(|p| p.role.clone()).or_else(|| agg.map(|a| role_name(a.position).to_string()));
+    let opponent = lane_opponent(inp, role.as_deref());
+    let matchup = opponent.as_deref().and_then(|o| pack.and_then(|p| p.matchup(o)));
     if let (Some(m), Some(o)) = (matchup, opponent.as_deref()) {
         if let Some(fi) = &m.first_item {
             if let Some(idx) = path.iter().position(|p| p.role == "damage") {
@@ -376,26 +567,36 @@ pub fn plan(inp: &Inputs) -> Plan {
             }
         }
         if let Some(s) = &m.spells {
-            spells = s.clone();
+            let ids = spell_ids_of(s);
+            if ids.len() == 2 && ids != spell_ids {
+                why.push(format!("{} vs {o}", s.join(" + ")));
+                spell_ids = ids;
+            }
         }
         if let Some(s) = &m.start {
-            start_names = s.clone();
+            let ids: Vec<u32> = s.iter().filter_map(|n| cat.item_id(n)).collect();
+            if !ids.is_empty() {
+                start_ids = ids;
+            }
         }
     }
 
-    // R1 - anti-heal: swap the armor-pen slot to the anti-heal item when they have healing.
-    if !enemy.healers.is_empty() {
-        if let Some(idx) = position_of(&path, &alt.armor_pen, cat) {
-            let reason = format!("{} over {}: {} heal{}", alt.anti_heal, pack.short(&alt.armor_pen), join(&enemy.healers),
-                                 if enemy.healers.len() == 1 { "s" } else { "" });
-            if replace(&mut path, idx, cat, pack, &alt.anti_heal, &enemy.healers[0], &reason) {
+    if let Some(p) = pack {
+        let alt = &p.alternatives;
+        // R1 - anti-heal: swap the armor-pen slot to the anti-heal item when they have healing.
+        if !enemy.healers.is_empty() {
+            if let Some(idx) = position_of(&path, &alt.armor_pen, cat) {
+                let reason = format!("{} over {}: {} heal{}", alt.anti_heal, p.short(&alt.armor_pen), join(&enemy.healers),
+                                     if enemy.healers.len() == 1 { "s" } else { "" });
+                if replace(&mut path, idx, cat, pack, &alt.anti_heal, &enemy.healers[0], &reason) {
+                    why.push(reason);
+                }
+            }
+        } else if let Some(idx) = position_of(&path, &alt.anti_heal, cat) {
+            let reason = format!("{} over {}: no healing on their team", p.short(&alt.armor_pen), p.short(&alt.anti_heal));
+            if replace(&mut path, idx, cat, pack, &alt.armor_pen, "no healing", &reason) {
                 why.push(reason);
             }
-        }
-    } else if let Some(idx) = position_of(&path, &alt.anti_heal, cat) {
-        let reason = format!("{} over {}: no healing on their team", pack.short(&alt.armor_pen), pack.short(&alt.anti_heal));
-        if replace(&mut path, idx, cat, pack, &alt.armor_pen, "no healing", &reason) {
-            why.push(reason);
         }
     }
 
@@ -414,37 +615,38 @@ pub fn plan(inp: &Inputs) -> Plan {
         }
     }
 
-    // R3 - lockdown ult: the defensive slot becomes the cleanse item.
     let mut defensive_replaced = false;
-    if let Some(champ) = enemy.lockdown.first() {
-        let idx = path.iter().position(|p| p.role == "defensive").unwrap_or(path.len().saturating_sub(1));
-        if !path.is_empty() {
-            let reason = format!("{} cleanses {}'s ult", pack.short(&alt.cleanse), champ);
-            if replace(&mut path, idx, cat, pack, &alt.cleanse, champ, &reason) {
-                path[idx].role = "defensive".to_string();
-                defensive_replaced = true;
-                why.push(reason);
+    if let Some(p) = pack {
+        let alt = &p.alternatives;
+        // R3 - lockdown ult: the defensive slot becomes the cleanse item.
+        if let Some(champ) = enemy.lockdown.first() {
+            let idx = path.iter().position(|p| p.role == "defensive").unwrap_or(path.len().saturating_sub(1));
+            if !path.is_empty() {
+                let reason = format!("{} cleanses {}'s ult", p.short(&alt.cleanse), champ);
+                if replace(&mut path, idx, cat, pack, &alt.cleanse, champ, &reason) {
+                    path[idx].role = "defensive".to_string();
+                    defensive_replaced = true;
+                    why.push(reason);
+                }
             }
         }
-    }
-
-    // R5 - mostly magic damage: Maw instead of GA (unless the slot is already the cleanse item).
-    if !defensive_replaced && enemy.ap > enemy.ad {
-        if let Some(idx) = position_of(&path, &alt.defensive_ad, cat) {
-            let reason = format!("{} over {}: mostly magic damage", pack.short(&alt.defensive_ap), pack.short(&alt.defensive_ad));
-            if replace(&mut path, idx, cat, pack, &alt.defensive_ap, "AP comp", &reason) {
-                defensive_replaced = true;
-                why.push(reason);
+        // R5 - mostly magic damage: Maw instead of GA (unless the slot is already the cleanse item).
+        if !defensive_replaced && enemy.ap > enemy.ad {
+            if let Some(idx) = position_of(&path, &alt.defensive_ad, cat) {
+                let reason = format!("{} over {}: mostly magic damage", p.short(&alt.defensive_ap), p.short(&alt.defensive_ad));
+                if replace(&mut path, idx, cat, pack, &alt.defensive_ap, "AP comp", &reason) {
+                    defensive_replaced = true;
+                    why.push(reason);
+                }
             }
         }
-    }
-
-    // R6 - poke lane without assassins: sustain instead of GA.
-    if !defensive_replaced && enemy.poke.len() >= 2 && enemy.assassins.is_empty() {
-        if let Some(idx) = position_of(&path, &alt.defensive_ad, cat) {
-            let reason = format!("{} for sustain: {} poke", pack.short(&alt.sustain), join(&enemy.poke));
-            if replace(&mut path, idx, cat, pack, &alt.sustain, &enemy.poke[0], &reason) {
-                why.push(reason);
+        // R6 - poke lane without assassins: sustain instead of GA.
+        if !defensive_replaced && enemy.poke.len() >= 2 && enemy.assassins.is_empty() {
+            if let Some(idx) = position_of(&path, &alt.defensive_ad, cat) {
+                let reason = format!("{} for sustain: {} poke", p.short(&alt.sustain), join(&enemy.poke));
+                if replace(&mut path, idx, cat, pack, &alt.sustain, &enemy.poke[0], &reason) {
+                    why.push(reason);
+                }
             }
         }
     }
@@ -470,8 +672,8 @@ pub fn plan(inp: &Inputs) -> Plan {
                 }
             }
         }
-        // R7 - behind: cheaper spike first (Navori before IE) among items not yet owned.
-        if let Some(m) = me {
+        // R7 - behind: cheaper spike first (Navori before IE) among items not yet owned (pack rule).
+        if let (Some(m), Some(_)) = (me, pack) {
             if m.player.deaths >= 3 && m.player.kills <= 1 {
                 let ie = position_of(&path, "Infinity Edge", cat);
                 let navori = position_of(&path, "Navori Flickerblade", cat);
@@ -497,28 +699,57 @@ pub fn plan(inp: &Inputs) -> Plan {
         }
     }
 
-    let start: Vec<PlanItem> = start_names
+    // The trinket is free; the start block should still show it.
+    if let Some(ward) = cat.item_id("Stealth Ward") {
+        if !start_ids.contains(&ward) && !start_ids.is_empty() {
+            start_ids.push(ward);
+        }
+    }
+    let start: Vec<PlanItem> = start_ids
         .iter()
-        .filter_map(|n| make_item(cat, pack, n, "start", None))
+        .filter_map(|&id| item_by_id(cat, pack, id, "start", None))
         .map(|mut i| {
             i.owned = me.map(|m| m.player.has_item(i.id)).unwrap_or(false);
             i
         })
         .collect();
+    let options = options(cat, pack, agg, &path);
     let next = next_item(cat, pack, &path, me);
-    let skill = skill_plan(&pack.skill_order, me);
+    let (seq, label) = match (agg.filter(|a| !a.skill_order.is_empty()), pack) {
+        (Some(a), _) => (sequence(&a.skill_order, &a.skill_max), skill_label(&a.skill_max)),
+        (None, Some(p)) => (skill_sequence(&p.skill_order), p.skill_order.label.clone()),
+        (None, None) => (Vec::new(), String::new()),
+    };
+    let skill = skill_plan(&seq, &label, me);
+    let spells: Vec<String> = spell_ids
+        .iter()
+        .map(|&id| runes::spell_name(id).map(str::to_string).unwrap_or_else(|| format!("spell {id}")))
+        .collect();
+    let runes_summary = runes_page
+        .as_ref()
+        .and_then(|r| r.perks.first().map(|&k| format!("{} / {}", cat.rune_name(k), cat.style_name(r.sub_style))))
+        .unwrap_or_default();
 
     Plan {
-        champion: pack.champion.clone(),
+        champion: inp.champion.to_string(),
+        position: agg.map(|a| a.position.label().to_string()),
+        source: agg.map(|a| format!("{}, patch {}", a.describe(), a.patch)),
+        note: agg.and_then(|a| {
+            a.requested_position
+                .map(|r| format!("{} is rarely played {}: showing the {} build", inp.champion, r.label(), a.position.label()))
+        }),
         start,
         path,
+        options,
         next,
         skill,
         why,
         matchup: matchup.map(|m| m.line.clone()),
         matchup_champion: opponent,
-        runes_summary: format!("{} / {}", pack.runes.keystone, pack.runes.secondary),
+        runes: runes_page,
+        runes_summary,
         spells,
+        spell_ids,
         enemy,
     }
 }
@@ -526,6 +757,7 @@ pub fn plan(inp: &Inputs) -> Plan {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::aggregate::decode;
     use crate::ddragon::test_support::catalog;
     use crate::live::summarize;
     use crate::pack::{load_traits, load_xayah};
@@ -538,10 +770,15 @@ mod tests {
         plan.path.iter().map(|p| p.short.clone()).collect()
     }
 
+    fn xayah_aggregate() -> Aggregate {
+        let v: serde_json::Value = serde_json::from_str(include_str!("../../../m0/tests/fixtures/opgg_xayah_adc.json")).unwrap();
+        decode(&v, 498, Position::Adc, "global", "emerald_plus").unwrap()
+    }
+
     #[test]
-    fn base_path_without_enemies() {
+    fn pack_only_path_without_enemies() {
         let (cat, pack, traits) = (catalog(), load_xayah().unwrap(), load_traits().unwrap());
-        let plan = plan(&Inputs { pack: &pack, traits: &traits, catalog: &cat, enemies: &[], live: None });
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: None, traits: &traits, catalog: &cat, enemies: &[], live: None });
         assert_eq!(short_path(&plan), vec!["ER", "Greaves", "IE", "Navori", "LDR", "GA"]);
         assert!(plan.why.is_empty());
         let next = plan.next.unwrap();
@@ -549,13 +786,60 @@ mod tests {
         assert_eq!(next.components.iter().map(|c| c.id).collect::<Vec<_>>(), vec![3057, 3133, 1018]);
         assert_eq!(plan.skill.next, Some('Q'));
         assert_eq!(plan.start.iter().map(|s| s.id).collect::<Vec<_>>(), vec![1055, 2003, 3340]);
+        assert_eq!(plan.spells, vec!["Flash", "Barrier"]);
+        assert!(plan.source.is_none());
+    }
+
+    #[test]
+    fn aggregate_is_the_base_and_the_pack_fills_the_late_slots() {
+        let (cat, pack, traits, agg) = (catalog(), load_xayah().unwrap(), load_traits().unwrap(), xayah_aggregate());
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: None });
+        assert_eq!(short_path(&plan), vec!["Yun Tal", "Greaves", "Navori", "IE", "LDR", "GA"]);
+        assert_eq!(plan.start.iter().map(|s| s.id).collect::<Vec<_>>(), vec![1086, 2003, 2003, 3340], "Doran's Bow start + trinket");
+        assert_eq!(plan.spells, vec!["Flash", "Barrier"]);
+        assert_eq!(plan.spell_ids, vec![4, 21]);
+        assert_eq!(plan.runes.as_ref().unwrap().perks[0], 8008);
+        assert_eq!(plan.skill.next, Some('Q'));
+        assert_eq!(plan.skill.label, "max E > W > Q");
+        assert_eq!(plan.position.as_deref(), Some("ADC"));
+        assert!(plan.source.as_deref().unwrap().starts_with("op.gg emerald+ global"), "{:?}", plan.source);
+        assert!(plan.note.is_none());
+        assert!(plan.why.is_empty());
+        assert_eq!(plan.next.unwrap().name, "Yun Tal Wildarrows");
+        assert!(plan.options.iter().all(|o| !plan.path.iter().any(|p| p.id == o.id)));
+    }
+
+    #[test]
+    fn rules_still_apply_on_top_of_the_aggregate() {
+        let (cat, pack, traits, agg) = (catalog(), load_xayah().unwrap(), load_traits().unwrap(), xayah_aggregate());
+        let enemies = names(&["Tristana", "Soraka", "Malphite", "Ornn", "Thresh"]);
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &enemies, live: None });
+        assert_eq!(short_path(&plan), vec!["Yun Tal", "Greaves", "Navori", "Mortal", "IE", "GA"]);
+        assert!(plan.why.iter().any(|w| w.contains("Soraka heals")), "{:?}", plan.why);
+        assert!(plan.why.iter().any(|w| w.contains("both build armor")), "{:?}", plan.why);
+        assert_eq!(plan.matchup_champion.as_deref(), Some("Tristana"));
+    }
+
+    #[test]
+    fn aggregate_without_a_pack_fills_from_popular_items() {
+        let (cat, traits, agg) = (catalog(), load_traits().unwrap(), xayah_aggregate());
+        let plan = plan(&Inputs { champion: "Tristana", pack: None, aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: None });
+        // core + boots, then finished items by pick rate: LDR (armor pen), then no second armor-pen item.
+        assert_eq!(short_path(&plan)[..4], ["Yun Tal", "Greaves", "Navori", "IE"]);
+        assert_eq!(plan.path.len(), 6);
+        assert_eq!(plan.path.iter().filter(|p| p.role == "armor_pen").count(), 1);
+        assert!(!plan.path.iter().any(|p| p.id == 3508), "Essence Reaver is a core alternative, not a late item");
+        assert!(!plan.path.iter().any(|p| p.id == 1038), "components never enter the path");
+        assert_eq!(plan.spells, vec!["Flash", "Barrier"]);
+        assert_eq!(plan.champion, "Tristana");
+        assert!(plan.matchup.is_none());
     }
 
     #[test]
     fn healer_swaps_ldr_for_mortal_reminder() {
         let (cat, pack, traits) = (catalog(), load_xayah().unwrap(), load_traits().unwrap());
         let enemies = names(&["Tristana", "Soraka", "Malphite", "Ornn", "Thresh"]);
-        let plan = plan(&Inputs { pack: &pack, traits: &traits, catalog: &cat, enemies: &enemies, live: None });
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: None, traits: &traits, catalog: &cat, enemies: &enemies, live: None });
         // Soraka -> Mortal Reminder; Malphite + Ornn -> armor pen moves up one slot
         assert_eq!(short_path(&plan), vec!["ER", "Greaves", "IE", "Mortal", "Navori", "GA"]);
         assert!(plan.why.iter().any(|w| w.contains("Soraka heals")), "{:?}", plan.why);
@@ -569,9 +853,18 @@ mod tests {
     fn lockdown_ult_puts_mercurial_in_the_defensive_slot() {
         let (cat, pack, traits) = (catalog(), load_xayah().unwrap(), load_traits().unwrap());
         let enemies = names(&["Malzahar", "Ezreal"]);
-        let plan = plan(&Inputs { pack: &pack, traits: &traits, catalog: &cat, enemies: &enemies, live: None });
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: None, traits: &traits, catalog: &cat, enemies: &enemies, live: None });
         assert_eq!(plan.path.last().unwrap().short, "Merc");
         assert!(plan.why.iter().any(|w| w.contains("Malzahar")));
+    }
+
+    #[test]
+    fn ashe_matchup_switches_to_cleanse_with_a_reason() {
+        let (cat, pack, traits, agg) = (catalog(), load_xayah().unwrap(), load_traits().unwrap(), xayah_aggregate());
+        let enemies = names(&["Ashe", "Thresh"]);
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &enemies, live: None });
+        assert_eq!(plan.spells, vec!["Flash", "Cleanse"]);
+        assert!(plan.why.iter().any(|w| w.contains("Cleanse") && w.contains("Ashe")), "{:?}", plan.why);
     }
 
     #[test]
@@ -593,7 +886,7 @@ mod tests {
         }
         let live = summarize(&data);
         let enemies: Vec<String> = live.enemies.iter().map(|p| p.champion.clone()).collect();
-        let plan = plan(&Inputs { pack: &pack, traits: &traits, catalog: &cat, enemies: &enemies, live: Some(&live) });
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: None, traits: &traits, catalog: &cat, enemies: &enemies, live: Some(&live) });
         assert!(plan.path[0].owned && plan.path[1].owned && !plan.path[2].owned);
         let next = plan.next.unwrap();
         assert_eq!(next.name, "Infinity Edge");
@@ -612,5 +905,12 @@ mod tests {
         let pack = load_xayah().unwrap();
         let seq: String = skill_sequence(&pack.skill_order).into_iter().collect();
         assert_eq!(seq, "QEWEEREEWWRWWQQRQQ");
+        // The aggregate's 15-level order is completed with its max priority; R stays at 6/11/16.
+        let agg = xayah_aggregate();
+        let seq: String = sequence(&agg.skill_order, &agg.skill_max).into_iter().collect();
+        assert_eq!(seq, "QEWEEREWEWRWWQQRQQ");
+        assert_eq!(skill_label(&agg.skill_max), "max E > W > Q");
+        assert_eq!(short_of(None, "Yun Tal Wildarrows"), "Yun Tal");
+        assert_eq!(short_of(None, "Hubris"), "Hubris");
     }
 }

@@ -89,11 +89,14 @@ function render(s) {
       parts.push(`<div class="teams"><b>vs</b> ${esc(s.lobby.enemies.join(", ") || "…")}</div>`);
     }
     if (plan && s.supported) {
+      if (plan.note) parts.push(`<div class="small warn">${esc(plan.note)}</div>`);
       if (plan.matchup) parts.push(`<div class="matchup">${esc(plan.matchup)}</div>`);
       parts.push(renderPath(plan));
       parts.push(renderWhy(plan));
-      parts.push(`<div class="small">Start: ${esc(plan.start.map((i) => i.name).join(", "))} · ${esc(plan.runes_summary)} · ${esc(plan.spells.join(" + "))}</div>`);
+      const start = plan.start.filter((i) => i.id !== 3340).map((i) => i.name).join(", ");
+      parts.push(`<div class="small">Start: ${esc(start)} · ${esc(plan.runes_summary)} · ${esc(plan.spells.join(" + "))}</div>`);
       parts.push(`<div class="row">${button("btn-runes", "Runes", s.imports.runes)}${button("btn-spells", "Summoner spells", s.imports.spells)}${button("btn-itemset", "Item set", s.imports.itemset)}</div>`);
+      if (plan.source) parts.push(`<div class="small src">${esc(plan.source)}${plan.position ? " · " + esc(plan.position) : ""}</div>`);
     }
   } else if (s.phase === "ingame") {
     if (!s.supported) {

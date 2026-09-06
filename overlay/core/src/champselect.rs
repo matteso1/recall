@@ -13,6 +13,8 @@ pub struct Lobby {
     pub my_locked: bool,
     /// top | jungle | middle | bottom | utility | "" (custom games, blind pick)
     pub my_position: String,
+    /// My current summoner spells (D, F); 0 when unknown
+    pub my_spells: (u32, u32),
     /// Ally champions (locked or hovered), including me
     pub allies: Vec<u32>,
     /// Enemy champions - only visible once locked
@@ -73,6 +75,7 @@ pub fn extract(session: &Value) -> Lobby {
                 .and_then(Value::as_str)
                 .unwrap_or("")
                 .to_ascii_lowercase();
+            lobby.my_spells = (u32_of(p, "spell1Id"), u32_of(p, "spell2Id"));
         }
         if shown > 0 {
             lobby.allies.push(shown);
@@ -106,6 +109,7 @@ mod tests {
         assert!(hover.is_custom);
         let lock = extract(&serde_json::from_str(LOCK).unwrap());
         assert_eq!((lock.my_champion, lock.my_locked, lock.phase.as_str()), (498, true, "FINALIZATION"));
+        assert!(lock.my_spells.0 > 0 && lock.my_spells.1 > 0, "{:?}", lock.my_spells);
         assert!(lock.enemies.is_empty());
     }
 

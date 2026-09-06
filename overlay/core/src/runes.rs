@@ -1,4 +1,5 @@
-//! Pack rune page -> LCU perk page.
+//! Rune pages and summoner spells: pack names or aggregate ids -> LCU perk page / spell selection.
+use crate::aggregate::RunePageIds;
 use crate::ddragon::{normalize, Catalog};
 use crate::lcu::Lcu;
 use crate::pack::RunePage;
@@ -19,18 +20,61 @@ pub fn shard_id(name: &str) -> Option<u32> {
     })
 }
 
+pub fn shard_name(id: u32) -> Option<&'static str> {
+    Some(match id {
+        5008 => "Adaptive Force",
+        5005 => "Attack Speed",
+        5007 => "Ability Haste",
+        5010 => "Move Speed",
+        5001 => "Health Scaling",
+        5011 => "Health",
+        5013 => "Tenacity and Slow Resist",
+        _ => return None,
+    })
+}
+
 pub const SUMMONER_SPELL_IDS: &[(&str, u64)] = &[
     ("Cleanse", 1), ("Exhaust", 3), ("Flash", 4), ("Ghost", 6), ("Heal", 7),
-    ("Smite", 11), ("Teleport", 12), ("Ignite", 14), ("Barrier", 21),
+    ("Smite", 11), ("Teleport", 12), ("Clarity", 13), ("Ignite", 14), ("Barrier", 21),
+    ("To the King!", 30), ("Poro Toss", 31), ("Mark", 32),
 ];
+pub const FLASH: u32 = 4;
 
 pub fn spell_id(name: &str) -> Option<u64> {
     let key = normalize(name);
     SUMMONER_SPELL_IDS.iter().find(|(n, _)| normalize(n) == key).map(|(_, id)| *id)
 }
 
-/// `{name, primaryStyleId, subStyleId, selectedPerkIds: [keystone, 3 primary, 2 secondary, 3 shards], current}`
-pub fn build_page(page: &RunePage, cat: &Catalog, name: &str) -> Result<Value> {
+pub fn spell_name(id: u32) -> Option<&'static str> {
+    SUMMONER_SPELL_IDS.iter().find(|(_, i)| *i == id as u64).map(|(n, _)| *n)
+}
+
+/// The two spells to set, keeping Flash on the key the player has it on now (D or F).
+pub fn order_spells(picked: &[u32], current: Option<(u32, u32)>) -> Option<(u32, u32)> {
+    if picked.len() != 2 {
+        return None;
+    }
+    let (a, b) = (picked[0], picked[1]);
+    match current {
+        Some((_, f)) if f == FLASH && a == FLASH => Some((b, a)),
+        Some((d, _)) if d == FLASH && b == FLASH => Some((b, a)),
+        _ => Some((a, b)),
+    }
+}
+
+/// `{name, primaryStyleId, subStyleId, selectedPerkIds, current}` from resolved ids.
+pub fn page_value(page: &RunePageIds, name: &str) -> Value {
+    json!({
+        "name": name,
+        "primaryStyleId": page.primary_style,
+        "subStyleId": page.sub_style,
+        "selectedPerkIds": page.perks,
+        "current": true
+    })
+}
+
+/// Resolve a pack page (names) to ids: keystone, 3 primary, 2 secondary, 3 shards.
+pub fn page_ids(page: &RunePage, cat: &Catalog) -> Result<RunePageIds> {
     let mut missing: Vec<String> = Vec::new();
     let mut perks: Vec<u32> = Vec::new();
     let mut rune = |n: &str| match cat.rune_id(n) {
@@ -64,13 +108,12 @@ pub fn build_page(page: &RunePage, cat: &Catalog, name: &str) -> Result<Value> {
     if perks.len() != 9 {
         bail!("a rune page needs 9 perks (keystone + 3 + 2 + 3 shards), got {}", perks.len());
     }
-    Ok(json!({
-        "name": name,
-        "primaryStyleId": primary.unwrap(),
-        "subStyleId": secondary.unwrap(),
-        "selectedPerkIds": perks,
-        "current": true
-    }))
+    Ok(RunePageIds { primary_style: primary.unwrap(), sub_style: secondary.unwrap(), perks, ..Default::default() })
+}
+
+/// Pack page (names) -> LCU perk page value.
+pub fn build_page(page: &RunePage, cat: &Catalog, name: &str) -> Result<Value> {
+    Ok(page_value(&page_ids(page, cat)?, name))
 }
 
 /// Replace any earlier Featherstorm page, then create this one and make it current.
@@ -115,6 +158,17 @@ mod tests {
         assert_eq!(shard_id("Health"), Some(5011));
         assert_eq!(shard_id("nope"), None);
         assert_eq!(spell_id("Flash"), Some(4));
+        assert_eq!(spell_name(21), Some("Barrier"));
+        assert_eq!(spell_name(99), None);
+        // Flash stays on the player's key.
+        assert_eq!(order_spells(&[4, 21], Some((7, 4))), Some((21, 4)));
+        assert_eq!(order_spells(&[21, 4], Some((4, 7))), Some((4, 21)));
+        assert_eq!(order_spells(&[4, 21], Some((4, 7))), Some((4, 21)));
+        assert_eq!(order_spells(&[4, 21], None), Some((4, 21)));
+        assert_eq!(order_spells(&[4], None), None);
+        let page = page_value(&RunePageIds { primary_style: 8000, sub_style: 8300, perks: vec![8008, 8009, 9103, 8014, 8304, 8345, 5005, 5008, 5001], ..Default::default() }, "Featherstorm Xayah");
+        assert_eq!(page["primaryStyleId"], 8000);
+        assert_eq!(page["selectedPerkIds"].as_array().unwrap().len(), 9);
         assert_eq!(spell_id("heal"), Some(7));
     }
 }

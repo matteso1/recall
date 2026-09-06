@@ -90,17 +90,19 @@ impl ChampionPack {
         self.matchups.iter().find(|(k, _)| normalize(k) == key).map(|(_, m)| m)
     }
 
-    pub fn short(&self, item: &str) -> String {
+    /// The pack's own short label for an item, if it has one.
+    pub fn short_opt(&self, item: &str) -> Option<String> {
         let key = normalize(item);
         if let Some(c) = self.core.iter().find(|c| normalize(&c.item) == key) {
             if let Some(s) = &c.short {
-                return s.clone();
+                return Some(s.clone());
             }
         }
-        if let Some((_, s)) = self.shorts.iter().find(|(k, _)| normalize(k) == key) {
-            return s.clone();
-        }
-        item.split_whitespace().next().unwrap_or(item).to_string()
+        self.shorts.iter().find(|(k, _)| normalize(k) == key).map(|(_, s)| s.clone())
+    }
+
+    pub fn short(&self, item: &str) -> String {
+        self.short_opt(item).unwrap_or_else(|| item.split_whitespace().next().unwrap_or(item).to_string())
     }
 }
 

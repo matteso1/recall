@@ -12,8 +12,8 @@ const UID_NAMESPACE: Uuid = Uuid::from_bytes([
     0x6f, 0x1c, 0x3d, 0x8e, 0x0a, 0x2b, 0x4c, 0x5d, 0x9e, 0x7f, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab,
 ]);
 
-pub fn title(pack: &ChampionPack) -> String {
-    format!("Featherstorm {}", pack.champion)
+pub fn title(champion: &str) -> String {
+    format!("Featherstorm {champion}")
 }
 
 fn clip(title: &str) -> String {
@@ -46,15 +46,16 @@ fn ids(cat: &Catalog, names: &[String]) -> Vec<u32> {
     names.iter().filter_map(|n| cat.item_id(n)).collect()
 }
 
-pub fn build(plan: &Plan, pack: &ChampionPack, cat: &Catalog, champion_key: u32) -> Value {
-    let alt = &pack.alternatives;
+pub fn build(plan: &Plan, pack: Option<&ChampionPack>, cat: &Catalog, champion_key: u32) -> Value {
     let mut blocks: Vec<Value> = Vec::new();
-    blocks.push(block("Start", &plan.start.iter().map(|i| i.id).collect::<Vec<_>>()));
+    let start_title = match &plan.source {
+        Some(s) => format!("Start ({})", s.split(',').next().unwrap_or("").trim()),
+        None => "Start".to_string(),
+    };
+    blocks.push(block(&start_title, &plan.start.iter().map(|i| i.id).collect::<Vec<_>>()));
     for (n, item) in plan.path.iter().enumerate() {
         let comps = pack
-            .core
-            .iter()
-            .find(|c| crate::ddragon::normalize(&c.item) == crate::ddragon::normalize(&item.name))
+            .and_then(|p| p.core.iter().find(|c| crate::ddragon::normalize(&c.item) == crate::ddragon::normalize(&item.name)))
             .and_then(|c| c.components.as_ref())
             .map(|names| ids(cat, names))
             .filter(|v| !v.is_empty())
@@ -69,14 +70,20 @@ pub fn build(plan: &Plan, pack: &ChampionPack, cat: &Catalog, champion_key: u32)
     }
     blocks.push(block("Full build, in order", &plan.path.iter().map(|i| i.id).collect::<Vec<_>>()));
     let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();
-    blocks.push(block("vs healing", &ids(cat, &s(&[&alt.anti_heal]))));
-    blocks.push(block("vs 2+ tanks", &ids(cat, &s(&[&alt.armor_pen]))));
-    blocks.push(block("vs lockdown ult", &ids(cat, &s(&[&alt.cleanse]))));
-    blocks.push(block("vs burst / assassins", &ids(cat, &s(&[&alt.defensive_ad, &alt.anti_burst, &alt.defensive_ap]))));
-    blocks.push(block("vs long fights", &ids(cat, &s(&[&alt.sustain]))));
+    if !plan.options.is_empty() {
+        blocks.push(block("Other popular items", &plan.options.iter().map(|i| i.id).collect::<Vec<_>>()));
+    }
+    if let Some(p) = pack {
+        let alt = &p.alternatives;
+        blocks.push(block("vs healing", &ids(cat, &s(&[&alt.anti_heal]))));
+        blocks.push(block("vs 2+ tanks", &ids(cat, &s(&[&alt.armor_pen]))));
+        blocks.push(block("vs lockdown ult", &ids(cat, &s(&[&alt.cleanse]))));
+        blocks.push(block("vs burst / assassins", &ids(cat, &s(&[&alt.defensive_ad, &alt.anti_burst, &alt.defensive_ap]))));
+        blocks.push(block("vs long fights", &ids(cat, &s(&[&alt.sustain]))));
+    }
     blocks.push(block("Vision", &ids(cat, &s(&["Control Ward", "Farsight Alteration", "Oracle Lens"]))));
 
-    let title = title(pack);
+    let title = title(&plan.champion);
     json!({
         "uid": Uuid::new_v5(&UID_NAMESPACE, title.as_bytes()).to_string(),
         "title": title,
@@ -140,8 +147,8 @@ mod tests {
     fn builds_a_valid_set_and_upserts_idempotently() {
         let (cat, pack, traits) = (catalog(), load_xayah().unwrap(), load_traits().unwrap());
         let enemies = vec!["Soraka".to_string()];
-        let plan = plan(&Inputs { pack: &pack, traits: &traits, catalog: &cat, enemies: &enemies, live: None });
-        let set = build(&plan, &pack, &cat, 498);
+        let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: None, traits: &traits, catalog: &cat, enemies: &enemies, live: None });
+        let set = build(&plan, Some(&pack), &cat, 498);
         assert_eq!(set["title"], "Featherstorm Xayah");
         assert_eq!(set["associatedChampions"], json!([498]));
         let blocks = set["blocks"].as_array().unwrap();
@@ -163,6 +170,6 @@ mod tests {
         assert_eq!(p2["itemSets"].as_array().unwrap().len(), 2);
         let p3 = remove(&p2, "Featherstorm Xayah");
         assert_eq!(p3["itemSets"].as_array().unwrap().len(), 1);
-        assert_eq!(set["uid"], build(&plan, &pack, &cat, 498)["uid"]);
+        assert_eq!(set["uid"], build(&plan, Some(&pack), &cat, 498)["uid"]);
     }
 }
