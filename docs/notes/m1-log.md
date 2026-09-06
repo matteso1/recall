@@ -215,3 +215,13 @@ deviation is measured descriptively, not treated as evidence of better decisions
   flickered around its 0.2 threshold (named needs keep 0.2, the generic label needs 0.75).
 - A recorded Irelia state exposed a related bug: with one companion owned, the opening branch pointed
   at a second, blocked one. One companion now satisfies the group.
+
+## 2026-09-06 (third Swiftplay game: Morgana Support, 17:40)
+- 94 recorded states, all legal on replay; every purchase matched a recommendation. World Atlas first,
+  the quest upgrades and Zaz'Zak's Realmspike on their own, Zhonya's against Annie and Ziggs, Oblivion
+  Orb then Morellonomicon against Sona. The declined-detour memory worked live: the Orb was offered once
+  at 8:30, the player bought Seeker's Armguard instead, and the Orb only came back as part of Morello.
+- One defect: from 14:18 the target traded places between Morellonomicon and Rylai's as gold crossed
+  their prices. A target that was shown and can still be finished now stays the target
+  (`PlannerPreferences.last_target`; pins override it, buying it or running short of gold releases it).
+  Regression tests in `overlay/core/tests/swiftplay_support_regressions.rs` from the recorded states.

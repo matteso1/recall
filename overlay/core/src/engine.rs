@@ -87,6 +87,10 @@ pub struct PlannerPreferences {
     pub offered_inventory: Vec<u32>,
     #[serde(default)]
     pub declined_detours: Vec<u32>,
+    /// The target of the previous plan. While it stays affordable and on the path it is kept,
+    /// so the panel does not trade two finishable items back and forth as gold moves.
+    #[serde(default)]
+    pub last_target: Option<u32>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]

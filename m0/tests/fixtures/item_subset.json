@@ -9384,6 +9384,487 @@
     "PercentAttackSpeedMod": 0.35
    },
    "depth": 3
+  },
+  "2010": {
+   "name": "Total Biscuit of Everlasting Will",
+   "description": "<mainText><stats></stats><br><br><active>Active - Consume:</active> Eat the biscuit to restore <healing>Health</healing> over 5 seconds, increased based on missing health. Consuming or selling a biscuit permanently grants <healing>30 maximum Health</healing>. </mainText>",
+   "colloq": ";",
+   "plaintext": "",
+   "stacks": 10,
+   "consumed": true,
+   "inStore": false,
+   "hideFromAll": true,
+   "image": {
+    "full": "2010.png",
+    "sprite": "item0.png",
+    "group": "item",
+    "x": 432,
+    "y": 384,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 50,
+    "purchasable": false,
+    "total": 50,
+    "sell": 5
+   },
+   "tags": [],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": true,
+    "453": true
+   },
+   "stats": {},
+   "effect": {
+    "Effect1Amount": "10"
+   }
+  },
+  "3011": {
+   "name": "Chemtech Putrifier",
+   "description": "<mainText><stats><attention>35</attention> Ability Power<br><attention>10%</attention> Heal and Shield Power<br><attention>75%</attention> Base Mana Regen<br><attention>15</attention> Ability Haste</stats><br><br><br><li><passive>Puffcap Toxin:</passive> Dealing damage applies <status>40% Grievous Wounds</status> to champions for 3 seconds.<br><br><rules><status>Grievous Wounds</status> reduces the effectiveness of Healing and Regeneration effects.</rules></mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "3916",
+    "3114"
+   ],
+   "inStore": false,
+   "image": {
+    "full": "3011.png",
+    "sprite": "item3.png",
+    "group": "item",
+    "x": 192,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 500,
+    "purchasable": false,
+    "total": 1900,
+    "sell": 1330
+   },
+   "tags": [
+    "SpellDamage",
+    "ManaRegen",
+    "AbilityHaste"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": true
+   },
+   "stats": {
+    "FlatMagicDamageMod": 35
+   },
+   "depth": 3
+  },
+  "3023": {
+   "name": "Lifewell Pendant",
+   "description": "<mainText><stats><attention>150</attention> Health<br><attention>25</attention> Armor<br><attention>5</attention> Ability Haste</stats><br><br><br><br><flavorText>'Fashionable and functional.'</flavorText></mainText>",
+   "colloq": ";spooky ghosts",
+   "plaintext": "Summon wraiths to slow and reveal enemy champions",
+   "from": [
+    "1028",
+    "1029"
+   ],
+   "inStore": false,
+   "into": [
+    "3001"
+   ],
+   "image": {
+    "full": "3023.png",
+    "sprite": "item3.png",
+    "group": "item",
+    "x": 384,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 350,
+    "purchasable": false,
+    "total": 1050,
+    "sell": 735
+   },
+   "tags": [
+    "Health",
+    "Armor",
+    "AbilityHaste"
+   ],
+   "maps": {
+    "11": false,
+    "12": false,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatHPPoolMod": 150,
+    "FlatArmorMod": 25
+   },
+   "depth": 2
+  },
+  "3124": {
+   "name": "Guinsoo's Rageblade",
+   "description": "<mainText><stats><attention>30</attention> Attack Damage<br><attention>30</attention> Ability Power<br><attention>25%</attention> Attack Speed</stats><br><br><passive>Wrath</passive><br>Attacks deal <magicDamage>30 bonus magic damage <OnHit>On-Hit</OnHit></magicDamage>.<br><br><passive>Seething Strike</passive><br>Attacks grant <attackSpeed>8% Attack Speed</attackSpeed> for 3 seconds. (stacks 4 times). <br>While fully stacked, every third Attack applies <OnHit>On-Hit</OnHit> effects twice.</mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "1052",
+    "1043",
+    "1037"
+   ],
+   "image": {
+    "full": "3124.png",
+    "sprite": "item3.png",
+    "group": "item",
+    "x": 384,
+    "y": 384,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 1025,
+    "purchasable": true,
+    "total": 3000,
+    "sell": 2100
+   },
+   "tags": [
+    "Damage",
+    "AttackSpeed",
+    "SpellDamage",
+    "OnHit"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": true
+   },
+   "stats": {
+    "FlatMagicDamageMod": 30,
+    "FlatPhysicalDamageMod": 30,
+    "PercentAttackSpeedMod": 0.25
+   },
+   "effect": {
+    "Effect1Amount": "0.08",
+    "Effect2Amount": "2.5",
+    "Effect3Amount": "2.5",
+    "Effect4Amount": "3",
+    "Effect5Amount": "4",
+    "Effect6Amount": "0.1",
+    "Effect7Amount": "0.1",
+    "Effect8Amount": "15",
+    "Effect9Amount": "1",
+    "Effect10Amount": "3",
+    "Effect11Amount": "0",
+    "Effect12Amount": "0",
+    "Effect13Amount": "3"
+   },
+   "depth": 3
+  },
+  "322526": {
+   "name": "Whispering Circlet",
+   "description": "<mainText><stats><attention>200</attention> Health<br><attention>8%</attention> Heal and Shield Power<br><attention>75%</attention> Base Mana Regen<br><attention>300</attention> Mana</stats><br><br><passive>Harmony</passive><br>Gain % Heal and Shield Power.<br><br><passive>Manaflow</passive> (8s, max 5 charges)<br>Landing Abilities grants <scaleMana>4 max Mana</scaleMana> (doubled vs. champions).<br>Transforms into <rarityLegendary>Diadem of Songs</rarityLegendary> at <scaleMana>360 max Mana</scaleMana>.</mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "3114",
+    "1028",
+    "323070"
+   ],
+   "into": [
+    "322530"
+   ],
+   "image": {
+    "full": "322526.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 384,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 850,
+    "purchasable": true,
+    "total": 2250,
+    "sell": 1575
+   },
+   "tags": [
+    "Health",
+    "Mana",
+    "ManaRegen"
+   ],
+   "maps": {
+    "11": true,
+    "12": false,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatMPPoolMod": 300,
+    "FlatHPPoolMod": 200
+   },
+   "depth": 3
+  },
+  "323050": {
+   "name": "Zeke's Convergence",
+   "description": "<mainText><stats><attention>350</attention> Health<br><attention>30</attention> Armor<br><attention>30</attention> Magic Resist<br><attention>10</attention> Ability Haste</stats><br><br><passive>Frostfire Tempest</passive><br>Casting your Ultimate summons a storm around you for 5 seconds. The storm deals <magicDamage>30 magic damage</magicDamage> per second to enemy champions and <keyword>Slows</keyword> them by 30%.</mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "1029",
+    "3067",
+    "1033"
+   ],
+   "image": {
+    "full": "323050.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 240,
+    "y": 144,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 800,
+    "purchasable": true,
+    "total": 2300,
+    "sell": 1610
+   },
+   "tags": [
+    "Health",
+    "SpellBlock",
+    "Armor",
+    "AbilityHaste"
+   ],
+   "maps": {
+    "11": true,
+    "12": false,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatSpellBlockMod": 30,
+    "FlatHPPoolMod": 350,
+    "FlatArmorMod": 30
+   },
+   "depth": 3
+  },
+  "323070": {
+   "name": "Tear of the Goddess",
+   "description": "<mainText><stats><attention>240</attention> Mana</stats><br><br><passive>Manaflow</passive> (8s, max 4 charges)<br>Landing Abilities grants <scaleMana>6.5 max Mana</scaleMana> (doubled vs. champions), up to <scaleMana>360</scaleMana>.<br><br><passive>Helping Hand</passive><br>Attacks deal an additional <physicalDamage>5 physical damage</physicalDamage> to minions.</mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "into": [
+    "3003",
+    "3004",
+    "323003",
+    "323004",
+    "322526",
+    "323119"
+   ],
+   "image": {
+    "full": "323070.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 288,
+    "y": 144,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 400,
+    "purchasable": true,
+    "total": 400,
+    "sell": 280
+   },
+   "tags": [
+    "Mana",
+    "ManaRegen"
+   ],
+   "maps": {
+    "11": true,
+    "12": false,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatMPPoolMod": 240
+   }
+  },
+  "324005": {
+   "name": "Imperial Mandate",
+   "description": "<mainText><stats><attention>65</attention> Ability Power<br><attention>15</attention> Ability Haste<br><attention>150%</attention> Base Mana Regen</stats><br><br><passive>Control</passive><br>Gain 20 Ability Haste for your abilities with <keyword>Immobilizing</keyword> effects.<br><br><passive>Command</passive><br>On <keyword>Immobilizing</keyword> an enemy champion, mark them as 7% <Keyword>Vulnerable</Keyword> for 4 seconds.<br></mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "1026",
+    "4642"
+   ],
+   "image": {
+    "full": "324005.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 288,
+    "y": 192,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 650,
+    "purchasable": true,
+    "total": 2400,
+    "sell": 1680
+   },
+   "tags": [
+    "SpellDamage",
+    "ManaRegen",
+    "CooldownReduction",
+    "AbilityHaste"
+   ],
+   "maps": {
+    "11": true,
+    "12": false,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatMagicDamageMod": 65
+   },
+   "depth": 3
+  },
+  "326616": {
+   "name": "Staff of Flowing Water",
+   "description": "<mainText><stats><attention>45</attention> Ability Power<br><attention>10%</attention> Heal and Shield Power<br><attention>150%</attention> Base Mana Regen<br><attention>10</attention> Ability Haste</stats><br><br><passive>Rapids</passive><br>Healing or Shielding an ally grants you both <magicDamage>40 Ability Power</magicDamage> and <attention>15 Ability Haste</attention> for 6 seconds.</mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "3108",
+    "1052",
+    "3114"
+   ],
+   "image": {
+    "full": "326616.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 336,
+    "y": 192,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 750,
+    "purchasable": true,
+    "total": 2600,
+    "sell": 1820
+   },
+   "tags": [
+    "SpellDamage",
+    "ManaRegen",
+    "CooldownReduction",
+    "AbilityHaste"
+   ],
+   "maps": {
+    "11": true,
+    "12": false,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatMagicDamageMod": 45
+   },
+   "depth": 3
+  },
+  "326620": {
+   "name": "Echoes of Helia",
+   "description": "<mainText><stats><attention>35</attention> Ability Power<br><attention>250</attention> Health<br><attention>20</attention> Ability Haste<br><attention>150%</attention> Base Mana Regen</stats><br><br><passive>Soul Siphon</passive><br>Gain 30% of pre-mitigation damage dealt to champions as Soul Charges. Healing or Shielding an ally consumes all <passive>Soul Charges</passive> to restore <healing>Health</healing>.</mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "3067",
+    "4642"
+   ],
+   "image": {
+    "full": "326620.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 432,
+    "y": 192,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 900,
+    "purchasable": true,
+    "total": 2600,
+    "sell": 1820
+   },
+   "tags": [
+    "Health",
+    "SpellDamage",
+    "ManaRegen",
+    "CooldownReduction",
+    "AbilityHaste"
+   ],
+   "maps": {
+    "11": true,
+    "12": false,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatHPPoolMod": 250,
+    "FlatMagicDamageMod": 35
+   },
+   "depth": 3
+  },
+  "3599": {
+   "name": "Kalista's Black Spear",
+   "description": "<mainText><stats></stats><br><br><active>Active - Consume:</active> Bind with an ally for the remainder of the game, becoming Oathsworn Allies. Oathsworn empowers you both while near one another.</mainText>",
+   "colloq": ";spear",
+   "plaintext": "Kalista's spear that binds an Oathsworn Ally.",
+   "requiredChampion": "Kalista",
+   "image": {
+    "full": "3599.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 336,
+    "y": 288,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 0,
+    "purchasable": true,
+    "total": 0,
+    "sell": 0
+   },
+   "tags": [
+    "Consumable"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": true,
+    "453": true
+   },
+   "stats": {}
   }
  }
 }

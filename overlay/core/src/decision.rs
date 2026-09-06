@@ -925,6 +925,24 @@ pub(crate) fn select(
             out.warnings.push("Pinned target is unavailable or incompatible with your inventory; returned to Auto".into());
         }
     }
+    // A target that was already shown and can still be finished right now stays the target.
+    // Without this, two finishable path items trade places every time gold crosses one of
+    // their prices (Morellonomicon and Rylai's in the recorded Morgana game).
+    if out.preferences.pinned_item.is_none() {
+        if let Some(last) = preferences.last_target {
+            if let Some(index) = ranked.iter().position(|r| r.0.id == last) {
+                let keep = index > 0
+                    && ranked[index].2.blocked.is_none()
+                    && ranked[index].2.affordable
+                    && pending.contains(&last);
+                if keep {
+                    let chosen = ranked.remove(index);
+                    ranked.insert(0, chosen);
+                }
+            }
+        }
+    }
+    out.preferences.last_target = ranked.first().map(|r| r.0.id);
     out.scores = ranked.iter().map(|r| r.0.clone()).collect();
     if let Some((score, _, _, _)) = ranked.first() {
         // Remember an affordable detour together with the bag it was offered against.
