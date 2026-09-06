@@ -238,7 +238,8 @@ function render(s) {
   renderedSwiftplayFresh = freshSwiftplay(s);
   loadIconMaps();
   $('pill-text').textContent = s.demo ? 'demo' : ({ noclient: 'no client', idle: 'ready', swiftplay: 'lobby', champselect: 'select', loading: 'loading', ingame: 'in game' })[s.phase] || s.phase;
-  $('pill').className = `chip ${s.phase}`;
+  // Phase classes are namespaced: a bare `swiftplay` class would pick up the body section's column layout.
+  $('pill').className = `chip phase-${s.demo ? 'demo' : s.phase}`;
   $('panel').classList.toggle('collapsed', !!s.collapsed);
   $('collapse').textContent = s.collapsed ? '+' : '−';
   $('collapse').setAttribute('aria-label', s.collapsed ? 'Expand panel' : 'Collapse panel');

@@ -189,3 +189,8 @@ deviation is measured descriptively, not treated as evidence of better decisions
   level-one instant of a Swiftplay start (the opening branch is classic-only).
 - Header chip: WebView2 stacked the state dot above the label; the dot is now a pseudo-element of
   one inline chip and the pre-queue state reads "lobby".
+- Follow-up: the stacked chip was not a WebView2 quirk. The chip carried the phase name as a class and
+  `swiftplay` is also the body section's column-layout class, so in the lobby the chip became a column.
+  Phase classes are now `phase-*`, the dot is gone, and the tag is an outlined uppercase label coloured by
+  phase (gold in the lobby and champ select, teal in game, amber without a client). A browser test checks
+  the tag's box against the header in every phase; demo and live screenshots confirmed the fix.

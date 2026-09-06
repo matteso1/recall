@@ -165,6 +165,6 @@ not a slow request, and it was wrong for this product.
 A real Swiftplay assignment on this executable, the client's behaviour when a role is changed after
 preparation, the shop's rendering of the labelled blocks, and the account's penalty state. The exact
 Windows artifact is `C:\Users\nilsm\code\featherstorm-win\overlay\target\swiftplay\release\featherstorm.exe`
-(SHA-256 `753d61de3fb0d3efa0b64b0dcfd70a12526a4ba3b27fd1d24b8c4dd46487b734`, 10,660,352 bytes, rebuilt after the
+(SHA-256 `d1efd47fcbbfb80e310d3dc328d87157f49bf0e5fe2a4b85a963370ef2565de1`, rebuilt after the
 2026-09-06 game fixes; the first game was played on `e0019d27…`), built by
 `scripts/overlay-build.sh` and launched by `scripts/overlay-run.sh`, which now know only that path.

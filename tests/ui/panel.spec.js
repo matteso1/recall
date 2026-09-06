@@ -79,6 +79,23 @@ test('Swiftplay shows two independent loadouts before a champion is assigned', a
   await page.screenshot({ path: test.info().outputPath('swiftplay-ready.png') });
 });
 
+test('the header state tag stays on one line beside the wordmark in every phase', async ({ page }) => {
+  const base = swiftplayFixture();
+  await openPanel(page, base);
+  for (const phase of ['swiftplay', 'ingame', 'champselect', 'loading', 'noclient', 'idle']) {
+    await page.evaluate(([state, phase]) => window.emitState({ ...state, phase }), [base, phase]);
+    await expect(page.locator('#pill')).toHaveClass(`chip phase-${phase}`);
+    const header = await page.locator('.header').boundingBox();
+    const pill = await page.locator('#pill').boundingBox();
+    const text = await page.locator('#pill-text').boundingBox();
+    expect(pill.height, phase).toBeLessThanOrEqual(20);
+    expect(pill.y, phase).toBeGreaterThanOrEqual(header.y);
+    expect(pill.y + pill.height, phase).toBeLessThanOrEqual(header.y + header.height);
+    expect(Math.abs(text.y + text.height / 2 - (pill.y + pill.height / 2)), phase).toBeLessThan(3);
+    expect(await page.locator('#pill').evaluate((el) => getComputedStyle(el).flexDirection), phase).toBe('row');
+  }
+});
+
 test('Swiftplay does not call both choices ready while one loadout is still preparing', async ({ page }) => {
   const state = swiftplayFixture();
   state.swiftplay.ready = false;
