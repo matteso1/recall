@@ -50,9 +50,17 @@ The project is developed from WSL with the build running on the Windows side; th
 `scripts/` (`overlay-build.sh`, `overlay-run.sh`, `overlay-probe.sh`) do that. See
 [docs/notes/dev-setup.md](docs/notes/dev-setup.md).
 
+To have Recall start and stop with the League client (no admin rights; a hidden watcher in your
+Startup folder):
+
+```bash
+scripts/autostart-install.sh          # install and start the watcher; `remove` undoes it, `status` shows it
+```
+
 Then:
 
-1. Start League, then start Recall. The panel says **ready** while you are in the client.
+1. Start League. Recall appears a few seconds later and says **ready** while you are in the client
+   (without the watcher, launch it yourself with `scripts/overlay-run.sh`).
 2. Pick a champion. Runes, spells and the item set are imported when the pick locks; the panel
    shows the build path and the matchup notes. Turn any of the imports off in **Why & options**.
 3. In game, buy what the panel says when you recall, or pin a different target. Your own

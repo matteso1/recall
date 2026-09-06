@@ -31,6 +31,10 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   `C:\Users\nilsm\code\recall-win\overlay\target\swiftplay\release\recall.exe`, and
   `scripts/overlay-run.sh` / `overlay-probe.sh` / `overlay-demo-shots.sh` use that same path. The build refuses
   to run while the exe is running (cargo cannot replace it). Never build from the WSL path.
+- `scripts/autostart-install.sh` puts a hidden PowerShell watcher (`scripts/windows/recall-autostart.ps1`,
+  copied to `%LOCALAPPDATA%\Recall`) in the user's Startup folder: it starts the canonical exe when
+  `LeagueClientUx.exe` is running and stops it 20 s after the client closes. `overlay-build.sh` still needs
+  the exe stopped; the watcher restarts it only when the client is up. `status` / `remove` are the other actions.
 - `scripts/overlay-probe.sh --champion Irelia --role jungle --swiftplay` plans an offline request on the real
   cache from the built exe, no client or game needed: use it to verify an artifact before handing it over.
 - The Tauri crate cannot be type-checked from WSL (needs MSVC `lib.exe`), so keep logic in `core`.
