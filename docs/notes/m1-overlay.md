@@ -35,6 +35,12 @@ Run the tests from WSL: `cd overlay && cargo test -p featherstorm-core`.
 10. Magical Footwear on the rune page -> the boots slot is tagged `free @12`; live, while no boots are owned,
     NEXT skips boots and the first why line says they are locked (the shop greys them out until the free
     Slightly Magical Footwear arrives, which then counts as the Boots component of the upgrade).
+11. Core order (`aggregate::choose_core`): the most-picked core line, unless another line with at least 10%
+    pick rate and 500 games wins at least 2 points more; then the why line shows both numbers
+    (`Yun Tal > IE > Navori: 60% win rate vs 57% for the most-picked order (639 games)`). Build orders are
+    confounded by who is ahead, hence the high bar.
+12. Matchup line without a pack: from the aggregate's counters when the lane opponent has 50+ games
+    (`vs Jinx: Xayah wins 50% of these lanes at this rank (607 games)`); a pack line always wins.
 
 Champion traits come from `data/pack/champion_traits.json` (164 champions); unknown champions fall
 back to Data Dragon class tags. Every rule that changes the path pushes one line to `plan.why`.
@@ -56,6 +62,16 @@ back to Data Dragon class tags. Every rule that changes the path pushes one line
 - `probe.rs`: `featherstorm.exe --probe` runs the pipeline once without a window and prints JSON
   (also saved to `%LOCALAPPDATA%\Featherstorm\probe.json`).
 - `ui/`: plain HTML/CSS/JS, no bundler. `window.__TAURI__` (withGlobalTauri) for events and commands.
+  The look is League's own Hextech language so the panel reads as part of the game: near-black navy
+  ground (`#010a13` -> `#091428`), a 1 px gold gradient frame (`#c8aa6e` / `#785a28` / `#463714`), cream
+  text (`#f0e6d2`), dim `#a09b8c`, gold `#c89b3c` for costs and the lit slot, teal `#0ac8b9` only for what
+  you can act on (affordable, imported, owned ticks). Display face Cinzel (bundled, OFL, stands in for
+  Beaufort) for the brand, eyebrows, item name, keys and buttons; body text Segoe UI (close to Spiegel).
+  Items, champions, spells and runes are Data Dragon icons in gold frames (item/champion/spell by id at the
+  loaded patch; rune icons via `runesReforged.json`, champion ids via `champion.json`, fetched once).
+- `demo.rs`: `featherstorm.exe --demo champselect|ingame|ingame-flash|idle` shows the panel with a staged
+  state (real Data Dragon, real aggregate, real engine; the lobby and live numbers are the Swiftplay game of
+  2026-09-05) and no client. `scripts/overlay-demo-shots.sh` screenshots each phase into `.screens/`.
 
 ## Settings (`%LOCALAPPDATA%\Featherstorm\settings.json`)
 `x`, `y` (written on drag), `auto_runes`, `auto_spells`, `auto_itemset` (default true), `region` (`global`, or
@@ -71,6 +87,7 @@ scripts/win-screenshot.sh                 # full-DPI screenshot into .screens/ t
 scripts/win-rect.sh [process]             # where the window really is (physical pixels), e.g. after a placement change
 scripts/overlay-stop.sh                   # kill it
 scripts/capture.sh [start|stop|status]    # M0 watchers dumping raw champ-select / live payloads for fixtures while dogfooding
+scripts/overlay-demo-shots.sh [phase...]  # --demo screenshots of the panel per phase into .screens/ (design checks; not while gaming)
 ```
 
 ## Dogfooding checklist (M1)

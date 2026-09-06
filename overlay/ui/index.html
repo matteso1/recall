@@ -7,16 +7,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="panel" class="panel">
-    <div class="header" data-tauri-drag-region>
-      <span class="brand" data-tauri-drag-region>FEATHERSTORM</span>
-      <span id="pill" class="pill" data-tauri-drag-region>starting</span>
-      <span class="spacer" data-tauri-drag-region></span>
-      <button id="collapse" class="icon" title="Collapse / expand">–</button>
-      <button id="quit" class="icon" title="Quit Featherstorm">×</button>
-    </div>
-    <div id="body" class="body">
-      <div id="message" class="message">Starting…</div>
+  <div class="frame">
+    <div id="panel" class="panel">
+      <div class="header" data-tauri-drag-region>
+        <span class="brand" data-tauri-drag-region>Featherstorm</span>
+        <span id="pill" class="chip" data-tauri-drag-region><span class="dot"></span><span id="pill-text">starting</span></span>
+        <span class="spacer" data-tauri-drag-region></span>
+        <span id="ctx" class="ctx" data-tauri-drag-region></span>
+        <button id="collapse" class="icon" title="Collapse / expand">–</button>
+        <button id="quit" class="icon" title="Quit Featherstorm">×</button>
+      </div>
+      <div id="body" class="body">
+        <div id="message" class="message">Starting…</div>
+      </div>
     </div>
   </div>
   <script src="app.js"></script>

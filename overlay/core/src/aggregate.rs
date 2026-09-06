@@ -18,6 +18,11 @@ pub const DEFAULT_TIER: &str = "emerald_plus";
 const TTL: Duration = Duration::from_secs(6 * 3600);
 /// Below this many games in the assigned position the champion's main position is used instead.
 pub const MIN_GAMES: u32 = 200;
+/// A core line other than the most-picked one is preferred only when it is popular enough to be
+/// real and clearly better: at least this pick rate, this many games, and this much more win rate.
+pub const CORE_MIN_PICK: f64 = 0.10;
+pub const CORE_MIN_GAMES: u32 = 500;
+pub const CORE_MIN_WR_GAIN: f64 = 0.02;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Position {
@@ -109,7 +114,10 @@ pub struct Aggregate {
     /// Max priority, e.g. E W Q
     pub skill_max: Vec<char>,
     pub starters: Picked,
+    /// The core line we recommend: the most-picked one, unless another popular line clearly wins more (`choose_core`).
     pub core: Picked,
+    /// The most-picked core line (equal to `core` unless a better one was chosen).
+    pub core_most_picked: Picked,
     /// First items of the other popular core lines (e.g. Essence Reaver next to Yun Tal): alternatives, not late items.
     pub core_alternatives: Vec<u32>,
     pub boots: Option<Picked>,
@@ -210,11 +218,11 @@ pub fn decode(v: &Value, champion_key: u32, position: Position, region: &str, ti
     let skill_order = letters(list(data, "skills").first().and_then(|s| s.get("order")));
     let skill_max = letters(list(data, "skill_masteries").first().and_then(|s| s.get("ids")));
     let starters = list(data, "starter_items").first().map(|v| picked(v)).unwrap_or_default();
-    let cores = list(data, "core_items");
-    let core = cores.first().map(|v| picked(v)).unwrap_or_default();
+    let cores: Vec<Picked> = list(data, "core_items").iter().map(|v| picked(v)).collect();
+    let (core, core_most_picked) = choose_core(&cores);
     let mut core_alternatives: Vec<u32> = Vec::new();
-    for c in cores.iter().skip(1) {
-        if let Some(&first) = ids_of(c, "ids").first() {
+    for c in &cores {
+        if let Some(&first) = c.ids.first() {
             if !core.ids.contains(&first) && !core_alternatives.contains(&first) {
                 core_alternatives.push(first);
             }
@@ -249,11 +257,28 @@ pub fn decode(v: &Value, champion_key: u32, position: Position, region: &str, ti
         skill_max,
         starters,
         core,
+        core_most_picked,
         core_alternatives,
         boots,
         late,
         counters,
     })
+}
+
+/// (recommended line, most-picked line). Pick order is what most players do; win rate is what works.
+/// Another line replaces the most-picked one only when it clears `CORE_MIN_PICK`, `CORE_MIN_GAMES`
+/// and beats the most-picked line's win rate by `CORE_MIN_WR_GAIN`. Build orders are confounded by
+/// who is ahead, so the bar is deliberately high and the choice is always shown with both numbers.
+pub fn choose_core(lines: &[Picked]) -> (Picked, Picked) {
+    let Some(most) = lines.first().cloned() else { return (Picked::default(), Picked::default()) };
+    let most_wr = Aggregate::win_rate_of(&most);
+    let best = lines
+        .iter()
+        .filter(|l| l.pick_rate >= CORE_MIN_PICK && l.games >= CORE_MIN_GAMES)
+        .filter(|l| Aggregate::win_rate_of(l) >= most_wr + CORE_MIN_WR_GAIN)
+        .max_by(|a, b| Aggregate::win_rate_of(a).partial_cmp(&Aggregate::win_rate_of(b)).unwrap_or(std::cmp::Ordering::Equal))
+        .cloned();
+    (best.unwrap_or_else(|| most.clone()), most)
 }
 
 /// The position to fetch for: the assigned one when the champion is actually played there
@@ -402,7 +427,9 @@ mod tests {
         assert_eq!(a.skill_order.iter().collect::<String>(), "QEWEEREWEWRWWQQ");
         assert_eq!(a.skill_max, vec!['E', 'W', 'Q']);
         assert_eq!(a.starters.ids, vec![1086, 2003, 2003]);
-        assert_eq!(a.core.ids, vec![3032, 6675, 3031]);
+        // Most players go Yun Tal > Navori > IE (33%, 57.2%); Yun Tal > IE > Navori (14%, 639 games) wins 60.1%.
+        assert_eq!(a.core_most_picked.ids, vec![3032, 6675, 3031]);
+        assert_eq!(a.core.ids, vec![3032, 3031, 6675]);
         assert!(a.core_alternatives.contains(&3508), "Essence Reaver is the other first item: {:?}", a.core_alternatives);
         assert!(!a.core_alternatives.contains(&3036), "LDR as a third core item is not a first-item alternative");
         assert_eq!(a.boots.clone().unwrap().ids, vec![3006]);
@@ -426,6 +453,21 @@ mod tests {
         // Nothing known: trust the assignment, or give up.
         assert_eq!(choose_position(Some(Position::Mid), &[]), Some(Position::Mid));
         assert_eq!(choose_position(None, &[]), None);
+    }
+
+    #[test]
+    fn core_choice_needs_a_popular_and_clearly_better_line() {
+        let line = |ids: &[u32], games: u32, wins: u32, pick: f64| Picked { ids: ids.to_vec(), games, wins, pick_rate: pick };
+        let most = line(&[1, 2, 3], 1500, 855, 0.33); // 57.0%
+        // Better but too rare (6%), better but too few games, better by only 1 point: all rejected.
+        for other in [line(&[1, 3, 4], 260, 170, 0.06), line(&[1, 3, 2], 400, 260, 0.12), line(&[1, 3, 2], 700, 406, 0.15)] {
+            assert_eq!(choose_core(&[most.clone(), other]).0.ids, vec![1, 2, 3]);
+        }
+        // Popular enough, enough games, 3 points better: chosen; the most-picked line is kept alongside.
+        let better = line(&[1, 3, 2], 640, 384, 0.14); // 60.0%
+        let (chosen, mp) = choose_core(&[most.clone(), better.clone()]);
+        assert_eq!((chosen.ids, mp.ids), (vec![1, 3, 2], vec![1, 2, 3]));
+        assert_eq!(choose_core(&[]).0.ids, Vec::<u32>::new());
     }
 
     #[test]

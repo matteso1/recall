@@ -386,6 +386,22 @@ fn lane_opponent(inp: &Inputs, role: Option<&str>) -> Option<String> {
     None
 }
 
+/// "vs Jinx: Xayah wins 50% of these lanes at this rank (607 games)", from the aggregate's counters,
+/// for champions without a hand-written matchup line. Says nothing below 50 games.
+fn counter_line(inp: &Inputs, agg: Option<&Aggregate>, opponent: Option<&str>) -> Option<String> {
+    let (a, o) = (agg?, opponent?);
+    let key = inp.catalog.champion_key(o)?;
+    let (_, games, wins) = a.counters.iter().find(|c| c.0 == key).copied()?;
+    if games < 50 {
+        return None;
+    }
+    Some(format!(
+        "vs {o}: {} wins {:.0}% of these lanes at this rank ({games} games)",
+        inp.champion,
+        wins as f64 / games as f64 * 100.0
+    ))
+}
+
 fn role_name(position: Position) -> &'static str {
     match position {
         Position::Top => "top",
@@ -708,6 +724,20 @@ pub fn plan(inp: &Inputs) -> Plan {
         }
     }
 
+    // Why this core order, when it is not simply the most-picked one.
+    if let Some(a) = agg {
+        if !a.core_most_picked.ids.is_empty() && a.core.ids != a.core_most_picked.ids {
+            let order: Vec<String> = a.core.ids.iter().map(|&id| short_of(pack, &cat.item_name(id))).collect();
+            why.push(format!(
+                "{}: {:.0}% win rate vs {:.0}% for the most-picked order ({} games)",
+                order.join(" > "),
+                Aggregate::win_rate_of(&a.core) * 100.0,
+                Aggregate::win_rate_of(&a.core_most_picked) * 100.0,
+                a.core.games
+            ));
+        }
+    }
+
     // The trinket is free; the start block should still show it.
     if let Some(ward) = cat.item_id("Stealth Ward") {
         if !start_ids.contains(&ward) && !start_ids.is_empty() {
@@ -770,7 +800,7 @@ pub fn plan(inp: &Inputs) -> Plan {
         next,
         skill,
         why,
-        matchup: matchup.map(|m| m.line.clone()),
+        matchup: matchup.map(|m| m.line.clone()).or_else(|| counter_line(inp, agg, opponent.as_deref())),
         matchup_champion: opponent,
         runes: runes_page,
         runes_summary,
@@ -820,7 +850,8 @@ mod tests {
     fn aggregate_is_the_base_and_the_pack_fills_the_late_slots() {
         let (cat, pack, traits, agg) = (catalog(), load_xayah().unwrap(), load_traits().unwrap(), xayah_aggregate());
         let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: None });
-        assert_eq!(short_path(&plan), vec!["Yun Tal", "Greaves", "Navori", "IE", "LDR", "GA"]);
+        // Core in the order that wins more (IE before Navori), boots second, the pack's LDR + GA after.
+        assert_eq!(short_path(&plan), vec!["Yun Tal", "Greaves", "IE", "Navori", "LDR", "GA"]);
         assert_eq!(plan.start.iter().map(|s| s.id).collect::<Vec<_>>(), vec![1086, 2003, 2003, 3340], "Doran's Bow start + trinket");
         assert_eq!(plan.spells, vec!["Flash", "Barrier"]);
         assert_eq!(plan.spell_ids, vec![4, 21]);
@@ -830,7 +861,8 @@ mod tests {
         assert_eq!(plan.position.as_deref(), Some("ADC"));
         assert!(plan.source.as_deref().unwrap().starts_with("op.gg emerald+ global"), "{:?}", plan.source);
         assert!(plan.note.is_none());
-        assert!(plan.why.is_empty());
+        assert_eq!(plan.why.len(), 1, "{:?}", plan.why);
+        assert!(plan.why[0].starts_with("Yun Tal > IE > Navori: 60% win rate vs 57%"), "{:?}", plan.why);
         assert_eq!(plan.next.unwrap().name, "Yun Tal Wildarrows");
         assert!(plan.options.iter().all(|o| !plan.path.iter().any(|p| p.id == o.id)));
     }
@@ -840,10 +872,20 @@ mod tests {
         let (cat, pack, traits, agg) = (catalog(), load_xayah().unwrap(), load_traits().unwrap(), xayah_aggregate());
         let enemies = names(&["Tristana", "Soraka", "Malphite", "Ornn", "Thresh"]);
         let plan = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &enemies, live: None });
-        assert_eq!(short_path(&plan), vec!["Yun Tal", "Greaves", "Navori", "Mortal", "IE", "GA"]);
+        assert_eq!(short_path(&plan), vec!["Yun Tal", "Greaves", "IE", "Mortal", "Navori", "GA"]);
         assert!(plan.why.iter().any(|w| w.contains("Soraka heals")), "{:?}", plan.why);
         assert!(plan.why.iter().any(|w| w.contains("both build armor")), "{:?}", plan.why);
         assert_eq!(plan.matchup_champion.as_deref(), Some("Tristana"));
+        assert!(plan.matchup.as_deref().unwrap().starts_with("vs Tristana: loses"), "the pack's line wins over the counter stats");
+    }
+
+    #[test]
+    fn counters_give_a_matchup_line_without_a_pack() {
+        let (cat, traits, agg) = (catalog(), load_traits().unwrap(), xayah_aggregate());
+        let enemies = names(&["Tristana", "Thresh"]);
+        let plan = plan(&Inputs { champion: "Xayah", pack: None, aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &enemies, live: None });
+        assert_eq!(plan.matchup_champion.as_deref(), Some("Tristana"));
+        assert_eq!(plan.matchup.as_deref(), Some("vs Tristana: Xayah wins 51% of these lanes at this rank (343 games)"));
     }
 
     #[test]
@@ -851,7 +893,7 @@ mod tests {
         let (cat, traits, agg) = (catalog(), load_traits().unwrap(), xayah_aggregate());
         let plan = plan(&Inputs { champion: "Tristana", pack: None, aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: None });
         // core + boots, then finished items by pick rate: LDR (armor pen), then no second armor-pen item.
-        assert_eq!(short_path(&plan)[..4], ["Yun Tal", "Greaves", "Navori", "IE"]);
+        assert_eq!(short_path(&plan)[..4], ["Yun Tal", "Greaves", "IE", "Navori"]);
         assert_eq!(plan.path.len(), 6);
         assert_eq!(plan.path.iter().filter(|p| p.role == "armor_pen").count(), 1);
         assert!(!plan.path.iter().any(|p| p.id == 3508), "Essence Reaver is a core alternative, not a late item");
@@ -937,7 +979,7 @@ mod tests {
         let p = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: Some(&live) });
         // The op.gg page has Magical Footwear: the boots slot says so, and NEXT skips it while no boots are owned.
         assert_eq!(p.path[1].tag.as_deref(), Some(FOOTWEAR_TAG));
-        assert_eq!(p.next.as_ref().unwrap().name, "Navori Flickerblade");
+        assert_eq!(p.next.as_ref().unwrap().name, "Infinity Edge");
         assert!(p.why[0].contains("Magical Footwear"), "{:?}", p.why);
         // The free footwear arrives: boots are the next item again, and the footwear counts as the Boots component.
         let me = data["allPlayers"].as_array_mut().unwrap().iter_mut().find(|p| p["riotId"] == "matteso#NA1").unwrap();

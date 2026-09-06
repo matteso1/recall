@@ -28,6 +28,9 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   champion API per champion + position at champ select (cached 6 h under `%LOCALAPPDATA%\Featherstorm\aggregate`).
   A real response is the fixture `m0/tests/fixtures/opgg_xayah_adc.json`. The pack is rules + offline fallback.
   Do not "fix" a recommendation by editing the pack's defaults; fix the rule or the source.
+- Panel look: `overlay/ui/` uses League's Hextech palette and Data Dragon icons (tokens at the top of
+  `style.css`; notes in `docs/notes/m1-overlay.md`). Check UI changes with `scripts/overlay-demo-shots.sh`
+  (`featherstorm.exe --demo champselect|ingame`), which stages real data without a game. Not while gaming.
 
 ## Conventions
 - `m0/` is stdlib-only Python so it also runs under a bare Windows Python. Scripts import

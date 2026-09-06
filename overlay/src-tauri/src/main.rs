@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
+mod demo;
 mod poller;
 mod probe;
 mod settings;
@@ -148,6 +149,11 @@ fn main() {
     if std::env::args().any(|a| a == "--probe") {
         std::process::exit(probe::run());
     }
+    // `--demo [champselect|ingame|ingame-flash|idle]`: staged panel, no client (design work, screenshots).
+    let demo: Option<String> = {
+        let args: Vec<String> = std::env::args().collect();
+        args.iter().position(|a| a == "--demo").map(|i| args.get(i + 1).cloned().unwrap_or_else(|| "ingame".to_string()))
+    };
 
     let pack = featherstorm_core::pack::load_xayah().expect("data pack");
     let traits = featherstorm_core::pack::load_traits().expect("champion traits");
@@ -196,9 +202,18 @@ fn main() {
             place_window(&window, &state);
             let handle = app.handle().clone();
             let st = state.clone();
-            tauri::async_runtime::spawn(async move {
-                poller::run(handle, st).await;
-            });
+            match demo.clone() {
+                Some(phase) => {
+                    tauri::async_runtime::spawn(async move {
+                        demo::run(handle, st, phase).await;
+                    });
+                }
+                None => {
+                    tauri::async_runtime::spawn(async move {
+                        poller::run(handle, st).await;
+                    });
+                }
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

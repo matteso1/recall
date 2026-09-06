@@ -1076,7 +1076,7 @@
    "roles": [
     "jungle"
    ],
-   "tank": true
+   "assassin": true
   },
   "Viego": {
    "damage": "ad",

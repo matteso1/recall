@@ -118,3 +118,21 @@
   were empty at that point (`vs []`), so the pushed item set had GA where the live plan later said Maw (AP
   comp). Known gap for Quickplay: enemy comps are only known in game, and the shop reads item sets at
   game start. Candidate fix: read the gameflow session's team data at GameStart and push once more.
+- 19:40 Build review of that game (Swiftplay, 15:58, 4/1/2, path followed exactly: Yun Tal 5:41, Greaves via
+  the footwear 7:12, Navori 10:09, IE 14:43; over before slots 5-6). Findings, from the op.gg numbers and
+  the traits: (1) the most-picked core line Yun Tal > Navori > IE wins 57.2% (1542 games) while Yun Tal >
+  IE > Navori wins 60.1% (639 games, 14% pick): `choose_core` now prefers a line that is popular enough
+  (>=10%, >=500 games) and clearly better (>=2 points), with both numbers in a why line; boots, spells and
+  runes stay most-picked (their differences are within noise or below the bars: Flash + Exhaust 53.4% at
+  7%, Gluttonous Greaves +1.2 points). (2) "Maw over GA: mostly magic damage" hinged on Vi being tagged
+  `tank`, which left the AD count at 2 vs 3 AP; Vi is a diver (AD, jungle) and is now `assassin`, so vs
+  Vi + Katarina the engine says "defensive item earlier" instead, and the damage split is 3 v 3 (GA stays).
+  (3) Champions without a pack now get a matchup line from op.gg's counters (Xayah's worst at emerald+:
+  Ashe 39%, Jhin 46%, Twitch 49%, MF 49%). 36 core tests.
+- 19:45 Panel redesign (user: "looks vibecoded; should look like part of League"). League's Hextech
+  language: navy ground, 1 px gold gradient frame, cream/gold/dim text, teal only for actionable state,
+  Cinzel display face (bundled OFL, Beaufort stand-in) + Segoe UI body, Data Dragon icons in gold frames
+  for items (NEXT 44 px, path 30 px, components 20 px), enemy champions, keystone/secondary tree, spells and
+  starters; owned = dimmed + teal tick, next = lit gold frame, rule tags under the slot (`FREE @12`,
+  `SORAKA`). New `--demo <phase>` mode + `scripts/overlay-demo-shots.sh` render staged states for design
+  checks without a game. First pass looked right except a wrapping chip and a crowded header; fixed.
