@@ -48,6 +48,7 @@ fn context_actual_smite_allows_affordable_jungle_companions() {
         champion: Some("Lee Sin"),
         spell_ids: Some(&[4, 11]),
         boots_locked: false,
+        swiftplay: false,
     };
     for id in [1101, 1102, 1103] {
         let q = quote_with_context(&cat, id, &[], 450.0, &context);
@@ -76,6 +77,7 @@ fn context_missing_or_absent_smite_blocks_jungle_companion_purchases() {
             champion: Some("Lee Sin"),
             spell_ids,
             boots_locked: false,
+            swiftplay: false,
         };
         let q = quote_with_context(&cat, 1101, &[], 5000.0, &context);
         assert!(!q.affordable);
@@ -151,6 +153,7 @@ fn context_champion_identity_does_not_infer_required_allies_or_unlocks() {
         champion: Some("Wukong"),
         spell_ids: Some(&[11, 4]),
         boots_locked: false,
+        swiftplay: false,
     };
     assert!(!quote_with_context(&cat, 1036, &[], 350.0, &context).affordable);
     assert!(!quote_with_context(&cat, 3172, &inventory(&[3006]), 0.0, &context).affordable);

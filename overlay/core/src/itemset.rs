@@ -48,9 +48,11 @@ fn ids(cat: &Catalog, names: &[String]) -> Vec<u32> {
 
 pub fn build(plan: &Plan, _pack: Option<&ChampionPack>, cat: &Catalog, champion_key: u32) -> Value {
     let mut blocks: Vec<Value> = Vec::new();
-    let start_title = match &plan.source {
-        Some(s) => format!("Start ({})", s.split(',').next().unwrap_or("").trim()),
-        None => "Start".to_string(),
+    // A same-champion fallback is labelled inside the shop too, not only on the panel.
+    let start_title = match (&plan.source_position, &plan.source) {
+        (Some(source), _) => format!("Start ({source} build)"),
+        (None, Some(s)) => format!("Start ({})", s.split(',').next().unwrap_or("").trim()),
+        (None, None) => "Start".to_string(),
     };
     blocks.push(block(
         &start_title,
@@ -73,8 +75,12 @@ pub fn build(plan: &Plan, _pack: Option<&ChampionPack>, cat: &Catalog, champion_
         };
         blocks.push(block(&heading, &list));
     }
+    let full_title = match (&plan.source_position, &plan.position) {
+        (Some(source), Some(actual)) => format!("Full build: {source} data, {actual}"),
+        _ => "Full build, in order".to_string(),
+    };
     blocks.push(block(
-        "Full build, in order",
+        &full_title,
         &plan.path.iter().map(|i| i.id).collect::<Vec<_>>(),
     ));
     let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();

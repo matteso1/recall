@@ -374,6 +374,9 @@ pub fn validate_item_pin(
                     .as_ref()
                     .is_some_and(|ids| ids.contains(&footwear))
             }),
+        swiftplay: live.is_some_and(|live| {
+            crate::engine::GameMode::parse(&live.mode) == crate::engine::GameMode::Swiftplay
+        }),
     };
     if !shop::compatible_with_context(cat, item_id, &inventory_ids, &context) {
         return Err("That target is incompatible with your current inventory or loadout".into());

@@ -101,7 +101,13 @@ pub struct CoreEvidence {
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
 pub struct Plan {
     pub champion: String,
+    /// The role the player is actually assigned (or the aggregate's role before assignment).
     pub position: Option<String>,
+    /// Set when the build comes from another role of the same champion, because the assigned
+    /// role has no data at this rank. The label is shown wherever the build is; `position` stays
+    /// the real role and drives role rules (spells, starters, item legality).
+    #[serde(default)]
+    pub source_position: Option<String>,
     pub source: Option<String>,
     pub note: Option<String>,
     pub start: Vec<PlanItem>,
@@ -136,6 +142,37 @@ pub struct Inputs<'a> {
     pub catalog: &'a Catalog,
     pub enemies: &'a [String],
     pub live: Option<&'a LiveSnapshot>,
+}
+
+/// Summoner's Rift modes the planner understands. Swiftplay is played on map 11 with a
+/// different shop (Doran's items disabled, Guardian's items sold) and a different start
+/// (level 3 with 1400 gold), so item legality needs the mode, not just the map.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum GameMode {
+    Classic,
+    Swiftplay,
+    PracticeTool,
+    #[default]
+    Unknown,
+}
+
+impl GameMode {
+    /// From the Live Client `gameData.gameMode` string.
+    pub fn parse(mode: &str) -> Self {
+        match normalize(mode).as_str() {
+            "classic" => Self::Classic,
+            "swiftplay" => Self::Swiftplay,
+            "practicetool" => Self::PracticeTool,
+            _ => Self::Unknown,
+        }
+    }
+}
+
+/// The role the player is really assigned: the requested role when the aggregate is a
+/// same-champion fallback from another role, otherwise the aggregate's own role.
+pub fn actual_position(a: &Aggregate) -> Position {
+    a.requested_position.unwrap_or(a.position)
 }
 const SHORTS: &[(&str, &str)] = &[
     ("Infinity Edge", "IE"),
@@ -521,6 +558,7 @@ pub(crate) fn next_for_target(
     target: &PlanItem,
     me: Option<&Me>,
     boots_locked: bool,
+    swiftplay: bool,
 ) -> NextItem {
     let inventory = me.map(|m| m.player.items.as_slice()).unwrap_or(&[]);
     let gold = me.map(|m| m.gold).unwrap_or(0.0);
@@ -530,6 +568,7 @@ pub(crate) fn next_for_target(
             .filter(|m| !m.spell_ids.is_empty())
             .map(|m| m.spell_ids.as_slice()),
         boots_locked,
+        swiftplay,
     };
     let q = shop::quote_with_context(cat, target.id, inventory, gold, &context);
     let affordable = q
@@ -582,10 +621,11 @@ pub fn next_item(
     path: &[PlanItem],
     me: Option<&Me>,
     boots_locked: bool,
+    swiftplay: bool,
 ) -> Option<NextItem> {
     path.iter()
         .find(|p| !p.owned && !(boots_locked && p.role == "boots"))
-        .map(|target| next_for_target(cat, target, me, boots_locked))
+        .map(|target| next_for_target(cat, target, me, boots_locked, swiftplay))
 }
 
 fn standard_skill_system(champion: &str, a: &Aggregate) -> bool {
@@ -603,7 +643,17 @@ pub fn plan(inp: &Inputs) -> Plan {
     plan_with_preferences(inp, &PlannerPreferences::default())
 }
 
+/// The live game's mode when a snapshot exists; the classic shop before a game starts.
+/// Pre-queue Swiftplay preparation calls `plan_in_mode` with the mode it knows from the lobby.
 pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> Plan {
+    let mode = match inp.live {
+        Some(live) => GameMode::parse(&live.mode),
+        None => GameMode::Classic,
+    };
+    plan_in_mode(inp, preferences, mode)
+}
+
+pub fn plan_in_mode(inp: &Inputs, preferences: &PlannerPreferences, mode: GameMode) -> Plan {
     let mut p = Plan {
         champion: inp.champion.into(),
         preferences: preferences.clone(),
@@ -612,7 +662,7 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
     };
     let cat = inp.catalog;
     if let Some(live) = inp.live {
-        if !["classic", "swiftplay", "practicetool"].contains(&normalize(&live.mode).as_str()) {
+        if mode == GameMode::Unknown {
             p.note = Some(format!(
                 "{} needs its own mode data; purchase advice is paused",
                 if live.mode.is_empty() {
@@ -624,33 +674,46 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
             return p;
         }
     }
+    let swiftplay = mode == GameMode::Swiftplay;
     let Some(a) = inp
         .aggregate
         .filter(|a| cat.champion_key(inp.champion) == Some(a.champion_key))
     else {
-        p.note = Some(format!(
-            "Waiting for {}'s build data. No invented fallback build.",
-            inp.champion
-        ));
+        p.note = Some(format!("Build data for {} has not loaded yet", inp.champion));
         return p;
     };
-    if a.requested_position.is_some_and(|r| r != a.position) {
-        p.note = Some(
-            "No build data for your assigned role; a different role's loadout will not be imported"
-                .into(),
-        );
-        return p;
-    }
-    let actual_position = inp
+    // The assigned role drives every role rule; the source role only says where the items,
+    // runes and skill order were observed. They differ only for a labelled same-champion fallback.
+    let actual_role = actual_position(a);
+    let fallback = a.requested_position.is_some_and(|role| role != a.position);
+    let live_role = inp
         .live
         .and_then(|l| l.me.as_ref())
         .and_then(|m| Position::parse(&m.player.position));
-    if actual_position.is_some_and(|role| role != a.position) {
+    if live_role.is_some_and(|role| role != actual_role) {
         p.note = Some("Loading build data for your actual role; purchase advice is paused".into());
         return p;
     }
-    p.position = Some(a.position.label().into());
-    p.source = Some(format!("{}, patch {}", a.describe(), a.patch));
+    p.position = Some(actual_role.label().into());
+    p.source_position = fallback.then(|| a.position.label().to_string());
+    p.source = Some(if fallback {
+        format!(
+            "{}, patch {} ({} build)",
+            a.describe(),
+            a.patch,
+            a.position.label()
+        )
+    } else {
+        format!("{}, patch {}", a.describe(), a.patch)
+    });
+    if fallback {
+        p.warnings.push(format!(
+            "No {} data for {} at this rank; using the {} build as a starting point",
+            actual_role.label(),
+            inp.champion,
+            a.position.label()
+        ));
+    }
     if let Some(warning) = &a.provenance.warning {
         p.warnings.push(warning.clone());
     }
@@ -667,11 +730,23 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
         ));
     }
     let me = inp.live.and_then(|l| l.me.as_ref());
+
+    // Starters follow the actual role and the mode, never the source build's role.
     let mut starter_ids = a.starters.ids.clone();
+    let role_bound = |id: u32| {
+        cat.item(id).is_some_and(|i| {
+            i.exclusive_groups()
+                .iter()
+                .any(|group| matches!(*group, "JungleCompanion" | "SupportQuest"))
+        })
+    };
+    if fallback {
+        starter_ids.retain(|id| !role_bound(*id));
+    }
     // Some support aggregates report only the consumables. The catalog's unique
     // purchasable base quest is a role mechanic, not a preferred champion build.
     let mut derived_support_starter = None;
-    if a.position == Position::Support
+    if actual_role == Position::Support
         && !starter_ids.iter().any(|id| {
             cat.item(*id)
                 .is_some_and(|i| i.exclusive_groups().contains(&"SupportQuest"))
@@ -693,6 +768,52 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
             derived_support_starter = Some(candidates[0].id);
             starter_ids.insert(0, candidates[0].id);
         }
+    }
+    // A jungle companion is a role mechanic too: any of the three is a legal start, and
+    // buying one requires Smite. Offered whenever the actual role is Jungle and the source
+    // starters do not already name one.
+    let mut jungle_companions: Vec<u32> = Vec::new();
+    if actual_role == Position::Jungle
+        && !starter_ids.iter().any(|id| {
+            cat.item(*id)
+                .is_some_and(|i| i.exclusive_groups().contains(&"JungleCompanion"))
+        })
+    {
+        jungle_companions = cat
+            .items
+            .values()
+            .filter(|i| {
+                i.purchasable
+                    && i.in_store
+                    && i.on_sr
+                    && i.from.is_empty()
+                    && i.exclusive_groups().contains(&"JungleCompanion")
+            })
+            // The catalog lists duplicate ids for some items; keep each companion once.
+            .filter_map(|i| cat.item_id(&i.name))
+            .collect();
+        jungle_companions.sort_unstable();
+        jungle_companions.dedup();
+        if !jungle_companions.is_empty() {
+            // A companion and a lane starter are mutually exclusive starting items.
+            starter_ids.retain(|id| {
+                !cat.item(*id)
+                    .is_some_and(|i| i.exclusive_groups().contains(&"StartingItems"))
+            });
+            starter_ids.splice(0..0, jungle_companions.iter().copied());
+            p.context
+                .push("Jungle: start with one jungle companion; buying it requires Smite".into());
+        }
+    }
+    if swiftplay {
+        starter_ids.retain(|id| {
+            !cat.item(*id)
+                .is_some_and(|i| normalize(&i.name).starts_with("dorans"))
+        });
+        p.context.push(
+            "Swiftplay: you start at level 3 with 1400 gold; Doran's items are disabled and Guardian's items are sold"
+                .into(),
+        );
     }
     let mut starter_counts = std::collections::HashMap::new();
     p.start = starter_ids
@@ -716,11 +837,30 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
                 .map(|&id| format!("{} / {}", cat.rune_name(id), cat.style_name(r.sub_style)))
         })
         .unwrap_or_default();
+    // Summoner spells: the source pair for the same role; for a fallback, the actual role's
+    // requirements win. Smite is what makes a jungle assignment playable (camps, companion
+    // purchase), and a lane never inherits Smite from jungle data.
+    let planned_spells: Vec<u32> = if !fallback {
+        a.spells.ids.clone()
+    } else if actual_role == Position::Jungle {
+        p.context
+            .push("Jungle needs Smite; Flash is kept as the other spell".into());
+        vec![runes::FLASH, 11]
+    } else if a.position == Position::Jungle {
+        p.context.push(format!(
+            "{}'s data only covers Jungle; choose your own summoner spells for {}",
+            inp.champion,
+            actual_role.label()
+        ));
+        Vec::new()
+    } else {
+        a.spells.ids.clone()
+    };
     p.spell_ids = me
         .filter(|m| m.spell_ids.len() == 2)
         .map(|m| m.spell_ids.clone())
-        .unwrap_or_else(|| a.spells.ids.clone());
-    let opponent = lane_opponent(inp, a.position);
+        .unwrap_or(planned_spells);
+    let opponent = lane_opponent(inp, actual_role);
     p.matchup_champion = opponent.clone();
     p.matchup = opponent.as_deref().and_then(|o| {
         inp.pack
@@ -732,7 +872,7 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
     // Only a verified, removable lane stun can trigger this spell adaptation.
     // Smite/Teleport and non-ADC roles are never rewritten by a marksman matchup.
     if inp.live.is_none()
-        && a.position == Position::Adc
+        && actual_role == Position::Adc
         && p.spell_ids.len() == 2
         && !p.spell_ids.contains(&1)
         && !p.spell_ids.contains(&11)
@@ -803,7 +943,7 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
         p.context
             .push("Your Magical Footwear rune locks boots until the free pair arrives".into());
     }
-    let selected = decision::select(inp, base, preferences, boots_locked);
+    let selected = decision::select(inp, base, preferences, boots_locked, &p.spell_ids, swiftplay);
     p.path = selected.path;
     p.options = selected.options;
     p.next = selected.next;
@@ -815,6 +955,7 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
     p.score_trace = selected.scores;
 
     // Opening purchases use their actual multiplicities. Never restart the starter kit mid-game.
+    // Swiftplay starts at level 3, so this classic level-one opening never applies there.
     if let (Some(live), Some(m)) = (inp.live, me) {
         // A different starter or early component is a deliberate investment. Do not
         // add the aggregate's kit on top of it; resume the inventory-aware main path.
@@ -840,11 +981,19 @@ pub fn plan_with_preferences(inp: &Inputs, preferences: &PlannerPreferences) -> 
                         .is_some_and(|i| i.purchasable && i.in_store && i.on_sr)
             }) {
                 if let Some(target) = item_by_id(cat, inp.pack, id, None) {
-                    p.next = Some(next_for_target(cat, &target, me, boots_locked));
+                    p.next = Some(next_for_target(cat, &target, me, boots_locked, swiftplay));
                     let (reason, evidence) = if Some(id) == derived_support_starter {
                         (
                             format!(
                                 "{}: your support quest provides income and wards",
+                                target.short
+                            ),
+                            Evidence::Composition,
+                        )
+                    } else if jungle_companions.contains(&id) {
+                        (
+                            format!(
+                                "{}: a jungle companion; it needs Smite and grows with camps",
                                 target.short
                             ),
                             Evidence::Composition,

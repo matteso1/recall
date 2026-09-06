@@ -157,3 +157,18 @@ recommendations; learning comes from repetition, with deeper explanation optiona
 Exact checks, measurements, and unverified client behavior are recorded in
 [engine-v2.md](engine-v2.md). The earlier >40% baseline-deviation target is retired:
 deviation is measured descriptively, not treated as evidence of better decisions.
+
+## 2026-09-06 (handoff: the Irelia Jungle blank panel)
+- The first real Swiftplay game on the engine v2 build assigned Irelia Jungle. op.gg has no Irelia
+  Jungle sample; `aggregate::load` refused any other role, the panel said "waiting for build data"
+  and the player quit at 1:22. Reproduced offline from the recorded capture (18 snapshots) and from
+  a sanitized fixture (`m0/tests/fixtures/swiftplay_irelia_jungle_0120.json`, identifiers replaced).
+- Fix: labelled same-champion fallback (most-played role, other roles if that fetch fails), assigned
+  role kept for spells/starters/legality, Swiftplay shop rules (level 3, 1400 g, no Doran's,
+  Guardian's sold) as an explicit mode, honest loading/failed/unsupported states, fallback labels on
+  the panel, in Swiftplay preparation and in the item set. Research and verification in
+  `docs/notes/swiftplay.md`. New canonical build/launch: `scripts/overlay-build.sh` and
+  `scripts/overlay-run.sh` share one executable path (`target\swiftplay\release`).
+- Verified offline only: 233 core, 35 runtime, 20 browser, 34 Python tests; replay of the capture 18/18
+  legal; the built exe's headless probe for Irelia as Jungle returns the labelled Top build with
+  Flash + Smite. No game was played and nothing on the account was touched.

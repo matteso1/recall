@@ -156,3 +156,12 @@ wrong/unsupported advice and unnecessary target changes, and annotate which
 recommendations were usable at a real shop opportunity. Do not treat following a
 recommendation as proof it caused a win. Match-v5 learning and causal comparison
 are future data work, not hidden functionality in this build.
+
+## Update 2026-09-06: assigned-role fallback and Swiftplay shop
+
+The first real Swiftplay game (Irelia assigned Jungle, op.gg data only for Top and Mid) left the
+panel waiting for build data. The engine now plans from a labelled same-champion fallback
+(`Plan.source_position`), keeps the assigned role for every role rule, and knows the Swiftplay shop
+(`engine::GameMode`, `shop::ShopContext.swiftplay`). Details, research and the offline verification
+are in [swiftplay.md](swiftplay.md). Counts after the change: 233 core tests, 35 runtime, 20 browser,
+34 Python; Clippy clean on core and the runtime crate.

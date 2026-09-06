@@ -9134,6 +9134,256 @@
     "FlatHPPoolMod": 350
    },
    "depth": 3
+  },
+  "2051": {
+   "name": "Guardian's Horn",
+   "description": "<mainText><stats><attention>150</attention> Health</stats><br><br><br><li><passive>Recovery:</passive> Restores <healing>20 Health</healing> every 5 seconds.<li><passive>Undaunted:</passive> Blocks 15 damage from attacks and spells from champions (25% effectiveness vs. damage over time abilities).<br></mainText>",
+   "colloq": "Golden Arm of Kobe;Golden Bicep of Kobe;Horn; Horn of the ManWolf; ManWolf",
+   "plaintext": "Good starting item for tanks",
+   "image": {
+    "full": "2051.png",
+    "sprite": "item0.png",
+    "group": "item",
+    "x": 432,
+    "y": 432,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 950,
+    "purchasable": true,
+    "total": 950,
+    "sell": 665
+   },
+   "tags": [
+    "Health",
+    "HealthRegen",
+    "Lane"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatHPPoolMod": 150,
+    "FlatHPRegenMod": 4
+   },
+   "effect": {
+    "Effect1Amount": "15",
+    "Effect2Amount": "0.25"
+   }
+  },
+  "3112": {
+   "name": "Guardian's Orb",
+   "description": "<mainText><stats><attention>50</attention> Ability Power<br><attention>150</attention> Health</stats><br><br><br><li><passive>Recovery:</passive> Restores <scaleMana>10 Mana</scaleMana> every 5 seconds. If you can't gain mana, restores <healing>15 Health</healing> instead.<br></mainText>",
+   "colloq": ";",
+   "plaintext": "Good starting item for mages",
+   "image": {
+    "full": "3112.png",
+    "sprite": "item3.png",
+    "group": "item",
+    "x": 384,
+    "y": 336,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 950,
+    "purchasable": true,
+    "total": 950,
+    "sell": 665
+   },
+   "tags": [
+    "Health",
+    "SpellDamage",
+    "ManaRegen",
+    "Lane"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatHPPoolMod": 150,
+    "FlatMagicDamageMod": 50
+   },
+   "effect": {
+    "Effect1Amount": "3"
+   }
+  },
+  "3177": {
+   "name": "Guardian's Blade",
+   "description": "<mainText><stats><attention>30</attention> Attack Damage<br><attention>150</attention> Health<br><attention>15</attention> Ability Haste</stats><br><br></mainText>",
+   "colloq": ";dblade",
+   "plaintext": "Good starting item for attackers",
+   "image": {
+    "full": "3177.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 432,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 950,
+    "purchasable": true,
+    "total": 950,
+    "sell": 665
+   },
+   "tags": [
+    "Health",
+    "Damage",
+    "Lane",
+    "AbilityHaste"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatHPPoolMod": 150,
+    "FlatPhysicalDamageMod": 30
+   },
+   "effect": {
+    "Effect1Amount": "10"
+   }
+  },
+  "3181": {
+   "name": "Hullbreaker",
+   "description": "<mainText><stats><attention>40</attention> Attack Damage<br><attention>500</attention> Health<br><attention>4%</attention> Move Speed</stats><br><br><passive>Skipper</passive><br>Every fifth Attack against champions and epic monsters deals <physicalDamage>bonus physical damage</physicalDamage>, increased against Structures.<br><br><passive>Boarding Party</passive><br>Nearby allied siege and super minions gain <scaleArmor>Armor</scaleArmor> and <scaleMR>Magic Resist</scaleMR>.</mainText>",
+   "colloq": "",
+   "plaintext": "",
+   "from": [
+    "2021",
+    "3066",
+    "1037"
+   ],
+   "image": {
+    "full": "3181.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 48,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 175,
+    "purchasable": true,
+    "total": 3000,
+    "sell": 2100
+   },
+   "tags": [
+    "Health",
+    "Damage",
+    "NonbootsMovement"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": true
+   },
+   "stats": {
+    "FlatHPPoolMod": 500,
+    "FlatPhysicalDamageMod": 40,
+    "PercentMovementSpeedMod": 0.04
+   },
+   "depth": 3
+  },
+  "3184": {
+   "name": "Guardian's Hammer",
+   "description": "<mainText><stats><attention>25</attention> Attack Damage<br><attention>150</attention> Health<br><attention>5%</attention> Life Steal</stats><br><br></mainText>",
+   "colloq": ";dblade",
+   "plaintext": "Good starting item for attackers",
+   "image": {
+    "full": "3184.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 96,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 950,
+    "purchasable": true,
+    "total": 950,
+    "sell": 665
+   },
+   "tags": [
+    "Health",
+    "Damage",
+    "LifeSteal",
+    "Lane"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": false
+   },
+   "stats": {
+    "FlatHPPoolMod": 150,
+    "FlatPhysicalDamageMod": 25,
+    "PercentLifeStealMod": 0.05
+   }
+  },
+  "3302": {
+   "name": "Terminus",
+   "description": "<mainText><stats><attention>30</attention> Attack Damage<br><attention>35%</attention> Attack Speed</stats><br><br><passive>Shadow</passive><br>Attacks deal <magicDamage> bonus magic damage</magicDamage> <OnHit>On-Hit</OnHit>.<br><br><passive>Juxtaposition</passive><br>Alternate between <keywordMajor>Light</keywordMajor> and <keywordMajor>Dark</keywordMajor> Attacks against champions: <li><keywordMajor>Light</keywordMajor> Attacks grant <scaleArmor>Armor</scaleArmor> and <scaleMR>Magic Resist</scaleMR> for 5s. <li><keywordMajor>Dark</keywordMajor> Attacks grant 10% <scaleArmor>Armor Penetration</scaleArmor> and <scaleMR>Magic Penetration</scaleMR> for 5s. </mainText>",
+   "colloq": ";",
+   "plaintext": "Kill minions periodically to heal and grant gold to a nearby ally",
+   "from": [
+    "3051",
+    "1043"
+   ],
+   "image": {
+    "full": "3302.png",
+    "sprite": "item4.png",
+    "group": "item",
+    "x": 144,
+    "y": 240,
+    "w": 48,
+    "h": 48
+   },
+   "gold": {
+    "base": 1100,
+    "purchasable": true,
+    "total": 3000,
+    "sell": 2100
+   },
+   "tags": [
+    "Damage",
+    "AttackSpeed",
+    "OnHit",
+    "MagicPenetration",
+    "ArmorPenetration"
+   ],
+   "maps": {
+    "11": true,
+    "12": true,
+    "22": false,
+    "30": false,
+    "453": true
+   },
+   "stats": {
+    "FlatPhysicalDamageMod": 30,
+    "PercentAttackSpeedMod": 0.35
+   },
+   "depth": 3
   }
  }
 }

@@ -170,6 +170,15 @@ impl Item {
         if doran {
             groups.push("DoransItems");
         }
+        // Guardian's starters are sold in ARAM and Swiftplay, not in Summoner's Rift matchmade
+        // queues. Data Dragon flags them for map 11 because Swiftplay is played on that map, so
+        // the shop rules need the game mode to tell the two apart (see shop::purchase_restriction).
+        if normalize(&self.name).starts_with("guardians")
+            && self.tags.iter().any(|tag| tag == "Lane")
+            && self.on_sr
+        {
+            groups.push("GuardiansItems");
+        }
         // Riot's 14.6 starter restriction excludes Doran, unfinished support
         // quests (Atlas/Compass), and jungle eggs from each other. Bounty of
         // Worlds and completed support choices no longer have that restriction.

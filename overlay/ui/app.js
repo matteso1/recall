@@ -146,7 +146,7 @@ function renderSwiftplay(s) {
   return `<section class="swiftplay" aria-label="Swiftplay preparation">
     <h1>Your two choices</h1><p id="swiftplay-status" class="${ready ? 'swiftplay-ready' : !fresh ? 'warn' : 'hint'}">${esc(status)}</p>
     <ol class="swiftplay-slots" aria-label="Swiftplay choices">${slots.map(slot => `<li class="swiftplay-slot">
-      <div class="swiftplay-choice"><h2 title="${esc(slot.champion)}">${esc(slot.champion)}</h2><span class="swiftplay-role">${esc(slot.position)}</span></div>
+      <div class="swiftplay-choice"><h2 title="${esc(slot.champion)}">${esc(slot.champion)}</h2><span class="swiftplay-role">${esc(slot.position)}${slot.plan?.source_position ? ` · ${esc(slot.plan.source_position)} build` : ''}</span></div>
       <dl class="swiftplay-imports">${[['runes', 'Runes'], ['spells', 'Spells'], ['itemset', 'Build']].map(([key, label]) => {
         const value = slot.imports?.[key] || 'idle';
         const failed = value.startsWith('error');
@@ -170,10 +170,13 @@ function renderMain(s) {
     const age = finite(s.live_source?.age_ms) ? ` Last update ${Math.floor(Math.max(s.live_source.age_ms,elapsed) / 1000)}s ago.` : '';
     return `<div id="live-warning" class="message warn">Waiting for fresh game data.${esc(age)}</div><p class="hint">Purchase and skill advice is paused until your live state is confirmed.</p>${renderPath(plan)}`;
   }
-  if (!s.supported || !plan?.path?.length) return `<div class="message warn">${esc(plan?.note || s.message || 'Loading this champion’s role data…')}</div><p class="hint">No other champion’s build will be substituted.</p>`;
-  if (s.phase === 'ingame') return renderNext(plan) + renderWhy(plan) + renderPath(plan) + renderSkill(plan, s.flash);
+  if (!s.supported || !plan?.path?.length) return `<div class="message warn">${esc(s.message || plan?.note || 'Loading this champion’s build data…')}</div><p class="hint">Only this champion’s own data is used; another champion’s build is never substituted.</p>`;
+  // A same-champion fallback (no data for the assigned role) is said out loud, above the action.
+  const fallback = plan.source_position
+    ? `<p id="fallback-note" class="message warn" title="${esc(plan.note || '')}">${esc(plan.note || `No ${plan.position} data; using the ${plan.source_position} build as a starting point.`)}</p>` : '';
+  if (s.phase === 'ingame') return fallback + renderNext(plan) + renderWhy(plan) + renderPath(plan) + renderSkill(plan, s.flash);
   const enemies = s.lobby?.enemies || [];
-  return `<div class="pregame-heading">Your loadout is ready</div>${plan.matchup ? `<p class="matchup">${esc(plan.matchup)}</p>` : ''}
+  return `<div class="pregame-heading">Your loadout is ready</div>${fallback}${plan.matchup ? `<p class="matchup">${esc(plan.matchup)}</p>` : ''}
     ${enemies.length ? `<div class="teams" aria-label="Enemy champions">${enemies.map(name => icon(champIcon(name), name)).join('')}</div>` : ''}
     ${renderPath(plan)}${renderLoadout(plan)}<div class="row import-row">${importButton('import_runes', 'Runes', s.imports?.runes)}${importButton('import_spells', 'Spells', s.imports?.spells)}${importButton('import_item_set', 'Item set', s.imports?.itemset)}</div>`;
 }
@@ -239,7 +242,8 @@ function render(s) {
   $('panel').classList.toggle('collapsed', !!s.collapsed);
   $('collapse').textContent = s.collapsed ? '+' : '−';
   $('collapse').setAttribute('aria-label', s.collapsed ? 'Expand panel' : 'Collapse panel');
-  $('ctx').textContent = s.phase !== 'swiftplay' && s.champion ? `${s.champion}${s.plan?.position ? ` · ${s.plan.position}` : ''}` : '';
+  $('ctx').textContent = s.phase !== 'swiftplay' && s.champion
+    ? `${s.champion}${s.plan?.position ? ` · ${s.plan.position}` : ''}${s.plan?.source_position ? ` (${s.plan.source_position} build)` : ''}` : '';
   $('ctx').title = $('ctx').textContent;
   html('main-content', renderMain(s));
   $('learn-panel').hidden = !s.plan?.path?.length || ['idle', 'noclient', 'swiftplay'].includes(s.phase);

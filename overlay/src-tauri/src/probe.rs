@@ -153,7 +153,28 @@ pub fn run() -> i32 {
             None => json!(null),
         };
 
-        let target = select_target(&catalog, phase.as_deref(), observed_lobby.as_ref(), snap.as_ref());
+        // `--champion NAME [--role ROLE] [--swiftplay]`: plan an explicit offline request against
+        // the real cache, to verify the built executable without a client or a game.
+        let args: Vec<String> = std::env::args().collect();
+        let option = |flag: &str| args.iter().position(|a| a == flag).and_then(|i| args.get(i + 1)).filter(|v| !v.starts_with("--")).cloned();
+        let requested_role = option("--role").and_then(|r| Position::parse(&r));
+        let swiftplay = args.iter().any(|a| a == "--swiftplay");
+        let target = match option("--champion") {
+            Some(name) => ProbeTarget {
+                champion_key: catalog.champion_key(&name),
+                position: requested_role,
+                enemies: Vec::new(),
+                source: "offline_request",
+                use_live: false,
+                note: Some(format!(
+                    "Offline request: {name}{}{} with no live data; a real assignment always comes from the client.",
+                    requested_role.map(|r| format!(" as {}", r.label())).unwrap_or_default(),
+                    if swiftplay { " in Swiftplay" } else { "" }
+                )),
+                champion: name,
+            },
+            None => select_target(&catalog, phase.as_deref(), observed_lobby.as_ref(), snap.as_ref()),
+        };
         report["target"] = json!({
             "source": target.source,
             "champion": target.champion,
@@ -177,6 +198,8 @@ pub fn run() -> i32 {
                 "source": a.describe(),
                 "patch": a.patch,
                 "position": a.position.label(),
+                "requested_position": a.requested_position.map(|p| p.label()),
+                "fallback": a.requested_position.is_some_and(|p| p != a.position),
                 "games": a.games,
                 "spells": a.spells.ids.iter().map(|&id| featherstorm_core::runes::spell_name(id).unwrap_or("?")).collect::<Vec<_>>(),
                 "runes": a.runes.as_ref().map(|r| {
@@ -193,7 +216,7 @@ pub fn run() -> i32 {
             Err(e) => json!({ "error": e.to_string() }),
         };
 
-        let plan = engine::plan(&Inputs {
+        let inputs = Inputs {
             champion: &target.champion,
             pack: target.factual_pack(&pack),
             aggregate: agg.as_ref().ok(),
@@ -201,10 +224,16 @@ pub fn run() -> i32 {
             catalog: &catalog,
             enemies: &target.enemies,
             live: if target.use_live { snap.as_ref() } else { None },
-        });
+        };
+        let plan = if swiftplay && !target.use_live {
+            engine::plan_in_mode(&inputs, &engine::PlannerPreferences::default(), engine::GameMode::Swiftplay)
+        } else {
+            engine::plan(&inputs)
+        };
         report["engine"] = json!({
             "champion": plan.champion,
             "position": plan.position,
+            "source_position": plan.source_position,
             "enemies": target.enemies,
             "supported": !plan.path.is_empty(),
             "note": plan.note,

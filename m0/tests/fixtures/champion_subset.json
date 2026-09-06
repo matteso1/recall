@@ -1,951 +1,1200 @@
 {
-  "type": "champion",
-  "version": "16.17.1",
-  "data": {
-    "Ezreal": {
-      "version": "16.17.1",
-      "id": "Ezreal",
-      "key": "81",
-      "name": "Ezreal",
-      "title": "the Prodigal Explorer",
-      "blurb": "A dashing adventurer, unknowingly gifted in the magical arts, Ezreal raids long-lost catacombs, tangles with ancient curses, and overcomes seemingly impossible odds with ease. His courage and bravado knowing no bounds, he prefers to improvise his way...",
-      "info": {
-        "attack": 7,
-        "defense": 2,
-        "magic": 6,
-        "difficulty": 7
-      },
-      "image": {
-        "full": "Ezreal.png",
-        "sprite": "champion1.png",
-        "group": "champion",
-        "x": 96,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Marksman",
-        "Mage"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 600,
-        "hpperlevel": 102,
-        "mp": 375,
-        "mpperlevel": 70,
-        "movespeed": 325,
-        "armor": 24,
-        "armorperlevel": 4.2,
-        "spellblock": 33,
-        "spellblockperlevel": 1.1,
-        "attackrange": 550,
-        "hpregen": 4,
-        "hpregenperlevel": 0.65,
-        "mpregen": 8.5,
-        "mpregenperlevel": 1,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 60,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 2.5,
-        "attackspeed": 0.625
-      }
-    },
-    "Leona": {
-      "version": "16.17.1",
-      "id": "Leona",
-      "key": "89",
-      "name": "Leona",
-      "title": "the Radiant Dawn",
-      "blurb": "Imbued with the fire of the sun, Leona is a holy warrior of the Solari who defends Mount Targon with her Zenith Blade and the Shield of Daybreak. Her skin shimmers with starfire while her eyes burn with the power of the celestial Aspect within her...",
-      "info": {
-        "attack": 4,
-        "defense": 8,
-        "magic": 3,
-        "difficulty": 4
-      },
-      "image": {
-        "full": "Leona.png",
-        "sprite": "champion2.png",
-        "group": "champion",
-        "x": 48,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Tank",
-        "Support"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 646,
-        "hpperlevel": 101,
-        "mp": 302,
-        "mpperlevel": 40,
-        "movespeed": 335,
-        "armor": 43,
-        "armorperlevel": 4.8,
-        "spellblock": 32,
-        "spellblockperlevel": 2.05,
-        "attackrange": 125,
-        "hpregen": 8.5,
-        "hpregenperlevel": 0.85,
-        "mpregen": 6,
-        "mpregenperlevel": 0.8,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 60,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 2.9,
-        "attackspeed": 0.625
-      }
-    },
-    "Lulu": {
-      "version": "16.17.1",
-      "id": "Lulu",
-      "key": "117",
-      "name": "Lulu",
-      "title": "the Fae Sorceress",
-      "blurb": "The yordle mage Lulu is known for conjuring dreamlike illusions and fanciful creatures as she roams Runeterra with her fairy companion Pix. Lulu shapes reality on a whim, warping the fabric of the world, and what she views as the constraints of this...",
-      "info": {
-        "attack": 4,
-        "defense": 5,
-        "magic": 7,
-        "difficulty": 5
-      },
-      "image": {
-        "full": "Lulu.png",
-        "sprite": "champion2.png",
-        "group": "champion",
-        "x": 288,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Support",
-        "Mage"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 565,
-        "hpperlevel": 92,
-        "mp": 350,
-        "mpperlevel": 55,
-        "movespeed": 330,
-        "armor": 26,
-        "armorperlevel": 4.6,
-        "spellblock": 30,
-        "spellblockperlevel": 1.3,
-        "attackrange": 550,
-        "hpregen": 6,
-        "hpregenperlevel": 0.6,
-        "mpregen": 11,
-        "mpregenperlevel": 0.6,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 47,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 2.25,
-        "attackspeed": 0.625
-      }
-    },
-    "Malphite": {
-      "version": "16.17.1",
-      "id": "Malphite",
-      "key": "54",
-      "name": "Malphite",
-      "title": "Shard of the Monolith",
-      "blurb": "A massive creature of living stone, Malphite struggles to impose blessed order on a chaotic world. Birthed as a servitor-shard to an otherworldly obelisk known as the Monolith, he used his tremendous elemental strength to maintain and protect his...",
-      "info": {
-        "attack": 5,
-        "defense": 9,
-        "magic": 7,
-        "difficulty": 2
-      },
-      "image": {
-        "full": "Malphite.png",
-        "sprite": "champion2.png",
-        "group": "champion",
-        "x": 384,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Tank",
-        "Mage"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 665,
-        "hpperlevel": 104,
-        "mp": 280,
-        "mpperlevel": 60,
-        "movespeed": 335,
-        "armor": 40,
-        "armorperlevel": 4.95,
-        "spellblock": 28,
-        "spellblockperlevel": 2.05,
-        "attackrange": 125,
-        "hpregen": 7,
-        "hpregenperlevel": 0.55,
-        "mpregen": 7.3,
-        "mpregenperlevel": 0.55,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 62,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3.4,
-        "attackspeed": 0.736
-      }
-    },
-    "MonkeyKing": {
-      "version": "16.17.1",
-      "id": "MonkeyKing",
-      "key": "62",
-      "name": "Wukong",
-      "title": "the Monkey King",
-      "blurb": "Wukong is a vastayan trickster who uses his strength, agility, and intelligence to confuse his opponents and gain the upper hand. After finding a lifelong friend in the warrior known as Master Yi, Wukong became the last student of the ancient martial...",
-      "info": {
-        "attack": 8,
-        "defense": 5,
-        "magic": 2,
-        "difficulty": 3
-      },
-      "image": {
-        "full": "MonkeyKing.png",
-        "sprite": "champion2.png",
-        "group": "champion",
-        "x": 240,
-        "y": 96,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Fighter",
-        "Tank"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 610,
-        "hpperlevel": 99,
-        "mp": 330,
-        "mpperlevel": 65,
-        "movespeed": 340,
-        "armor": 31,
-        "armorperlevel": 4.7,
-        "spellblock": 28,
-        "spellblockperlevel": 2.05,
-        "attackrange": 175,
-        "hpregen": 3.5,
-        "hpregenperlevel": 0.65,
-        "mpregen": 8,
-        "mpregenperlevel": 0.8,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 66,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3,
-        "attackspeed": 0.69
-      }
-    },
-    "Nasus": {
-      "version": "16.17.1",
-      "id": "Nasus",
-      "key": "75",
-      "name": "Nasus",
-      "title": "the Curator of the Sands",
-      "blurb": "Nasus is an imposing, jackal-headed Ascended being from ancient Shurima, a heroic figure regarded as a demigod by the people of the desert. Fiercely intelligent, he was a guardian of knowledge and peerless strategist whose wisdom guided the ancient...",
-      "info": {
-        "attack": 7,
-        "defense": 5,
-        "magic": 6,
-        "difficulty": 6
-      },
-      "image": {
-        "full": "Nasus.png",
-        "sprite": "champion3.png",
-        "group": "champion",
-        "x": 0,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Fighter",
-        "Tank"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 650,
-        "hpperlevel": 104,
-        "mp": 326,
-        "mpperlevel": 62,
-        "movespeed": 350,
-        "armor": 34,
-        "armorperlevel": 4.7,
-        "spellblock": 32,
-        "spellblockperlevel": 2.05,
-        "attackrange": 125,
-        "hpregen": 9,
-        "hpregenperlevel": 0.9,
-        "mpregen": 7.45,
-        "mpregenperlevel": 0.5,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 67,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3.48,
-        "attackspeed": 0.638
-      }
-    },
-    "Ornn": {
-      "version": "16.17.1",
-      "id": "Ornn",
-      "key": "516",
-      "name": "Ornn",
-      "title": "The Fire below the Mountain",
-      "blurb": "Ornn is the Freljordian spirit of forging and craftsmanship. He works in the solitude of a massive smithy, hammered out from the lava caverns beneath the volcano Hearth-Home. There he stokes bubbling cauldrons of molten rock to purify ores and fashion...",
-      "info": {
-        "attack": 5,
-        "defense": 9,
-        "magic": 3,
-        "difficulty": 5
-      },
-      "image": {
-        "full": "Ornn.png",
-        "sprite": "champion3.png",
-        "group": "champion",
-        "x": 432,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Tank"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 660,
-        "hpperlevel": 109,
-        "mp": 341,
-        "mpperlevel": 65,
-        "movespeed": 335,
-        "armor": 33,
-        "armorperlevel": 5.2,
-        "spellblock": 32,
-        "spellblockperlevel": 2.05,
-        "attackrange": 175,
-        "hpregen": 9,
-        "hpregenperlevel": 0.9,
-        "mpregen": 8,
-        "mpregenperlevel": 0.6,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 69,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 2,
-        "attackspeed": 0.625
-      }
-    },
-    "Rakan": {
-      "version": "16.17.1",
-      "id": "Rakan",
-      "key": "497",
-      "name": "Rakan",
-      "title": "The Charmer",
-      "blurb": "As mercurial as he is charming, Rakan is an infamous vastayan troublemaker and the greatest battle-dancer in Lhotlan tribal history. To the humans of the Ionian highlands, his name has long been synonymous with wild festivals, uncontrollable parties...",
-      "info": {
-        "attack": 2,
-        "defense": 4,
-        "magic": 8,
-        "difficulty": 5
-      },
-      "image": {
-        "full": "Rakan.png",
-        "sprite": "champion3.png",
-        "group": "champion",
-        "x": 240,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Support"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 610,
-        "hpperlevel": 99,
-        "mp": 315,
-        "mpperlevel": 50,
-        "movespeed": 335,
-        "armor": 30,
-        "armorperlevel": 4.9,
-        "spellblock": 32,
-        "spellblockperlevel": 2.05,
-        "attackrange": 300,
-        "hpregen": 5,
-        "hpregenperlevel": 0.5,
-        "mpregen": 8.75,
-        "mpregenperlevel": 0.5,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 62,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3,
-        "attackspeed": 0.635
-      }
-    },
-    "Soraka": {
-      "version": "16.17.1",
-      "id": "Soraka",
-      "key": "16",
-      "name": "Soraka",
-      "title": "the Starchild",
-      "blurb": "A wanderer from the celestial dimensions beyond Mount Targon, Soraka gave up her immortality to protect the mortal races from their own more violent instincts. She endeavors to spread the virtues of compassion and mercy to everyone she meets—even...",
-      "info": {
-        "attack": 2,
-        "defense": 5,
-        "magic": 7,
-        "difficulty": 3
-      },
-      "image": {
-        "full": "Soraka.png",
-        "sprite": "champion4.png",
-        "group": "champion",
-        "x": 432,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Support",
-        "Mage"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 605,
-        "hpperlevel": 88,
-        "mp": 425,
-        "mpperlevel": 40,
-        "movespeed": 325,
-        "armor": 32,
-        "armorperlevel": 5,
-        "spellblock": 30,
-        "spellblockperlevel": 1.3,
-        "attackrange": 550,
-        "hpregen": 2.5,
-        "hpregenperlevel": 0.5,
-        "mpregen": 11.5,
-        "mpregenperlevel": 0.4,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 50,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 2.14,
-        "attackspeed": 0.625
-      }
-    },
-    "Thresh": {
-      "version": "16.17.1",
-      "id": "Thresh",
-      "key": "412",
-      "name": "Thresh",
-      "title": "the Chain Warden",
-      "blurb": "Sadistic and cunning, Thresh is an ambitious and restless specter of the Shadow Isles. Once the custodian of countless arcane secrets, he was undone by a power greater than life or death, and now sustains himself by tormenting and breaking others with...",
-      "info": {
-        "attack": 5,
-        "defense": 6,
-        "magic": 6,
-        "difficulty": 7
-      },
-      "image": {
-        "full": "Thresh.png",
-        "sprite": "champion4.png",
-        "group": "champion",
-        "x": 384,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Support",
-        "Tank"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 620,
-        "hpperlevel": 120,
-        "mp": 274,
-        "mpperlevel": 44,
-        "movespeed": 330,
-        "armor": 33,
-        "armorperlevel": 0,
-        "spellblock": 30,
-        "spellblockperlevel": 1.55,
-        "attackrange": 450,
-        "hpregen": 7,
-        "hpregenperlevel": 0.55,
-        "mpregen": 6,
-        "mpregenperlevel": 0.8,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 56,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3.5,
-        "attackspeed": 0.625
-      }
-    },
-    "Tristana": {
-      "version": "16.17.1",
-      "id": "Tristana",
-      "key": "18",
-      "name": "Tristana",
-      "title": "the Yordle Gunner",
-      "blurb": "While many other yordles channel their energy into discovery, invention, or just plain mischief-making, Tristana was always inspired by the adventures of great warriors. She had heard much about Runeterra, its factions, and its wars, and believed her...",
-      "info": {
-        "attack": 9,
-        "defense": 3,
-        "magic": 5,
-        "difficulty": 4
-      },
-      "image": {
-        "full": "Tristana.png",
-        "sprite": "champion4.png",
-        "group": "champion",
-        "x": 432,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Marksman",
-        "Assassin"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 640,
-        "hpperlevel": 102,
-        "mp": 300,
-        "mpperlevel": 32,
-        "movespeed": 325,
-        "armor": 30,
-        "armorperlevel": 4,
-        "spellblock": 33,
-        "spellblockperlevel": 1.1,
-        "attackrange": 550,
-        "hpregen": 4,
-        "hpregenperlevel": 0.5,
-        "mpregen": 7.2,
-        "mpregenperlevel": 0.45,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 60,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 1.5,
-        "attackspeed": 0.656
-      }
-    },
-    "Xayah": {
-      "version": "16.17.1",
-      "id": "Xayah",
-      "key": "498",
-      "name": "Xayah",
-      "title": "the Rebel",
-      "blurb": "Deadly and precise, Xayah is a vastayan revolutionary waging a personal war to save her people. She uses her speed, guile, and razor-sharp feather blades to cut down anyone who stands in her way. Xayah fights alongside her partner and lover, Rakan, to...",
-      "info": {
-        "attack": 10,
-        "defense": 6,
-        "magic": 1,
-        "difficulty": 5
-      },
-      "image": {
-        "full": "Xayah.png",
-        "sprite": "champion5.png",
-        "group": "champion",
-        "x": 336,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Marksman"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 630,
-        "hpperlevel": 107,
-        "mp": 340,
-        "mpperlevel": 40,
-        "movespeed": 330,
-        "armor": 25,
-        "armorperlevel": 4.2,
-        "spellblock": 33,
-        "spellblockperlevel": 1.1,
-        "attackrange": 525,
-        "hpregen": 3.25,
-        "hpregenperlevel": 0.75,
-        "mpregen": 8.25,
-        "mpregenperlevel": 0.8,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 60,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3.9,
-        "attackspeed": 0.658
-      }
-    },
-    "Yuumi": {
-      "version": "16.17.1",
-      "id": "Yuumi",
-      "key": "350",
-      "name": "Yuumi",
-      "title": "the Magical Cat",
-      "blurb": "A magical cat from Bandle City, Yuumi was once the familiar of a yordle enchantress, Norra. When her master mysteriously disappeared, Yuumi became the Keeper of Norra's sentient Book of Thresholds, traveling through portals in its pages to search for...",
-      "info": {
-        "attack": 5,
-        "defense": 1,
-        "magic": 8,
-        "difficulty": 2
-      },
-      "image": {
-        "full": "Yuumi.png",
-        "sprite": "champion5.png",
-        "group": "champion",
-        "x": 192,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Support",
-        "Mage"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 500,
-        "hpperlevel": 69,
-        "mp": 440,
-        "mpperlevel": 45,
-        "movespeed": 330,
-        "armor": 25,
-        "armorperlevel": 4.2,
-        "spellblock": 25,
-        "spellblockperlevel": 1.1,
-        "attackrange": 425,
-        "hpregen": 5,
-        "hpregenperlevel": 0.55,
-        "mpregen": 10,
-        "mpregenperlevel": 0.4,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 49,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 1,
-        "attackspeed": 0.625
-      }
-    },
-    "Zed": {
-      "version": "16.17.1",
-      "id": "Zed",
-      "key": "238",
-      "name": "Zed",
-      "title": "the Master of Shadows",
-      "blurb": "Utterly ruthless and without mercy, Zed is the leader of the Order of Shadow, an organization he created with the intent of militarizing Ionia's magical and martial traditions to drive out Noxian invaders. During the war, desperation led him to unlock...",
-      "info": {
-        "attack": 9,
-        "defense": 2,
-        "magic": 1,
-        "difficulty": 7
-      },
-      "image": {
-        "full": "Zed.png",
-        "sprite": "champion5.png",
-        "group": "champion",
-        "x": 336,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Assassin"
-      ],
-      "partype": "Energy",
-      "stats": {
-        "hp": 654,
-        "hpperlevel": 99,
-        "mp": 200,
-        "mpperlevel": 0,
-        "movespeed": 345,
-        "armor": 32,
-        "armorperlevel": 4.7,
-        "spellblock": 29,
-        "spellblockperlevel": 2.05,
-        "attackrange": 125,
-        "hpregen": 7,
-        "hpregenperlevel": 0.65,
-        "mpregen": 50,
-        "mpregenperlevel": 0,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 63,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3.3,
-        "attackspeed": 0.651
-      }
-    },
-    "Ahri": {
-      "version": "16.17.1",
-      "id": "Ahri",
-      "key": "103",
-      "name": "Ahri",
-      "title": "the Nine-Tailed Fox",
-      "blurb": "Innately connected to the magic of the spirit realm, Ahri is a fox-like vastaya who can manipulate her prey's emotions and consume their essence—receiving flashes of their memory and insight from each soul she consumes. Once a powerful yet wayward...",
-      "info": {
-        "attack": 3,
-        "defense": 4,
-        "magic": 8,
-        "difficulty": 5
-      },
-      "image": {
-        "full": "Ahri.png",
-        "sprite": "champion0.png",
-        "group": "champion",
-        "x": 48,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Mage",
-        "Assassin"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 590,
-        "hpperlevel": 104,
-        "mp": 418,
-        "mpperlevel": 25,
-        "movespeed": 330,
-        "armor": 21,
-        "armorperlevel": 4.2,
-        "spellblock": 30,
-        "spellblockperlevel": 1.3,
-        "attackrange": 550,
-        "hpregen": 2.5,
-        "hpregenperlevel": 0.6,
-        "mpregen": 8,
-        "mpregenperlevel": 0.8,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 53,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 2.2,
-        "attackspeed": 0.668
-      }
-    },
-    "Darius": {
-      "version": "16.17.1",
-      "id": "Darius",
-      "key": "122",
-      "name": "Darius",
-      "title": "the Hand of Noxus",
-      "blurb": "There is no greater symbol of Noxian might than Darius, the nation's most feared and battle-hardened commander. Rising from humble origins to become the Hand of Noxus, he cleaves through the empire's enemies—many of them Noxians themselves. Knowing that...",
-      "info": {
-        "attack": 9,
-        "defense": 5,
-        "magic": 1,
-        "difficulty": 2
-      },
-      "image": {
-        "full": "Darius.png",
-        "sprite": "champion0.png",
-        "group": "champion",
-        "x": 240,
-        "y": 96,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Fighter",
-        "Tank"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 652,
-        "hpperlevel": 114,
-        "mp": 263,
-        "mpperlevel": 58,
-        "movespeed": 340,
-        "armor": 37,
-        "armorperlevel": 5.2,
-        "spellblock": 32,
-        "spellblockperlevel": 2.05,
-        "attackrange": 175,
-        "hpregen": 10,
-        "hpregenperlevel": 0.95,
-        "mpregen": 6.6,
-        "mpregenperlevel": 0.35,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 64,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 1,
-        "attackspeed": 0.625
-      }
-    },
-    "LeeSin": {
-      "version": "16.17.1",
-      "id": "LeeSin",
-      "key": "64",
-      "name": "Lee Sin",
-      "title": "the Blind Monk",
-      "blurb": "A master of Ionia's ancient martial arts, Lee Sin is a principled fighter who channels the essence of the dragon spirit to face any challenge. Though he lost his sight many years ago, the warrior-monk has devoted his life to protecting his homeland...",
-      "info": {
-        "attack": 8,
-        "defense": 5,
-        "magic": 3,
-        "difficulty": 6
-      },
-      "image": {
-        "full": "LeeSin.png",
-        "sprite": "champion2.png",
-        "group": "champion",
-        "x": 0,
-        "y": 48,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Fighter",
-        "Assassin"
-      ],
-      "partype": "Energy",
-      "stats": {
-        "hp": 645,
-        "hpperlevel": 108,
-        "mp": 200,
-        "mpperlevel": 0,
-        "movespeed": 345,
-        "armor": 36,
-        "armorperlevel": 4.5,
-        "spellblock": 32,
-        "spellblockperlevel": 2.05,
-        "attackrange": 125,
-        "hpregen": 7.5,
-        "hpregenperlevel": 0.7,
-        "mpregen": 50,
-        "mpregenperlevel": 0,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 66,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3,
-        "attackspeed": 0.651
-      }
-    },
-    "Aphelios": {
-      "version": "16.17.1",
-      "id": "Aphelios",
-      "key": "523",
-      "name": "Aphelios",
-      "title": "the Weapon of the Faithful",
-      "blurb": "Emerging from moonlight's shadow with weapons drawn, Aphelios kills the enemies of his faith in brooding silence—speaking only through the certainty of his aim, and the firing of each gun. Though fueled by a poison that renders him mute, he is guided by...",
-      "info": {
-        "attack": 6,
-        "defense": 2,
-        "magic": 1,
-        "difficulty": 10
-      },
-      "image": {
-        "full": "Aphelios.png",
-        "sprite": "champion0.png",
-        "group": "champion",
-        "x": 432,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Marksman"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 600,
-        "hpperlevel": 102,
-        "mp": 348,
-        "mpperlevel": 42,
-        "movespeed": 325,
-        "armor": 26,
-        "armorperlevel": 4.2,
-        "spellblock": 33,
-        "spellblockperlevel": 1.1,
-        "attackrange": 550,
-        "hpregen": 3.25,
-        "hpregenperlevel": 0.55,
-        "mpregen": 6.5,
-        "mpregenperlevel": 0.4,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 55,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 2.1,
-        "attackspeed": 0.665
-      }
-    },
-    "Udyr": {
-      "version": "16.17.1",
-      "id": "Udyr",
-      "key": "77",
-      "name": "Udyr",
-      "title": "the Spirit Walker",
-      "blurb": "The most powerful spirit walker alive, Udyr communes with all the spirits of the Freljord, whether by empathically understanding their needs, or by channeling and transforming their ethereal energy into his own primal fighting style. He seeks balance...",
-      "info": {
-        "attack": 8,
-        "defense": 7,
-        "magic": 4,
-        "difficulty": 7
-      },
-      "image": {
-        "full": "Udyr.png",
-        "sprite": "champion4.png",
-        "group": "champion",
-        "x": 192,
-        "y": 96,
-        "w": 48,
-        "h": 48
-      },
-      "tags": [
-        "Fighter",
-        "Tank"
-      ],
-      "partype": "Mana",
-      "stats": {
-        "hp": 664,
-        "hpperlevel": 92,
-        "mp": 271,
-        "mpperlevel": 50,
-        "movespeed": 350,
-        "armor": 31,
-        "armorperlevel": 4.7,
-        "spellblock": 32,
-        "spellblockperlevel": 2.05,
-        "attackrange": 125,
-        "hpregen": 6,
-        "hpregenperlevel": 0.75,
-        "mpregen": 7.5,
-        "mpregenperlevel": 0.45,
-        "crit": 0,
-        "critperlevel": 0,
-        "attackdamage": 62,
-        "attackdamageperlevel": 0,
-        "attackspeedperlevel": 3,
-        "attackspeed": 0.65
-      }
-    }
+ "type": "champion",
+ "version": "16.17.1",
+ "data": {
+  "Ezreal": {
+   "version": "16.17.1",
+   "id": "Ezreal",
+   "key": "81",
+   "name": "Ezreal",
+   "title": "the Prodigal Explorer",
+   "blurb": "A dashing adventurer, unknowingly gifted in the magical arts, Ezreal raids long-lost catacombs, tangles with ancient curses, and overcomes seemingly impossible odds with ease. His courage and bravado knowing no bounds, he prefers to improvise his way...",
+   "info": {
+    "attack": 7,
+    "defense": 2,
+    "magic": 6,
+    "difficulty": 7
+   },
+   "image": {
+    "full": "Ezreal.png",
+    "sprite": "champion1.png",
+    "group": "champion",
+    "x": 96,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Marksman",
+    "Mage"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 600,
+    "hpperlevel": 102,
+    "mp": 375,
+    "mpperlevel": 70,
+    "movespeed": 325,
+    "armor": 24,
+    "armorperlevel": 4.2,
+    "spellblock": 33,
+    "spellblockperlevel": 1.1,
+    "attackrange": 550,
+    "hpregen": 4,
+    "hpregenperlevel": 0.65,
+    "mpregen": 8.5,
+    "mpregenperlevel": 1,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 60,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.5,
+    "attackspeed": 0.625
+   }
+  },
+  "Leona": {
+   "version": "16.17.1",
+   "id": "Leona",
+   "key": "89",
+   "name": "Leona",
+   "title": "the Radiant Dawn",
+   "blurb": "Imbued with the fire of the sun, Leona is a holy warrior of the Solari who defends Mount Targon with her Zenith Blade and the Shield of Daybreak. Her skin shimmers with starfire while her eyes burn with the power of the celestial Aspect within her...",
+   "info": {
+    "attack": 4,
+    "defense": 8,
+    "magic": 3,
+    "difficulty": 4
+   },
+   "image": {
+    "full": "Leona.png",
+    "sprite": "champion2.png",
+    "group": "champion",
+    "x": 48,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Tank",
+    "Support"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 646,
+    "hpperlevel": 101,
+    "mp": 302,
+    "mpperlevel": 40,
+    "movespeed": 335,
+    "armor": 43,
+    "armorperlevel": 4.8,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 8.5,
+    "hpregenperlevel": 0.85,
+    "mpregen": 6,
+    "mpregenperlevel": 0.8,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 60,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.9,
+    "attackspeed": 0.625
+   }
+  },
+  "Lulu": {
+   "version": "16.17.1",
+   "id": "Lulu",
+   "key": "117",
+   "name": "Lulu",
+   "title": "the Fae Sorceress",
+   "blurb": "The yordle mage Lulu is known for conjuring dreamlike illusions and fanciful creatures as she roams Runeterra with her fairy companion Pix. Lulu shapes reality on a whim, warping the fabric of the world, and what she views as the constraints of this...",
+   "info": {
+    "attack": 4,
+    "defense": 5,
+    "magic": 7,
+    "difficulty": 5
+   },
+   "image": {
+    "full": "Lulu.png",
+    "sprite": "champion2.png",
+    "group": "champion",
+    "x": 288,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Support",
+    "Mage"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 565,
+    "hpperlevel": 92,
+    "mp": 350,
+    "mpperlevel": 55,
+    "movespeed": 330,
+    "armor": 26,
+    "armorperlevel": 4.6,
+    "spellblock": 30,
+    "spellblockperlevel": 1.3,
+    "attackrange": 550,
+    "hpregen": 6,
+    "hpregenperlevel": 0.6,
+    "mpregen": 11,
+    "mpregenperlevel": 0.6,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 47,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.25,
+    "attackspeed": 0.625
+   }
+  },
+  "Malphite": {
+   "version": "16.17.1",
+   "id": "Malphite",
+   "key": "54",
+   "name": "Malphite",
+   "title": "Shard of the Monolith",
+   "blurb": "A massive creature of living stone, Malphite struggles to impose blessed order on a chaotic world. Birthed as a servitor-shard to an otherworldly obelisk known as the Monolith, he used his tremendous elemental strength to maintain and protect his...",
+   "info": {
+    "attack": 5,
+    "defense": 9,
+    "magic": 7,
+    "difficulty": 2
+   },
+   "image": {
+    "full": "Malphite.png",
+    "sprite": "champion2.png",
+    "group": "champion",
+    "x": 384,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Tank",
+    "Mage"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 665,
+    "hpperlevel": 104,
+    "mp": 280,
+    "mpperlevel": 60,
+    "movespeed": 335,
+    "armor": 40,
+    "armorperlevel": 4.95,
+    "spellblock": 28,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 7,
+    "hpregenperlevel": 0.55,
+    "mpregen": 7.3,
+    "mpregenperlevel": 0.55,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 62,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3.4,
+    "attackspeed": 0.736
+   }
+  },
+  "MonkeyKing": {
+   "version": "16.17.1",
+   "id": "MonkeyKing",
+   "key": "62",
+   "name": "Wukong",
+   "title": "the Monkey King",
+   "blurb": "Wukong is a vastayan trickster who uses his strength, agility, and intelligence to confuse his opponents and gain the upper hand. After finding a lifelong friend in the warrior known as Master Yi, Wukong became the last student of the ancient martial...",
+   "info": {
+    "attack": 8,
+    "defense": 5,
+    "magic": 2,
+    "difficulty": 3
+   },
+   "image": {
+    "full": "MonkeyKing.png",
+    "sprite": "champion2.png",
+    "group": "champion",
+    "x": 240,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Fighter",
+    "Tank"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 610,
+    "hpperlevel": 99,
+    "mp": 330,
+    "mpperlevel": 65,
+    "movespeed": 340,
+    "armor": 31,
+    "armorperlevel": 4.7,
+    "spellblock": 28,
+    "spellblockperlevel": 2.05,
+    "attackrange": 175,
+    "hpregen": 3.5,
+    "hpregenperlevel": 0.65,
+    "mpregen": 8,
+    "mpregenperlevel": 0.8,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 66,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3,
+    "attackspeed": 0.69
+   }
+  },
+  "Nasus": {
+   "version": "16.17.1",
+   "id": "Nasus",
+   "key": "75",
+   "name": "Nasus",
+   "title": "the Curator of the Sands",
+   "blurb": "Nasus is an imposing, jackal-headed Ascended being from ancient Shurima, a heroic figure regarded as a demigod by the people of the desert. Fiercely intelligent, he was a guardian of knowledge and peerless strategist whose wisdom guided the ancient...",
+   "info": {
+    "attack": 7,
+    "defense": 5,
+    "magic": 6,
+    "difficulty": 6
+   },
+   "image": {
+    "full": "Nasus.png",
+    "sprite": "champion3.png",
+    "group": "champion",
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Fighter",
+    "Tank"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 650,
+    "hpperlevel": 104,
+    "mp": 326,
+    "mpperlevel": 62,
+    "movespeed": 350,
+    "armor": 34,
+    "armorperlevel": 4.7,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 9,
+    "hpregenperlevel": 0.9,
+    "mpregen": 7.45,
+    "mpregenperlevel": 0.5,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 67,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3.48,
+    "attackspeed": 0.638
+   }
+  },
+  "Ornn": {
+   "version": "16.17.1",
+   "id": "Ornn",
+   "key": "516",
+   "name": "Ornn",
+   "title": "The Fire below the Mountain",
+   "blurb": "Ornn is the Freljordian spirit of forging and craftsmanship. He works in the solitude of a massive smithy, hammered out from the lava caverns beneath the volcano Hearth-Home. There he stokes bubbling cauldrons of molten rock to purify ores and fashion...",
+   "info": {
+    "attack": 5,
+    "defense": 9,
+    "magic": 3,
+    "difficulty": 5
+   },
+   "image": {
+    "full": "Ornn.png",
+    "sprite": "champion3.png",
+    "group": "champion",
+    "x": 432,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Tank"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 660,
+    "hpperlevel": 109,
+    "mp": 341,
+    "mpperlevel": 65,
+    "movespeed": 335,
+    "armor": 33,
+    "armorperlevel": 5.2,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 175,
+    "hpregen": 9,
+    "hpregenperlevel": 0.9,
+    "mpregen": 8,
+    "mpregenperlevel": 0.6,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 69,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2,
+    "attackspeed": 0.625
+   }
+  },
+  "Rakan": {
+   "version": "16.17.1",
+   "id": "Rakan",
+   "key": "497",
+   "name": "Rakan",
+   "title": "The Charmer",
+   "blurb": "As mercurial as he is charming, Rakan is an infamous vastayan troublemaker and the greatest battle-dancer in Lhotlan tribal history. To the humans of the Ionian highlands, his name has long been synonymous with wild festivals, uncontrollable parties...",
+   "info": {
+    "attack": 2,
+    "defense": 4,
+    "magic": 8,
+    "difficulty": 5
+   },
+   "image": {
+    "full": "Rakan.png",
+    "sprite": "champion3.png",
+    "group": "champion",
+    "x": 240,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Support"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 610,
+    "hpperlevel": 99,
+    "mp": 315,
+    "mpperlevel": 50,
+    "movespeed": 335,
+    "armor": 30,
+    "armorperlevel": 4.9,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 300,
+    "hpregen": 5,
+    "hpregenperlevel": 0.5,
+    "mpregen": 8.75,
+    "mpregenperlevel": 0.5,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 62,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3,
+    "attackspeed": 0.635
+   }
+  },
+  "Soraka": {
+   "version": "16.17.1",
+   "id": "Soraka",
+   "key": "16",
+   "name": "Soraka",
+   "title": "the Starchild",
+   "blurb": "A wanderer from the celestial dimensions beyond Mount Targon, Soraka gave up her immortality to protect the mortal races from their own more violent instincts. She endeavors to spread the virtues of compassion and mercy to everyone she meets\u2014even...",
+   "info": {
+    "attack": 2,
+    "defense": 5,
+    "magic": 7,
+    "difficulty": 3
+   },
+   "image": {
+    "full": "Soraka.png",
+    "sprite": "champion4.png",
+    "group": "champion",
+    "x": 432,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Support",
+    "Mage"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 605,
+    "hpperlevel": 88,
+    "mp": 425,
+    "mpperlevel": 40,
+    "movespeed": 325,
+    "armor": 32,
+    "armorperlevel": 5,
+    "spellblock": 30,
+    "spellblockperlevel": 1.3,
+    "attackrange": 550,
+    "hpregen": 2.5,
+    "hpregenperlevel": 0.5,
+    "mpregen": 11.5,
+    "mpregenperlevel": 0.4,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 50,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.14,
+    "attackspeed": 0.625
+   }
+  },
+  "Thresh": {
+   "version": "16.17.1",
+   "id": "Thresh",
+   "key": "412",
+   "name": "Thresh",
+   "title": "the Chain Warden",
+   "blurb": "Sadistic and cunning, Thresh is an ambitious and restless specter of the Shadow Isles. Once the custodian of countless arcane secrets, he was undone by a power greater than life or death, and now sustains himself by tormenting and breaking others with...",
+   "info": {
+    "attack": 5,
+    "defense": 6,
+    "magic": 6,
+    "difficulty": 7
+   },
+   "image": {
+    "full": "Thresh.png",
+    "sprite": "champion4.png",
+    "group": "champion",
+    "x": 384,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Support",
+    "Tank"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 620,
+    "hpperlevel": 120,
+    "mp": 274,
+    "mpperlevel": 44,
+    "movespeed": 330,
+    "armor": 33,
+    "armorperlevel": 0,
+    "spellblock": 30,
+    "spellblockperlevel": 1.55,
+    "attackrange": 450,
+    "hpregen": 7,
+    "hpregenperlevel": 0.55,
+    "mpregen": 6,
+    "mpregenperlevel": 0.8,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 56,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3.5,
+    "attackspeed": 0.625
+   }
+  },
+  "Tristana": {
+   "version": "16.17.1",
+   "id": "Tristana",
+   "key": "18",
+   "name": "Tristana",
+   "title": "the Yordle Gunner",
+   "blurb": "While many other yordles channel their energy into discovery, invention, or just plain mischief-making, Tristana was always inspired by the adventures of great warriors. She had heard much about Runeterra, its factions, and its wars, and believed her...",
+   "info": {
+    "attack": 9,
+    "defense": 3,
+    "magic": 5,
+    "difficulty": 4
+   },
+   "image": {
+    "full": "Tristana.png",
+    "sprite": "champion4.png",
+    "group": "champion",
+    "x": 432,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Marksman",
+    "Assassin"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 640,
+    "hpperlevel": 102,
+    "mp": 300,
+    "mpperlevel": 32,
+    "movespeed": 325,
+    "armor": 30,
+    "armorperlevel": 4,
+    "spellblock": 33,
+    "spellblockperlevel": 1.1,
+    "attackrange": 550,
+    "hpregen": 4,
+    "hpregenperlevel": 0.5,
+    "mpregen": 7.2,
+    "mpregenperlevel": 0.45,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 60,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 1.5,
+    "attackspeed": 0.656
+   }
+  },
+  "Xayah": {
+   "version": "16.17.1",
+   "id": "Xayah",
+   "key": "498",
+   "name": "Xayah",
+   "title": "the Rebel",
+   "blurb": "Deadly and precise, Xayah is a vastayan revolutionary waging a personal war to save her people. She uses her speed, guile, and razor-sharp feather blades to cut down anyone who stands in her way. Xayah fights alongside her partner and lover, Rakan, to...",
+   "info": {
+    "attack": 10,
+    "defense": 6,
+    "magic": 1,
+    "difficulty": 5
+   },
+   "image": {
+    "full": "Xayah.png",
+    "sprite": "champion5.png",
+    "group": "champion",
+    "x": 336,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Marksman"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 630,
+    "hpperlevel": 107,
+    "mp": 340,
+    "mpperlevel": 40,
+    "movespeed": 330,
+    "armor": 25,
+    "armorperlevel": 4.2,
+    "spellblock": 33,
+    "spellblockperlevel": 1.1,
+    "attackrange": 525,
+    "hpregen": 3.25,
+    "hpregenperlevel": 0.75,
+    "mpregen": 8.25,
+    "mpregenperlevel": 0.8,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 60,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3.9,
+    "attackspeed": 0.658
+   }
+  },
+  "Yuumi": {
+   "version": "16.17.1",
+   "id": "Yuumi",
+   "key": "350",
+   "name": "Yuumi",
+   "title": "the Magical Cat",
+   "blurb": "A magical cat from Bandle City, Yuumi was once the familiar of a yordle enchantress, Norra. When her master mysteriously disappeared, Yuumi became the Keeper of Norra's sentient Book of Thresholds, traveling through portals in its pages to search for...",
+   "info": {
+    "attack": 5,
+    "defense": 1,
+    "magic": 8,
+    "difficulty": 2
+   },
+   "image": {
+    "full": "Yuumi.png",
+    "sprite": "champion5.png",
+    "group": "champion",
+    "x": 192,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Support",
+    "Mage"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 500,
+    "hpperlevel": 69,
+    "mp": 440,
+    "mpperlevel": 45,
+    "movespeed": 330,
+    "armor": 25,
+    "armorperlevel": 4.2,
+    "spellblock": 25,
+    "spellblockperlevel": 1.1,
+    "attackrange": 425,
+    "hpregen": 5,
+    "hpregenperlevel": 0.55,
+    "mpregen": 10,
+    "mpregenperlevel": 0.4,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 49,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 1,
+    "attackspeed": 0.625
+   }
+  },
+  "Zed": {
+   "version": "16.17.1",
+   "id": "Zed",
+   "key": "238",
+   "name": "Zed",
+   "title": "the Master of Shadows",
+   "blurb": "Utterly ruthless and without mercy, Zed is the leader of the Order of Shadow, an organization he created with the intent of militarizing Ionia's magical and martial traditions to drive out Noxian invaders. During the war, desperation led him to unlock...",
+   "info": {
+    "attack": 9,
+    "defense": 2,
+    "magic": 1,
+    "difficulty": 7
+   },
+   "image": {
+    "full": "Zed.png",
+    "sprite": "champion5.png",
+    "group": "champion",
+    "x": 336,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Assassin"
+   ],
+   "partype": "Energy",
+   "stats": {
+    "hp": 654,
+    "hpperlevel": 99,
+    "mp": 200,
+    "mpperlevel": 0,
+    "movespeed": 345,
+    "armor": 32,
+    "armorperlevel": 4.7,
+    "spellblock": 29,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 7,
+    "hpregenperlevel": 0.65,
+    "mpregen": 50,
+    "mpregenperlevel": 0,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 63,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3.3,
+    "attackspeed": 0.651
+   }
+  },
+  "Ahri": {
+   "version": "16.17.1",
+   "id": "Ahri",
+   "key": "103",
+   "name": "Ahri",
+   "title": "the Nine-Tailed Fox",
+   "blurb": "Innately connected to the magic of the spirit realm, Ahri is a fox-like vastaya who can manipulate her prey's emotions and consume their essence\u2014receiving flashes of their memory and insight from each soul she consumes. Once a powerful yet wayward...",
+   "info": {
+    "attack": 3,
+    "defense": 4,
+    "magic": 8,
+    "difficulty": 5
+   },
+   "image": {
+    "full": "Ahri.png",
+    "sprite": "champion0.png",
+    "group": "champion",
+    "x": 48,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Mage",
+    "Assassin"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 590,
+    "hpperlevel": 104,
+    "mp": 418,
+    "mpperlevel": 25,
+    "movespeed": 330,
+    "armor": 21,
+    "armorperlevel": 4.2,
+    "spellblock": 30,
+    "spellblockperlevel": 1.3,
+    "attackrange": 550,
+    "hpregen": 2.5,
+    "hpregenperlevel": 0.6,
+    "mpregen": 8,
+    "mpregenperlevel": 0.8,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 53,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.2,
+    "attackspeed": 0.668
+   }
+  },
+  "Darius": {
+   "version": "16.17.1",
+   "id": "Darius",
+   "key": "122",
+   "name": "Darius",
+   "title": "the Hand of Noxus",
+   "blurb": "There is no greater symbol of Noxian might than Darius, the nation's most feared and battle-hardened commander. Rising from humble origins to become the Hand of Noxus, he cleaves through the empire's enemies\u2014many of them Noxians themselves. Knowing that...",
+   "info": {
+    "attack": 9,
+    "defense": 5,
+    "magic": 1,
+    "difficulty": 2
+   },
+   "image": {
+    "full": "Darius.png",
+    "sprite": "champion0.png",
+    "group": "champion",
+    "x": 240,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Fighter",
+    "Tank"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 652,
+    "hpperlevel": 114,
+    "mp": 263,
+    "mpperlevel": 58,
+    "movespeed": 340,
+    "armor": 37,
+    "armorperlevel": 5.2,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 175,
+    "hpregen": 10,
+    "hpregenperlevel": 0.95,
+    "mpregen": 6.6,
+    "mpregenperlevel": 0.35,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 64,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 1,
+    "attackspeed": 0.625
+   }
+  },
+  "LeeSin": {
+   "version": "16.17.1",
+   "id": "LeeSin",
+   "key": "64",
+   "name": "Lee Sin",
+   "title": "the Blind Monk",
+   "blurb": "A master of Ionia's ancient martial arts, Lee Sin is a principled fighter who channels the essence of the dragon spirit to face any challenge. Though he lost his sight many years ago, the warrior-monk has devoted his life to protecting his homeland...",
+   "info": {
+    "attack": 8,
+    "defense": 5,
+    "magic": 3,
+    "difficulty": 6
+   },
+   "image": {
+    "full": "LeeSin.png",
+    "sprite": "champion2.png",
+    "group": "champion",
+    "x": 0,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Fighter",
+    "Assassin"
+   ],
+   "partype": "Energy",
+   "stats": {
+    "hp": 645,
+    "hpperlevel": 108,
+    "mp": 200,
+    "mpperlevel": 0,
+    "movespeed": 345,
+    "armor": 36,
+    "armorperlevel": 4.5,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 7.5,
+    "hpregenperlevel": 0.7,
+    "mpregen": 50,
+    "mpregenperlevel": 0,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 66,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3,
+    "attackspeed": 0.651
+   }
+  },
+  "Aphelios": {
+   "version": "16.17.1",
+   "id": "Aphelios",
+   "key": "523",
+   "name": "Aphelios",
+   "title": "the Weapon of the Faithful",
+   "blurb": "Emerging from moonlight's shadow with weapons drawn, Aphelios kills the enemies of his faith in brooding silence\u2014speaking only through the certainty of his aim, and the firing of each gun. Though fueled by a poison that renders him mute, he is guided by...",
+   "info": {
+    "attack": 6,
+    "defense": 2,
+    "magic": 1,
+    "difficulty": 10
+   },
+   "image": {
+    "full": "Aphelios.png",
+    "sprite": "champion0.png",
+    "group": "champion",
+    "x": 432,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Marksman"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 600,
+    "hpperlevel": 102,
+    "mp": 348,
+    "mpperlevel": 42,
+    "movespeed": 325,
+    "armor": 26,
+    "armorperlevel": 4.2,
+    "spellblock": 33,
+    "spellblockperlevel": 1.1,
+    "attackrange": 550,
+    "hpregen": 3.25,
+    "hpregenperlevel": 0.55,
+    "mpregen": 6.5,
+    "mpregenperlevel": 0.4,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 55,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.1,
+    "attackspeed": 0.665
+   }
+  },
+  "Udyr": {
+   "version": "16.17.1",
+   "id": "Udyr",
+   "key": "77",
+   "name": "Udyr",
+   "title": "the Spirit Walker",
+   "blurb": "The most powerful spirit walker alive, Udyr communes with all the spirits of the Freljord, whether by empathically understanding their needs, or by channeling and transforming their ethereal energy into his own primal fighting style. He seeks balance...",
+   "info": {
+    "attack": 8,
+    "defense": 7,
+    "magic": 4,
+    "difficulty": 7
+   },
+   "image": {
+    "full": "Udyr.png",
+    "sprite": "champion4.png",
+    "group": "champion",
+    "x": 192,
+    "y": 96,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Fighter",
+    "Tank"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 664,
+    "hpperlevel": 92,
+    "mp": 271,
+    "mpperlevel": 50,
+    "movespeed": 350,
+    "armor": 31,
+    "armorperlevel": 4.7,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 6,
+    "hpregenperlevel": 0.75,
+    "mpregen": 7.5,
+    "mpregenperlevel": 0.45,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 62,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3,
+    "attackspeed": 0.65
+   }
+  },
+  "Akali": {
+   "version": "16.17.1",
+   "id": "Akali",
+   "key": "84",
+   "name": "Akali",
+   "title": "the Rogue Assassin",
+   "blurb": "Abandoning the Kinkou Order and her title of the Fist of Shadow, Akali now strikes alone, ready to be the deadly weapon her people need. Though she holds onto all she learned from her master Shen, she has pledged to defend Ionia from its enemies, one...",
+   "info": {
+    "attack": 5,
+    "defense": 3,
+    "magic": 8,
+    "difficulty": 7
+   },
+   "image": {
+    "full": "Akali.png",
+    "sprite": "champion0.png",
+    "group": "champion",
+    "x": 96,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Assassin"
+   ],
+   "partype": "Energy",
+   "stats": {
+    "hp": 600,
+    "hpperlevel": 119,
+    "mp": 200,
+    "mpperlevel": 0,
+    "movespeed": 345,
+    "armor": 23,
+    "armorperlevel": 4.7,
+    "spellblock": 37,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 9,
+    "hpregenperlevel": 0.9,
+    "mpregen": 50,
+    "mpregenperlevel": 0,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 62,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 3.2,
+    "attackspeed": 0.625
+   }
+  },
+  "Briar": {
+   "version": "16.17.1",
+   "id": "Briar",
+   "key": "233",
+   "name": "Briar",
+   "title": "the Restrained Hunger",
+   "blurb": "A failed experiment by the Black Rose, Briar's uncontrollable bloodlust required a special pillory to focus her frenzied mind. After years of confinement, this living weapon broke free from her restraints and unleashed herself into the world. Now she's...",
+   "info": {
+    "attack": 9,
+    "defense": 5,
+    "magic": 3,
+    "difficulty": 3
+   },
+   "image": {
+    "full": "Briar.png",
+    "sprite": "champion0.png",
+    "group": "champion",
+    "x": 432,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Fighter",
+    "Assassin"
+   ],
+   "partype": "Fury",
+   "stats": {
+    "hp": 625,
+    "hpperlevel": 95,
+    "mp": 0,
+    "mpperlevel": 0,
+    "movespeed": 340,
+    "armor": 30,
+    "armorperlevel": 4.5,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 0,
+    "hpregenperlevel": 0,
+    "mpregen": 0,
+    "mpregenperlevel": 0,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 60,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2,
+    "attackspeed": 0.644
+   }
+  },
+  "Irelia": {
+   "version": "16.17.1",
+   "id": "Irelia",
+   "key": "39",
+   "name": "Irelia",
+   "title": "the Blade Dancer",
+   "blurb": "The Noxian occupation of Ionia produced many heroes, none more unlikely than young Irelia of Navori. Trained in the ancient dances of her province, she adapted her art for war, using the graceful and carefully practised movements to levitate a host of...",
+   "info": {
+    "attack": 7,
+    "defense": 4,
+    "magic": 5,
+    "difficulty": 5
+   },
+   "image": {
+    "full": "Irelia.png",
+    "sprite": "champion1.png",
+    "group": "champion",
+    "x": 336,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Fighter",
+    "Assassin"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 630,
+    "hpperlevel": 115,
+    "mp": 350,
+    "mpperlevel": 50,
+    "movespeed": 335,
+    "armor": 36,
+    "armorperlevel": 4.7,
+    "spellblock": 30,
+    "spellblockperlevel": 2.05,
+    "attackrange": 200,
+    "hpregen": 3.5,
+    "hpregenperlevel": 0.85,
+    "mpregen": 8,
+    "mpregenperlevel": 0.8,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 65,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.5,
+    "attackspeed": 0.656
+   }
+  },
+  "Pyke": {
+   "version": "16.17.1",
+   "id": "Pyke",
+   "key": "555",
+   "name": "Pyke",
+   "title": "the Bloodharbor Ripper",
+   "blurb": "A renowned harpooner from the slaughter docks of Bilgewater, Pyke should have met his death in the belly of a gigantic jaull-fish\u2026 and yet, he returned. Now, stalking the dank alleys and backways of his former hometown, he uses his new supernatural...",
+   "info": {
+    "attack": 9,
+    "defense": 3,
+    "magic": 1,
+    "difficulty": 7
+   },
+   "image": {
+    "full": "Pyke.png",
+    "sprite": "champion3.png",
+    "group": "champion",
+    "x": 96,
+    "y": 48,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Support",
+    "Assassin"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 670,
+    "hpperlevel": 110,
+    "mp": 415,
+    "mpperlevel": 50,
+    "movespeed": 330,
+    "armor": 37,
+    "armorperlevel": 4.7,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 150,
+    "hpregen": 7,
+    "hpregenperlevel": 0.5,
+    "mpregen": 8,
+    "mpregenperlevel": 1,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 62,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 2.5,
+    "attackspeed": 0.667
+   }
+  },
+  "Singed": {
+   "version": "16.17.1",
+   "id": "Singed",
+   "key": "27",
+   "name": "Singed",
+   "title": "the Mad Chemist",
+   "blurb": "Singed is a brilliant alchemist of dubious morality, whose experiments would turn the stomach of even the most cutthroat criminal. Selling his skills to the highest bidder, he cares little for how his noxious concoctions are used, with the ensuing chaos...",
+   "info": {
+    "attack": 4,
+    "defense": 8,
+    "magic": 7,
+    "difficulty": 5
+   },
+   "image": {
+    "full": "Singed.png",
+    "sprite": "champion4.png",
+    "group": "champion",
+    "x": 144,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "tags": [
+    "Tank",
+    "Mage"
+   ],
+   "partype": "Mana",
+   "stats": {
+    "hp": 650,
+    "hpperlevel": 96,
+    "mp": 330,
+    "mpperlevel": 45,
+    "movespeed": 345,
+    "armor": 34,
+    "armorperlevel": 4.2,
+    "spellblock": 32,
+    "spellblockperlevel": 2.05,
+    "attackrange": 125,
+    "hpregen": 9.5,
+    "hpregenperlevel": 0.55,
+    "mpregen": 7.5,
+    "mpregenperlevel": 0.55,
+    "crit": 0,
+    "critperlevel": 0,
+    "attackdamage": 63,
+    "attackdamageperlevel": 0,
+    "attackspeedperlevel": 1.9,
+    "attackspeed": 0.7
+   }
   }
+ }
 }

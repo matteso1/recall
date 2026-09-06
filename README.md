@@ -39,8 +39,13 @@ See [design](docs/design.md), [product principles](PRODUCT.md), and
 
 Supported live modes are standard Summoner's Rift, Swiftplay, and Practice Tool.
 ARAM/Arena and unknown modes pause recommendations instead of reusing ranked builds.
-Missing champion/role data never falls back to another champion or role. A small
-sample is shown as weak evidence.
+Another champion's data is never substituted. When your champion has no data for
+your assigned role at this rank (Irelia in the jungle, for example), the same
+champion's most-played role is used as a clearly labelled starting point: the
+panel, the Swiftplay lobby view and the shop's item set all say which role's build
+it is, and your real role still decides spells (Smite for the jungle), starters
+(a jungle companion, the support quest) and what is legal to buy. A small sample
+is shown as weak evidence.
 
 Generic skill-point guidance is deliberately disabled for Aphelios, Udyr, Jayce,
 Elise, Nidalee, and Karma until their nonstandard leveling is modeled. Their
@@ -56,8 +61,10 @@ before queueing. Loadouts are saved to the two choices, not to a shared active r
 page. Picks, roles, skins, Flash keys, and subsequent manual rune/spell edits are
 preserved. Preparation pauses when queueing starts; launching after assignment
 cannot repair missed pre-game imports. The live panel follows the actual assigned
-champion and adapts after enemies become visible. The shop may not reload an item
-set already cached at game start. Only queue 480's pre-queue API is verified.
+champion and role and adapts after enemies become visible. Swiftplay starts every
+champion at level 3 with 1400 gold, disables Doran's items and sells Guardian's items;
+the planner knows that mode. The shop may not reload an item set already cached at
+game start. Only queue 480's pre-queue API is verified.
 
 ## Build and run
 
@@ -65,14 +72,15 @@ The Rust core runs in WSL/Linux. The actual overlay runs on Windows with the
 Windows Rust/MSVC toolchain, VS C++ Build Tools, and WebView2.
 
 ```bash
-scripts/cargo-win.sh build --locked --release -p featherstorm
-scripts/overlay-run.sh
+scripts/overlay-build.sh       # mirrors the sources, builds at below-normal priority, prints the exe path and SHA-256
+scripts/overlay-run.sh         # launches that exe (a running instance is replaced first)
+scripts/overlay-probe.sh --champion Irelia --role jungle --swiftplay   # headless check of the built exe; no client or game
 ```
 
-Do not replace the executable while an overlay/game session is running. For a
-separate candidate build, pass an absolute Windows directory beneath the mirror's
-excluded `overlay/target/` to Cargo's `--target-dir`. Set `FEATHERSTORM_NICE=1`
-to run the Windows build at below-normal priority.
+There is exactly one executable, and every script uses it:
+`C:\Users\<you>\code\featherstorm-win\overlay\target\swiftplay\release\featherstorm.exe`.
+The build refuses to run while that executable is running, because Cargo cannot
+replace a running program. Do not rebuild during a game.
 
 The panel is draggable/collapsible. Auto-import switches, source region/tier, and
 saved position live in `%LOCALAPPDATA%\Featherstorm\settings.json`.

@@ -22,7 +22,7 @@ const MAX_DATA_BYTES: u64 = 32 * 1024 * 1024;
 const HELP: &str = "Featherstorm offline replay (stdout only, no network)
 
 replay --session PATH --items PATH --champions PATH --aggregate PATH
-       [--runes PATH] [--champion NAME] [--role ROLE] [--json]
+       [--runes PATH] [--champion NAME] [--role ROLE] [--aggregate-role ROLE] [--json]
 replay --fixtures [--items PATH] [--champions PATH] [--runes PATH]
        [--champion NAME] [--role ROLE] [--json]
 
@@ -30,6 +30,9 @@ replay --fixtures [--items PATH] [--champions PATH] [--runes PATH]
 Captures are ordered by gameTime within each parent directory. Directory groups
 are not verified match boundaries; repeated snapshots are not independent games.
 --champion/--role filter known identities/roles; they never replace observed ones.
+--aggregate-role names the role a raw --aggregate file was fetched for (a cache
+record carries it in its request URL). When --role differs from it, the plans use
+the labelled same-champion fallback exactly as the overlay does.
 --fixtures uses eight real aggregate fixtures with one pregame plan and two
 clearly labelled synthetic visible-state scenarios per champion. No outcomes
 are simulated. Item/champion defaults are repository fixture files.
@@ -52,6 +55,8 @@ struct Options {
     runes: Option<PathBuf>,
     champion: Option<String>,
     role: Option<Position>,
+    /// The role a raw --aggregate file was fetched for, when the file does not carry its request URL.
+    aggregate_role: Option<Position>,
     json: bool,
     help: bool,
 }
@@ -70,7 +75,7 @@ fn parse_args(args: &[String]) -> Result<Options> {
             "--json" => options.json = true,
             "--help" | "-h" => options.help = true,
             "--session" | "--items" | "--champions" | "--aggregate" | "--runes" | "--champion"
-            | "--role" => {
+            | "--role" | "--aggregate-role" => {
                 index += 1;
                 let value = args
                     .get(index)
@@ -87,6 +92,12 @@ fn parse_args(args: &[String]) -> Result<Options> {
                         options.role = Some(
                             Position::parse(value)
                                 .ok_or_else(|| anyhow!("unknown role {value}"))?,
+                        )
+                    }
+                    "--aggregate-role" => {
+                        options.aggregate_role = Some(
+                            Position::parse(value)
+                                .ok_or_else(|| anyhow!("unknown aggregate role {value}"))?,
                         )
                     }
                     _ => unreachable!(),
@@ -240,12 +251,16 @@ fn read_json(path: &Path) -> Result<Value> {
         .with_context(|| format!("invalid JSON in {}", path.display()))
 }
 
-fn load_aggregate(path: &Path, requested_role: Option<Position>) -> Result<Aggregate> {
+fn load_aggregate(
+    path: &Path,
+    requested_role: Option<Position>,
+    declared_role: Option<Position>,
+) -> Result<Aggregate> {
     let raw = read_json(path)?;
     let value = raw.get("payload").unwrap_or(&raw);
     if value.get("champion_key").is_some() {
         let decoded: Aggregate = serde_json::from_value(value.clone())?;
-        if requested_role.is_some_and(|role| role != decoded.position) {
+        if requested_role.is_some_and(|role| role != engine::actual_position(&decoded)) {
             bail!("aggregate does not cover the requested role");
         }
         return Ok(decoded);
@@ -256,10 +271,36 @@ fn load_aggregate(path: &Path, requested_role: Option<Position>) -> Result<Aggre
         .and_then(|key| u32::try_from(key).ok())
         .ok_or_else(|| anyhow!("aggregate has no champion identity"))?;
     let positions = aggregate::decode_positions(&data["summary"]);
-    let role = aggregate::choose_position(requested_role, &positions)
-        .ok_or_else(|| anyhow!("aggregate has no games for the requested role"))?;
+    // A raw response never says which role it was fetched for; only a cache record's request
+    // URL does. Without that, the requested role must be one the file can stand for.
+    let file_role = raw
+        .get("source_url")
+        .and_then(Value::as_str)
+        .and_then(|url| {
+            let path = url.split('?').next().unwrap_or(url);
+            path.rsplit('/').next().and_then(Position::parse)
+        })
+        .or(declared_role)
+        .filter(|role| positions.iter().any(|p| p.position == *role && p.games > 0));
+    let exact = aggregate::choose_position(requested_role, &positions);
+    let (role, fallback) = match (file_role, exact, requested_role) {
+        (Some(file), _, Some(requested)) if file != requested => {
+            if exact.is_some() {
+                bail!("this file holds {} data, not the requested {} role", file.label(), requested.label());
+            }
+            // Same-champion fallback: the assigned role is kept separately from the data's role.
+            (file, true)
+        }
+        (Some(file), _, _) => (file, false),
+        (None, Some(role), _) => (role, false),
+        (None, None, _) => bail!("aggregate has no games for the requested role"),
+    };
     // Raw responses omit the request population. Do not relabel an arbitrary file global/emerald+.
-    aggregate::decode(value, key, role, "unknown", "unknown")
+    let mut decoded = aggregate::decode(value, key, role, "unknown", "unknown")?;
+    if fallback {
+        decoded.requested_position = requested_role;
+    }
+    Ok(decoded)
 }
 
 struct ReplayCase {
@@ -413,7 +454,7 @@ fn fixture_cases(
             continue;
         }
         let path = directory.join(filename);
-        let aggregate_index = match load_aggregate(&path, Some(role)) {
+        let aggregate_index = match load_aggregate(&path, Some(role), None) {
             Ok(a) if a.champion_key == key => {
                 aggregates.push(a);
                 Some(aggregates.len() - 1)
@@ -562,12 +603,15 @@ fn validate_plan(plan: &Plan, cat: &Catalog, snapshot: Option<&LiveSnapshot>) ->
         && !inventory
             .iter()
             .any(|item| item.count > 0 && cat.item(item.id).is_some_and(|item| item.effects.boots));
+    let swiftplay = snapshot
+        .is_some_and(|snapshot| engine::GameMode::parse(&snapshot.mode) == engine::GameMode::Swiftplay);
     let context = shop::ShopContext {
         champion: me.map(|me| me.player.champion.as_str()),
         spell_ids: me
             .filter(|me| !me.spell_ids.is_empty())
             .map(|me| me.spell_ids.as_slice()),
         boots_locked,
+        swiftplay,
     };
     // A future boot upgrade can be legal even before Magical Footwear arrives.
     // Only pregame planning may use the proposed spell page for compatibility.
@@ -579,6 +623,7 @@ fn validate_plan(plan: &Plan, cat: &Catalog, snapshot: Option<&LiveSnapshot>) ->
             .spell_ids
             .or_else(|| snapshot.is_none().then_some(plan.spell_ids.as_slice())),
         boots_locked: false,
+        swiftplay,
     };
     let immutable: Vec<_> = inventory
         .iter()
@@ -909,6 +954,7 @@ fn run(options: &Options) -> Result<Value> {
                 .as_deref()
                 .expect("validated aggregate path"),
             options.role,
+            options.aggregate_role,
         ) {
             Ok(a) => aggregates.push(a),
             Err(error) => warnings.push(format!(
@@ -983,8 +1029,7 @@ fn run(options: &Options) -> Result<Value> {
             .and_then(|m| Position::parse(&m.player.position));
         let aggregate_available = aggregate.is_some_and(|a| {
             cat.champion_key(&case.champion) == Some(a.champion_key)
-                && observed_role.is_none_or(|role| role == a.position)
-                && a.requested_position.is_none_or(|role| role == a.position)
+                && observed_role.is_none_or(|role| role == engine::actual_position(a))
         });
         records.push(CaseResult {
             source: case.source,
@@ -1222,7 +1267,7 @@ mod tests {
             ..Default::default()
         }];
         Plan {
-            next: engine::next_item(cat, None, &path, snapshot.me.as_ref(), false),
+            next: engine::next_item(cat, None, &path, snapshot.me.as_ref(), false, false),
             path,
             ..Default::default()
         }
@@ -1260,6 +1305,7 @@ mod tests {
             args(&["--fixtures", "--network"]),
             args(&["--session"]),
             args(&["--fixtures", "--role", "river"]),
+            args(&["--fixtures", "--aggregate-role", "river"]),
             args(&[
                 "--fixtures",
                 "--items",

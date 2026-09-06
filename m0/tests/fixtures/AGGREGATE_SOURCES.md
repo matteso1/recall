@@ -13,6 +13,16 @@ The source reports patch **16.17**. Local retrieval time is in UTC. The provider
 | [opgg_leesin_jungle.json](opgg_leesin_jungle.json) | leesin (64) / jungle | 2026-09-06T04:17:17.579Z | [op.gg response](https://lol-api-champion.op.gg/api/global/champions/ranked/64/jungle?tier=emerald_plus) |
 | [opgg_aphelios_adc.json](opgg_aphelios_adc.json) | aphelios (523) / adc | 2026-09-06T04:17:17.705Z | [op.gg response](https://lol-api-champion.op.gg/api/global/champions/ranked/523/adc?tier=emerald_plus) |
 | [opgg_udyr_jungle.json](opgg_udyr_jungle.json) | udyr (77) / jungle | 2026-09-06T04:17:17.728Z | [op.gg response](https://lol-api-champion.op.gg/api/global/champions/ranked/77/jungle?tier=emerald_plus) |
+| [opgg_irelia_mid.json](opgg_irelia_mid.json) | irelia (39) / mid | 2026-09-06T05:30:58.290Z | [op.gg response](https://lol-api-champion.op.gg/api/global/champions/ranked/39/mid?tier=emerald_plus) |
+
+`opgg_irelia_mid.json` is the payload of the overlay's own cache record from the recorded Swiftplay
+failure (the file the app had when Irelia was assigned Jungle). Its `summary.positions` lists only TOP
+and MID: there is no Irelia Jungle sample at this rank, which is what the role-fallback tests exercise.
+The record's request URL names the role; the raw fixture does not, so replays pass `--aggregate-role mid`.
+
+`swiftplay_irelia_jungle_0120.json` is one Live Client `allgamedata` snapshot from that game at 1:20
+(mode SWIFTPLAY, level 3, Mosstomper Seedling, Flash + Smite). Player names, Riot IDs and tag lines were
+replaced with `PlayerN#TEST`; champions, positions, items, gold, runes, scores and events are unchanged.
 
 The existing `opgg_xayah_adc.json` fixture predates this acquisition. Its original population and retrieval time are not reconstructed here; its source patch and provider timestamp remain in the JSON. Its popular core sample is 882 wins / 1,542 games; the alternate order has 384 wins / 639 games. Their 95% Wilson intervals overlap, and the independent-binomial Newcombe interval for the alternate-minus-popular observed rate is about −1.66 to +7.37 percentage points.
 

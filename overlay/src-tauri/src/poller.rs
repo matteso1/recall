@@ -146,9 +146,14 @@ fn aggregate_for(
                         return;
                     }
                     log::info!(
-                        "aggregate: champion {} as {} ({}, patch {})",
+                        "aggregate: champion {} as {}{} ({}, patch {})",
                         key.champion_key,
                         value.position.label(),
+                        value
+                            .requested_position
+                            .filter(|role| *role != value.position)
+                            .map(|role| format!(" [fallback for a {} assignment]", role.label()))
+                            .unwrap_or_default(),
                         value.describe(),
                         value.patch
                     );
@@ -253,10 +258,26 @@ fn drop_client(app: &AppHandle, st: &App) {
     });
 }
 
-fn no_data_message(champion: &str, error: Option<&str>) -> String {
+/// Distinct, honest states while no purchasable path exists: the planner has data but no legal
+/// path (its own note explains), the source is still loading, the source failed (retried on its
+/// own), or the champion has no data in any role at this rank.
+fn no_data_message(
+    champion: &str,
+    error: Option<&str>,
+    has_aggregate: bool,
+    note: Option<&str>,
+) -> String {
+    if has_aggregate {
+        return note.map(str::to_string).unwrap_or_else(|| {
+            format!("No compatible build items for {champion} in this patch's catalog")
+        });
+    }
     match error {
-        Some(e) => format!("No build data for {champion} yet ({e})"),
-        None => format!("No build data for {champion} yet"),
+        Some(e) if e.contains("no aggregate games") => {
+            format!("No build data for {champion} in any role at this rank yet")
+        }
+        Some(e) => format!("Build data for {champion} is unavailable ({e}); retrying automatically"),
+        None => format!("Loading {champion}'s build data…"),
     }
 }
 
@@ -908,10 +929,12 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                 }
                 p.message = match &champion {
                     None => Some("Pick a champion".into()),
-                    Some(name) if !supported => plan
-                        .note
-                        .clone()
-                        .or_else(|| Some(no_data_message(name, agg_error.as_deref()))),
+                    Some(name) if !supported => Some(no_data_message(
+                        name,
+                        agg_error.as_deref(),
+                        agg.is_some(),
+                        plan.note.as_deref(),
+                    )),
                     _ => None,
                 };
             });
@@ -1128,9 +1151,12 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                                 p.message = if supported {
                                     None
                                 } else {
-                                    plan.note.clone().or_else(|| {
-                                        Some(no_data_message(&champion, agg_error.as_deref()))
-                                    })
+                                    Some(no_data_message(
+                                        &champion,
+                                        agg_error.as_deref(),
+                                        agg.is_some(),
+                                        plan.note.as_deref(),
+                                    ))
                                 };
                             });
                         }

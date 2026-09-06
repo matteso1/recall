@@ -1,0 +1,1067 @@
+{
+ "activePlayer": {
+  "abilities": {
+   "E": {
+    "abilityLevel": 1,
+    "displayName": "Flawless Duet",
+    "id": "IreliaE",
+    "rawDescription": "GeneratedTip_Spell_IreliaE_Description",
+    "rawDisplayName": "GeneratedTip_Spell_IreliaE_DisplayName"
+   },
+   "Passive": {
+    "displayName": "Ionian Fervor",
+    "id": "IreliaPassive",
+    "rawDescription": "GeneratedTip_Passive_IreliaPassive_Description",
+    "rawDisplayName": "GeneratedTip_Passive_IreliaPassive_DisplayName"
+   },
+   "Q": {
+    "abilityLevel": 1,
+    "displayName": "Bladesurge",
+    "id": "IreliaQ",
+    "rawDescription": "GeneratedTip_Spell_IreliaQ_Description",
+    "rawDisplayName": "GeneratedTip_Spell_IreliaQ_DisplayName"
+   },
+   "R": {
+    "abilityLevel": 0,
+    "displayName": "Vanguard's Edge",
+    "id": "IreliaR",
+    "rawDescription": "GeneratedTip_Spell_IreliaR_Description",
+    "rawDisplayName": "GeneratedTip_Spell_IreliaR_DisplayName"
+   },
+   "W": {
+    "abilityLevel": 1,
+    "displayName": "Defiant Dance",
+    "id": "IreliaW",
+    "rawDescription": "GeneratedTip_Spell_IreliaW_Description",
+    "rawDisplayName": "GeneratedTip_Spell_IreliaW_DisplayName"
+   }
+  },
+  "championStats": {
+   "abilityHaste": 0.0,
+   "abilityPower": 0.0,
+   "armor": 42.932498931884766,
+   "armorPenetrationFlat": 0.0,
+   "armorPenetrationPercent": 1.0,
+   "attackDamage": 75.5625,
+   "attackRange": 200.0,
+   "attackSpeed": 0.765470027923584,
+   "bonusArmorPenetrationPercent": 1.0,
+   "bonusMagicPenetrationPercent": 1.0,
+   "critChance": 0.0,
+   "critDamage": 200.0,
+   "currentHealth": 829.625,
+   "healShieldPower": 0.0,
+   "healthRegenRate": 0.9507499933242798,
+   "lifeSteal": 0.0,
+   "magicLethality": 0.0,
+   "magicPenetrationFlat": 0.0,
+   "magicPenetrationPercent": 1.0,
+   "magicResist": 33.02375030517578,
+   "maxHealth": 829.625,
+   "moveSpeed": 335.0,
+   "omnivamp": 0.0,
+   "physicalLethality": 0.0,
+   "physicalVamp": 0.0,
+   "resourceMax": 423.75,
+   "resourceRegenRate": 1.8359999656677246,
+   "resourceType": "MANA",
+   "resourceValue": 423.75,
+   "spellVamp": 0.0,
+   "tenacity": 5.0
+  },
+  "currentGold": 982.7461547851562,
+  "fullRunes": {
+   "generalRunes": [
+    {
+     "displayName": "Conqueror",
+     "id": 8010,
+     "rawDescription": "perk_tooltip_Conqueror",
+     "rawDisplayName": "perk_displayname_Conqueror"
+    },
+    {
+     "displayName": "Triumph",
+     "id": 9111,
+     "rawDescription": "perk_tooltip_9111",
+     "rawDisplayName": "perk_displayname_9111"
+    },
+    {
+     "displayName": "Legend: Alacrity",
+     "id": 9104,
+     "rawDescription": "perk_tooltip_9104",
+     "rawDisplayName": "perk_displayname_9104"
+    },
+    {
+     "displayName": "Last Stand",
+     "id": 8299,
+     "rawDescription": "perk_tooltip_8234",
+     "rawDisplayName": "perk_displayname_8234"
+    },
+    {
+     "displayName": "Unflinching",
+     "id": 8242,
+     "rawDescription": "perk_tooltip_Unflinching",
+     "rawDisplayName": "perk_displayname_Unflinching"
+    },
+    {
+     "displayName": "Bone Plating",
+     "id": 8473,
+     "rawDescription": "perk_tooltip_BonePlatingTooltip",
+     "rawDisplayName": "perk_displayname_BonePlating"
+    }
+   ],
+   "keystone": {
+    "displayName": "Conqueror",
+    "id": 8010,
+    "rawDescription": "perk_tooltip_Conqueror",
+    "rawDisplayName": "perk_displayname_Conqueror"
+   },
+   "primaryRuneTree": {
+    "displayName": "Precision",
+    "id": 8000,
+    "rawDescription": "perkstyle_tooltip_7201",
+    "rawDisplayName": "perkstyle_displayname_7201"
+   },
+   "secondaryRuneTree": {
+    "displayName": "Resolve",
+    "id": 8400,
+    "rawDescription": "perkstyle_tooltip_7204",
+    "rawDisplayName": "perkstyle_displayname_7204"
+   },
+   "statRunes": [
+    {
+     "id": 5005,
+     "rawDescription": "perk_tooltip_StatModAttackSpeed"
+    },
+    {
+     "id": 5008,
+     "rawDescription": "perk_tooltip_StatModAdaptive"
+    },
+    {
+     "id": 5001,
+     "rawDescription": "perk_tooltip_StatModHealthScaling"
+    }
+   ]
+  },
+  "level": 3,
+  "riotId": "Player7#TEST",
+  "riotIdGameName": "Player7",
+  "riotIdTagLine": "TEST",
+  "summonerName": "Player7",
+  "teamRelativeColors": true
+ },
+ "allPlayers": [
+  {
+   "championName": "Akali",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Hextech Alternator",
+     "itemID": 3145,
+     "price": 300,
+     "rawDescription": "GeneratedTip_Item_3145_Description",
+     "rawDisplayName": "Item_3145_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "TOP",
+   "rawChampionName": "game_character_displayname_Akali",
+   "rawSkinName": "game_character_displayname_Akali",
+   "respawnTimer": 0.0,
+   "riotId": "Player1#TEST",
+   "riotIdGameName": "Player1",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Electrocute",
+     "id": 8112,
+     "rawDescription": "perk_tooltip_Electrocute",
+     "rawDisplayName": "perk_displayname_Electrocute"
+    },
+    "primaryRuneTree": {
+     "displayName": "Domination",
+     "id": 8100,
+     "rawDescription": "perkstyle_tooltip_7200",
+     "rawDisplayName": "perkstyle_displayname_7200"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Sorcery",
+     "id": 8200,
+     "rawDescription": "perkstyle_tooltip_7202",
+     "rawDisplayName": "perkstyle_displayname_7202"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Akali",
+   "summonerName": "Player1",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Teleport",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerTeleport_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerTeleport_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerHeal_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerHeal_DisplayName"
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Singed",
+   "isBot": false,
+   "isDead": false,
+   "items": [],
+   "level": 3,
+   "position": "JUNGLE",
+   "rawChampionName": "game_character_displayname_Singed",
+   "rawSkinName": "game_character_skin_displayname_Singed_28",
+   "respawnTimer": 0.0,
+   "riotId": "Player2#TEST",
+   "riotIdGameName": "Player2",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Grasp of the Undying",
+     "id": 8437,
+     "rawDescription": "perk_tooltip_GraspOfTheUndying",
+     "rawDisplayName": "perk_displayname_GraspOfTheUndying"
+    },
+    "primaryRuneTree": {
+     "displayName": "Resolve",
+     "id": 8400,
+     "rawDescription": "perkstyle_tooltip_7204",
+     "rawDisplayName": "perkstyle_displayname_7204"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Sorcery",
+     "id": 8200,
+     "rawDescription": "perkstyle_tooltip_7202",
+     "rawDisplayName": "perkstyle_displayname_7202"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 28,
+   "skinName": "Arcane Shimmer Lab Singed",
+   "summonerName": "Player2",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Ghost",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerHaste_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerHaste_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Smite",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerSmite_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerSmite_DisplayName"
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Locke",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Sheen",
+     "itemID": 3057,
+     "price": 650,
+     "rawDescription": "GeneratedTip_Item_3057_Description",
+     "rawDisplayName": "Item_3057_Name",
+     "slot": 0
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Dark Seal",
+     "itemID": 1082,
+     "price": 350,
+     "rawDescription": "GeneratedTip_Item_1082_Description",
+     "rawDisplayName": "Item_1082_Name",
+     "slot": 1
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Refillable Potion",
+     "itemID": 2031,
+     "price": 150,
+     "rawDescription": "GeneratedTip_Item_2031_Description",
+     "rawDisplayName": "Item_2031_Name",
+     "slot": 2
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "MIDDLE",
+   "rawChampionName": "game_character_displayname_Locke",
+   "rawSkinName": "game_character_displayname_Locke",
+   "respawnTimer": 0.0,
+   "riotId": "Player3#TEST",
+   "riotIdGameName": "Player3",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Electrocute",
+     "id": 8112,
+     "rawDescription": "perk_tooltip_Electrocute",
+     "rawDisplayName": "perk_displayname_Electrocute"
+    },
+    "primaryRuneTree": {
+     "displayName": "Domination",
+     "id": 8100,
+     "rawDescription": "perkstyle_tooltip_7200",
+     "rawDisplayName": "perkstyle_displayname_7200"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Resolve",
+     "id": 8400,
+     "rawDescription": "perkstyle_tooltip_7204",
+     "rawDisplayName": "perkstyle_displayname_7204"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Locke",
+   "summonerName": "Player3",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Teleport",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerTeleport_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerTeleport_DisplayName"
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Aphelios",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Serrated Dirk",
+     "itemID": 3134,
+     "price": 300,
+     "rawDescription": "GeneratedTip_Item_3134_Description",
+     "rawDisplayName": "Item_3134_Name",
+     "slot": 0
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Boots",
+     "itemID": 1001,
+     "price": 300,
+     "rawDescription": "GeneratedTip_Item_1001_Description",
+     "rawDisplayName": "Item_1001_Name",
+     "slot": 1
+    },
+    {
+     "canUse": true,
+     "consumable": true,
+     "count": 2,
+     "displayName": "Health Potion",
+     "itemID": 2003,
+     "price": 50,
+     "rawDescription": "GeneratedTip_Item_2003_Description",
+     "rawDisplayName": "Item_2003_Name",
+     "slot": 2
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "BOTTOM",
+   "rawChampionName": "game_character_displayname_Aphelios",
+   "rawSkinName": "game_character_skin_displayname_Aphelios_9",
+   "respawnTimer": 0.0,
+   "riotId": "Player4#TEST",
+   "riotIdGameName": "Player4",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Press the Attack",
+     "id": 8005,
+     "rawDescription": "perk_tooltip_PressTheAttack",
+     "rawDisplayName": "perk_displayname_PressTheAttack"
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "perkstyle_tooltip_7201",
+     "rawDisplayName": "perkstyle_displayname_7201"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Sorcery",
+     "id": 8200,
+     "rawDescription": "perkstyle_tooltip_7202",
+     "rawDisplayName": "perkstyle_displayname_7202"
+    }
+   },
+   "scores": {
+    "assists": 1,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 9,
+   "skinName": "Lunar Beast Aphelios",
+   "summonerName": "Player4",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Barrier",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerBarrier_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerBarrier_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Pyke",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "World Atlas",
+     "itemID": 3865,
+     "price": 400,
+     "rawDescription": "GeneratedTip_Item_3865_Description",
+     "rawDisplayName": "Item_3865_Name",
+     "slot": 0
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Boots of Swiftness",
+     "itemID": 3009,
+     "price": 700,
+     "rawDescription": "GeneratedTip_Item_3009_Description",
+     "rawDisplayName": "Item_3009_Name",
+     "slot": 1
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Oracle Lens",
+     "itemID": 3364,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3364_Description",
+     "rawDisplayName": "Item_3364_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "UTILITY",
+   "rawChampionName": "game_character_displayname_Pyke",
+   "rawSkinName": "game_character_skin_displayname_Pyke_25",
+   "respawnTimer": 0.0,
+   "riotId": "Player5#TEST",
+   "riotIdGameName": "Player5",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Hail of Blades",
+     "id": 9923,
+     "rawDescription": "perk_tooltip_HailOfBlades",
+     "rawDisplayName": "perk_displayname_HailOfBlades"
+    },
+    "primaryRuneTree": {
+     "displayName": "Domination",
+     "id": 8100,
+     "rawDescription": "perkstyle_tooltip_7200",
+     "rawDisplayName": "perkstyle_displayname_7200"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Sorcery",
+     "id": 8200,
+     "rawDescription": "perkstyle_tooltip_7202",
+     "rawDisplayName": "perkstyle_displayname_7202"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 1,
+    "wardScore": 0.5
+   },
+   "skinID": 25,
+   "skinName": "PsyOps Pyke",
+   "summonerName": "Player5",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Exhaust",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerExhaust_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerExhaust_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    }
+   },
+   "team": "ORDER"
+  },
+  {
+   "championName": "Malphite",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Plated Steelcaps",
+     "itemID": 3047,
+     "price": 600,
+     "rawDescription": "GeneratedTip_Item_3047_Description",
+     "rawDisplayName": "Item_3047_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Refillable Potion",
+     "itemID": 2031,
+     "price": 150,
+     "rawDescription": "GeneratedTip_Item_2031_Description",
+     "rawDisplayName": "Item_2031_Name",
+     "slot": 1
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "TOP",
+   "rawChampionName": "game_character_displayname_Malphite",
+   "rawSkinName": "game_character_displayname_Malphite",
+   "respawnTimer": 0.0,
+   "riotId": "Player6#TEST",
+   "riotIdGameName": "Player6",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Grasp of the Undying",
+     "id": 8437,
+     "rawDescription": "perk_tooltip_GraspOfTheUndying",
+     "rawDisplayName": "perk_displayname_GraspOfTheUndying"
+    },
+    "primaryRuneTree": {
+     "displayName": "Resolve",
+     "id": 8400,
+     "rawDescription": "perkstyle_tooltip_7204",
+     "rawDisplayName": "perkstyle_displayname_7204"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Sorcery",
+     "id": 8200,
+     "rawDescription": "perkstyle_tooltip_7202",
+     "rawDisplayName": "perkstyle_displayname_7202"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Malphite",
+   "summonerName": "Player6",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Ignite",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerDot_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerDot_DisplayName"
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Irelia",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Mosstomper Seedling",
+     "itemID": 1103,
+     "price": 450,
+     "rawDescription": "GeneratedTip_Item_1103_Description",
+     "rawDisplayName": "Item_1103_Name",
+     "slot": 0
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "JUNGLE",
+   "rawChampionName": "game_character_displayname_Irelia",
+   "rawSkinName": "game_character_displayname_Irelia",
+   "respawnTimer": 0.0,
+   "riotId": "Player7#TEST",
+   "riotIdGameName": "Player7",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Conqueror",
+     "id": 8010,
+     "rawDescription": "perk_tooltip_Conqueror",
+     "rawDisplayName": "perk_displayname_Conqueror"
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "perkstyle_tooltip_7201",
+     "rawDisplayName": "perkstyle_displayname_7201"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Resolve",
+     "id": 8400,
+     "rawDescription": "perkstyle_tooltip_7204",
+     "rawDisplayName": "perkstyle_displayname_7204"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Irelia",
+   "summonerName": "Player7",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Smite",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerSmite_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerSmite_DisplayName"
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Ahri",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Sorcerer's Shoes",
+     "itemID": 3020,
+     "price": 800,
+     "rawDescription": "GeneratedTip_Item_3020_Description",
+     "rawDisplayName": "Item_3020_Name",
+     "slot": 0
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Sapphire Crystal",
+     "itemID": 1027,
+     "price": 300,
+     "rawDescription": "GeneratedTip_Item_1027_Description",
+     "rawDisplayName": "Item_1027_Name",
+     "slot": 1
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "MIDDLE",
+   "rawChampionName": "game_character_displayname_Ahri",
+   "rawSkinName": "game_character_skin_displayname_Ahri_92",
+   "respawnTimer": 0.0,
+   "riotId": "Player8#TEST",
+   "riotIdGameName": "Player8",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Electrocute",
+     "id": 8112,
+     "rawDescription": "perk_tooltip_Electrocute",
+     "rawDisplayName": "perk_displayname_Electrocute"
+    },
+    "primaryRuneTree": {
+     "displayName": "Domination",
+     "id": 8100,
+     "rawDescription": "perkstyle_tooltip_7200",
+     "rawDisplayName": "perkstyle_displayname_7200"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Sorcery",
+     "id": 8200,
+     "rawDescription": "perkstyle_tooltip_7202",
+     "rawDisplayName": "perkstyle_displayname_7202"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 92,
+   "skinName": "Spirit Blossom Springs Ahri (Catseye)",
+   "summonerName": "Player8",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Ignite",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerDot_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerDot_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Briar",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Cloak of Agility",
+     "itemID": 1018,
+     "price": 600,
+     "rawDescription": "GeneratedTip_Item_1018_Description",
+     "rawDisplayName": "Item_1018_Name",
+     "slot": 0
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Crystalline Bracer",
+     "itemID": 3801,
+     "price": 100,
+     "rawDescription": "GeneratedTip_Item_3801_Description",
+     "rawDisplayName": "Item_3801_Name",
+     "slot": 1
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "BOTTOM",
+   "rawChampionName": "game_character_displayname_Briar",
+   "rawSkinName": "game_character_skin_displayname_Briar_10",
+   "respawnTimer": 0.0,
+   "riotId": "Player9#TEST",
+   "riotIdGameName": "Player9",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Press the Attack",
+     "id": 8005,
+     "rawDescription": "perk_tooltip_PressTheAttack",
+     "rawDisplayName": "perk_displayname_PressTheAttack"
+    },
+    "primaryRuneTree": {
+     "displayName": "Precision",
+     "id": 8000,
+     "rawDescription": "perkstyle_tooltip_7201",
+     "rawDisplayName": "perkstyle_displayname_7201"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "perkstyle_tooltip_7203",
+     "rawDisplayName": "perkstyle_displayname_7203"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 1,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 10,
+   "skinName": "Primordian Briar",
+   "summonerName": "Player9",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerHeal_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerHeal_DisplayName"
+    }
+   },
+   "team": "CHAOS"
+  },
+  {
+   "championName": "Rakan",
+   "isBot": false,
+   "isDead": false,
+   "items": [
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "World Atlas",
+     "itemID": 3865,
+     "price": 400,
+     "rawDescription": "GeneratedTip_Item_3865_Description",
+     "rawDisplayName": "Item_3865_Name",
+     "slot": 0
+    },
+    {
+     "canUse": false,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Ionian Boots of Lucidity",
+     "itemID": 3158,
+     "price": 350,
+     "rawDescription": "GeneratedTip_Item_3158_Description",
+     "rawDisplayName": "Item_3158_Name",
+     "slot": 1
+    },
+    {
+     "canUse": true,
+     "consumable": false,
+     "count": 1,
+     "displayName": "Stealth Ward",
+     "itemID": 3340,
+     "price": 0,
+     "rawDescription": "GeneratedTip_Item_3340_Description",
+     "rawDisplayName": "Item_3340_Name",
+     "slot": 6
+    }
+   ],
+   "level": 3,
+   "position": "UTILITY",
+   "rawChampionName": "game_character_displayname_Rakan",
+   "rawSkinName": "game_character_displayname_Rakan",
+   "respawnTimer": 0.0,
+   "riotId": "Player10#TEST",
+   "riotIdGameName": "Player10",
+   "riotIdTagLine": "TEST",
+   "runes": {
+    "keystone": {
+     "displayName": "Glacial Augment",
+     "id": 8351,
+     "rawDescription": "perk_tooltip_GlacialAugment",
+     "rawDisplayName": "perk_displayname_GlacialAugment"
+    },
+    "primaryRuneTree": {
+     "displayName": "Inspiration",
+     "id": 8300,
+     "rawDescription": "perkstyle_tooltip_7203",
+     "rawDisplayName": "perkstyle_displayname_7203"
+    },
+    "secondaryRuneTree": {
+     "displayName": "Domination",
+     "id": 8100,
+     "rawDescription": "perkstyle_tooltip_7200",
+     "rawDisplayName": "perkstyle_displayname_7200"
+    }
+   },
+   "scores": {
+    "assists": 0,
+    "creepScore": 0,
+    "deaths": 0,
+    "kills": 0,
+    "wardScore": 0.0
+   },
+   "skinID": 0,
+   "skinName": "Rakan",
+   "summonerName": "Player10",
+   "summonerSpells": {
+    "summonerSpellOne": {
+     "displayName": "Flash",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerFlash_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerFlash_DisplayName"
+    },
+    "summonerSpellTwo": {
+     "displayName": "Heal",
+     "rawDescription": "GeneratedTip_SummonerSpell_SummonerHeal_Description",
+     "rawDisplayName": "GeneratedTip_SummonerSpell_SummonerHeal_DisplayName"
+    }
+   },
+   "team": "CHAOS"
+  }
+ ],
+ "events": {
+  "Events": [
+   {
+    "EventID": 0,
+    "EventName": "GameStart",
+    "EventTime": 0.01040630042552948
+   },
+   {
+    "EventID": 1,
+    "EventName": "MinionsSpawning",
+    "EventTime": 30.042160034179688
+   },
+   {
+    "Assisters": [
+     "Klubbysbus"
+    ],
+    "EventID": 2,
+    "EventName": "ChampionKill",
+    "EventTime": 64.15514373779297,
+    "KillerName": "KoboldPlay8062",
+    "VictimName": "UDrGvT1"
+   },
+   {
+    "EventID": 3,
+    "EventName": "FirstBlood",
+    "EventTime": 64.15514373779297,
+    "Recipient": "KoboldPlay8062"
+   }
+  ]
+ },
+ "gameData": {
+  "gameMode": "SWIFTPLAY",
+  "gameTime": 80.29447174072266,
+  "mapName": "Map11",
+  "mapNumber": 11,
+  "mapTerrain": "Default"
+ }
+}

@@ -138,7 +138,7 @@ impl Needs {
         let mut strongest_physical = 0.0;
         let mut strongest_magic = 0.0;
         let mut strongest_pressure: f64 = 1.0;
-        let own_role = inp.aggregate.map(|a| a.position);
+        let own_role = inp.aggregate.map(engine::actual_position);
         let mut names: BTreeSet<String> = inp.enemies.iter().cloned().collect();
         if let Some(live) = inp.live {
             names.extend(live.enemies.iter().map(|p| p.champion.clone()));
@@ -582,13 +582,20 @@ fn pool(inp: &Inputs) -> BTreeMap<u32, f64> {
     result
 }
 
-fn remaining(inp: &Inputs, id: u32, me: Option<&Me>, locked: bool) -> shop::ShopQuote {
+fn remaining(
+    inp: &Inputs,
+    id: u32,
+    me: Option<&Me>,
+    locked: bool,
+    swiftplay: bool,
+) -> shop::ShopQuote {
     let context = shop::ShopContext {
         champion: Some(inp.champion),
         spell_ids: me
             .filter(|m| !m.spell_ids.is_empty())
             .map(|m| m.spell_ids.as_slice()),
         boots_locked: locked,
+        swiftplay,
     };
     shop::quote_with_context(
         inp.catalog,
@@ -599,11 +606,15 @@ fn remaining(inp: &Inputs, id: u32, me: Option<&Me>, locked: bool) -> shop::Shop
     )
 }
 
+/// `pregame_spells` is the planned pair before a game (the live loadout wins once observed);
+/// `swiftplay` switches the shop rules (Doran's disabled, Guardian's sold).
 pub(crate) fn select(
     inp: &Inputs,
     base: Vec<PlanItem>,
     preferences: &PlannerPreferences,
     boots_locked: bool,
+    pregame_spells: &[u32],
+    swiftplay: bool,
 ) -> Selection {
     let me = inp.live.and_then(|l| l.me.as_ref());
     let cat = inp.catalog;
@@ -633,8 +644,9 @@ pub(crate) fn select(
         spell_ids: me
             .filter(|m| !m.spell_ids.is_empty())
             .map(|m| m.spell_ids.as_slice())
-            .or_else(|| me.is_none().then_some(agg.spells.ids.as_slice())),
+            .or_else(|| (me.is_none() && !pregame_spells.is_empty()).then_some(pregame_spells)),
         boots_locked,
+        swiftplay,
     };
     let compatible = |id, owned: &[u32]| shop::compatible_with_context(cat, id, owned, &context);
     let core_ids = &agg.core.ids;
@@ -685,7 +697,7 @@ pub(crate) fn select(
             {
                 continue;
             }
-            let q = remaining(inp, id, me, boots_locked);
+            let q = remaining(inp, id, me, boots_locked, swiftplay);
             let credit = q
                 .remaining_cost
                 .map(|cost| 1.0 - f64::from(cost) / f64::from(item.total.max(1)))
@@ -722,7 +734,7 @@ pub(crate) fn select(
         .collect();
     let baseline = pending.first().copied();
     let baseline_cost = baseline
-        .and_then(|id| remaining(inp, id, me, boots_locked).remaining_cost)
+        .and_then(|id| remaining(inp, id, me, boots_locked, swiftplay).remaining_cost)
         .unwrap_or(1)
         .max(1);
     let mut ranked = Vec::new();
@@ -731,7 +743,7 @@ pub(crate) fn select(
         if fulfilled(inp, id, me) || (boots_locked && item.effects.boots) || !compatible(id, &ids) {
             continue;
         }
-        let q = remaining(inp, id, me, boots_locked);
+        let q = remaining(inp, id, me, boots_locked, swiftplay);
         if q.remaining_cost.is_none() || !consuming_upgrade(&q) {
             continue;
         }
@@ -803,10 +815,10 @@ pub(crate) fn select(
                 .push("Pinned target completed; back to automatic recommendations".into());
         } else if choices.contains_key(&id)
             && compatible(id, &ids)
-            && remaining(inp, id, me, boots_locked)
+            && remaining(inp, id, me, boots_locked, swiftplay)
                 .remaining_cost
                 .is_some()
-            && consuming_upgrade(&remaining(inp, id, me, boots_locked))
+            && consuming_upgrade(&remaining(inp, id, me, boots_locked, swiftplay))
         {
             if let Some(index) = ranked.iter().position(|r| r.0.id == id) {
                 let chosen = ranked.remove(index);
@@ -820,7 +832,7 @@ pub(crate) fn select(
                             ..Default::default()
                         },
                         fit(item, inp, &needs, archetype, &ids, preferences.mode),
-                        remaining(inp, id, me, boots_locked),
+                        remaining(inp, id, me, boots_locked, swiftplay),
                         0.0,
                     ),
                 );
@@ -883,7 +895,7 @@ pub(crate) fn select(
             if pinned {
                 target.tag = Some("pinned".into());
             }
-            out.next = Some(engine::next_for_target(cat, &target, me, boots_locked));
+            out.next = Some(engine::next_for_target(cat, &target, me, boots_locked, swiftplay));
             out.learning = Some(coaching::explain(kind, reason, evidence));
             // Reorder only unowned commitments. A component detour stays outside the
             // six-item horizon, leaving the main build ready to resume afterwards.
@@ -918,7 +930,7 @@ pub(crate) fn select(
         }
     } else if let Some(id) = baseline {
         if let Some(target) = engine::item_by_id(cat, inp.pack, id, None) {
-            out.next = Some(engine::next_for_target(cat, &target, me, boots_locked));
+            out.next = Some(engine::next_for_target(cat, &target, me, boots_locked, swiftplay));
             out.learning = Some(coaching::explain(
                 DecisionKind::Core,
                 format!("{}: next in the current build", target.short),

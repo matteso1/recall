@@ -310,6 +310,36 @@ test('an explicit offline demo stays labeled and cannot import or change a live 
   await expect(page.getByRole('button', { name: 'Item set', exact: true })).toBeDisabled();
 });
 
+test('a same-champion role fallback is labelled in the header, the action view and Swiftplay', async ({ page }) => {
+  const note = 'No Jungle data for Irelia at this rank; using the Mid build as a starting point';
+  const state = fixture();
+  state.champion = 'Irelia';
+  state.plan.champion = 'Irelia';
+  state.plan.position = 'Jungle';
+  state.plan.source_position = 'Mid';
+  state.plan.note = note;
+  await openPanel(page, state);
+  await expect(page.locator('#ctx')).toHaveText('Irelia · Jungle (Mid build)');
+  await expect(page.locator('#fallback-note')).toHaveText(note);
+  await expect(page.locator('#action-name')).toBeVisible();
+
+  const swiftplay = swiftplayFixture();
+  swiftplay.swiftplay.slots[1] = { ...swiftplay.swiftplay.slots[1], champion: 'Irelia', position: 'JUNGLE',
+    plan: { ...swiftplay.swiftplay.slots[1].plan, position: 'Jungle', source_position: 'Mid', note }, message: note };
+  swiftplay.swiftplay.message = 'Prepared. Irelia JUNGLE: Mid build (no JUNGLE data)';
+  await page.evaluate(next => window.emitState(next), swiftplay);
+  const slots = page.getByRole('list', { name: 'Swiftplay choices' }).getByRole('listitem');
+  await expect(slots.nth(1)).toContainText('JUNGLE · Mid build');
+  await expect(slots.nth(1)).toContainText(note);
+  await expect(page.locator('#swiftplay-status')).toContainText('Both choices ready');
+  await expect(page.locator('#main-content')).toContainText('Mid build (no JUNGLE data)');
+
+  // Without a fallback there is no label anywhere.
+  await page.evaluate(next => window.emitState(next), fixture());
+  await expect(page.locator('#fallback-note')).toHaveCount(0);
+  await expect(page.locator('#ctx')).not.toContainText('build)');
+});
+
 test('all real role fixtures render a single action without script errors', async ({ page }) => {
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));

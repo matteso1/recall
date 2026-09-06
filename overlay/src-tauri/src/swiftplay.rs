@@ -320,15 +320,20 @@ async fn prepare(
                 bail!("Build source is stale; imports paused");
             }
             let champion = catalog.champion_name(choice.champion_id);
-            let plan = engine::plan(&Inputs {
-                champion: &champion,
-                pack: st.pack_for(&champion),
-                aggregate: Some(&aggregate),
-                traits: &st.traits,
-                catalog,
-                enemies: &[],
-                live: None,
-            });
+            // Queue 480 is Swiftplay: its shop rules apply to the prepared item set and start.
+            let plan = engine::plan_in_mode(
+                &Inputs {
+                    champion: &champion,
+                    pack: st.pack_for(&champion),
+                    aggregate: Some(&aggregate),
+                    traits: &st.traits,
+                    catalog,
+                    enemies: &[],
+                    live: None,
+                },
+                &engine::PlannerPreferences::default(),
+                engine::GameMode::Swiftplay,
+            );
             if plan.path.is_empty() {
                 bail!("No compatible build for this champion and role");
             }
@@ -357,10 +362,24 @@ async fn prepare(
                         Err(error) => slot.imports.runes = format!("error: {error}"),
                     }
                 }
+                let mut notes: Vec<String> = plan
+                    .source_position
+                    .as_ref()
+                    .and_then(|_| plan.note.clone())
+                    .into_iter()
+                    .collect();
                 if slot.imports.spells == "working" {
                     match plan.spell_ids.as_slice() {
                         [a, b] => update.spells = Some([*a, *b]),
-                        _ => slot.imports.spells = "error: No spell pair available".into(),
+                        _ => {
+                            // No pair can be proposed for this role from the data: the saved
+                            // choice stays, which is a settled state, not a failure.
+                            slot.imports.spells = "kept".into();
+                            notes.push(format!(
+                                "Your summoner spells were kept; the data has no {} pair",
+                                slot.position
+                            ));
+                        }
                     }
                 }
                 if slot.imports.itemset == "working" {
@@ -376,7 +395,7 @@ async fn prepare(
                 }
                 updates.push(update);
                 slot.plan = Some(plan);
-                slot.message = None;
+                slot.message = (!notes.is_empty()).then(|| notes.join(". "));
             }
             Err(error) => {
                 for status in [
@@ -399,7 +418,24 @@ async fn prepare(
         error_working(&mut p.view, &error.to_string());
         p.view.message = Some(error.to_string());
     } else {
-        p.view.message = None;
+        // Ready is still honest: a same-champion fallback is prepared, but said so.
+        let fallbacks: Vec<String> = p
+            .view
+            .slots
+            .iter()
+            .filter_map(|slot| {
+                slot.plan
+                    .as_ref()
+                    .and_then(|plan| plan.source_position.as_ref())
+                    .map(|source| {
+                        format!(
+                            "{} {}: {source} build (no {} data)",
+                            slot.champion, slot.position, slot.position
+                        )
+                    })
+            })
+            .collect();
+        p.view.message = (!fallbacks.is_empty()).then(|| format!("Prepared. {}", fallbacks.join("; ")));
     }
     p.completed_at_ms = now_ms();
     p.view.preparing = false;

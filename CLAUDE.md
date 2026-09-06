@@ -16,9 +16,17 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
 
 ## Rust overlay (M1+)
 - `overlay/` is a cargo workspace: `core` (brain, platform-independent) and `src-tauri` (Windows shell).
-  Test the brain in WSL with `cd overlay && cargo test -p featherstorm-core` (rustup lives in ~/.cargo).
-  Build/run the shell on Windows with `scripts/cargo-win.sh build --release` / `scripts/cargo-win.sh run`;
-  it mirrors the sources to `C:\Users\nilsm\code\featherstorm-win`. Never build from the WSL path.
+  Test the brain in WSL with `cargo test --manifest-path overlay/Cargo.toml --locked -p featherstorm-core`
+  (rustup lives in ~/.cargo); the headless shell tests are `cargo test --manifest-path tests/runtime/Cargo.toml
+  --target-dir overlay/target --locked`; browser tests `cd tests/ui && npm test`; Python `python3 -m unittest
+  discover -s m0/tests`. Clippy with `-D warnings` on core and tests/runtime is part of "passes".
+- There is exactly one Windows executable: `scripts/overlay-build.sh` builds it (mirrors sources to
+  `C:\Users\nilsm\code\featherstorm-win`, BelowNormal priority, `--target-dir ...\overlay\target\swiftplay`) at
+  `C:\Users\nilsm\code\featherstorm-win\overlay\target\swiftplay\release\featherstorm.exe`, and
+  `scripts/overlay-run.sh` / `overlay-probe.sh` / `overlay-demo-shots.sh` use that same path. The build refuses
+  to run while the exe is running (cargo cannot replace it). Never build from the WSL path.
+- `scripts/overlay-probe.sh --champion Irelia --role jungle --swiftplay` plans an offline request on the real
+  cache from the built exe, no client or game needed: use it to verify an artifact before handing it over.
 - The Tauri crate cannot be type-checked from WSL (needs MSVC `lib.exe`), so keep logic in `core`.
 - `scripts/overlay-probe.sh` runs the exe headless (`--probe`): use it before any on-screen test, and
   whenever the user may be gaming (see the shared-machine rule: no windows/League/screenshots then).
@@ -28,6 +36,14 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   champion API per champion + position at champ select (cached 6 h under `%LOCALAPPDATA%\Featherstorm\aggregate`).
   A real response is the fixture `m0/tests/fixtures/opgg_xayah_adc.json`. The pack is rules + offline fallback.
   Do not "fix" a recommendation by editing the pack's defaults; fix the rule or the source.
+- A champion with no data for the assigned role (Irelia Jungle) gets the same champion's most-played role as an
+  explicitly labelled fallback (`Aggregate.requested_position`, `Plan.source_position`); the assigned role keeps
+  driving the role rules (Smite, jungle companion, support quest) and the label shows on the panel, in Swiftplay
+  and in the item set. Never relabel one role's data as another, never invent a build for another champion.
+- Swiftplay (queue 480, `gameMode` SWIFTPLAY) is played on map 11 but starts at level 3 with 1400 gold, has
+  Doran's items disabled and Guardian's items enabled (patch 26.1, observed on 26.17). `shop::ShopContext.swiftplay`
+  and `engine::GameMode` carry that; Data Dragon's per-map flags cannot. Its champ select lasts one second and
+  enemies are unknown before the game. `docs/notes/swiftplay.md` has the research and the verified LCU contract.
 - Panel look: `overlay/ui/` uses League's Hextech palette and Data Dragon icons (tokens at the top of
   `style.css`; notes in `docs/notes/m1-overlay.md`). Check UI changes with `scripts/overlay-demo-shots.sh`
   (`featherstorm.exe --demo champselect|ingame`), which stages real data without a game. Not while gaming.

@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 PHASES=("$@"); [ ${#PHASES[@]} -gt 0 ] || PHASES=(champselect ingame)
 WINHOME="$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')"
-EXE_WIN="$WINHOME\\code\\featherstorm-win\\overlay\\target\\release\\featherstorm.exe"
+EXE_WIN="${FEATHERSTORM_EXE:-$WINHOME\\code\\featherstorm-win\\overlay\\target\\swiftplay\\release\\featherstorm.exe}"
 [ -f "$(wslpath -u "$EXE_WIN")" ] || { echo "not built: $EXE_WIN" >&2; exit 1; }
 mkdir -p .screens
 for phase in "${PHASES[@]}"; do

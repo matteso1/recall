@@ -140,7 +140,9 @@ impl AggregateProvenance {
 pub struct Aggregate {
     pub champion_key: u32,
     pub position: Position,
-    /// Legacy provenance for a different-role response. New loads never substitute an assigned role.
+    /// The assigned role when this aggregate is a same-champion fallback: the champion has no
+    /// games in that role at this rank, so `position` is the most-played role instead. The
+    /// assignment is never replaced by it; the planner keeps both and labels the build.
     pub requested_position: Option<Position>,
     pub patch: String,
     pub region: String,
@@ -646,6 +648,16 @@ pub fn choose_position(
         .map(|p| p.position)
 }
 
+/// When the assigned role has no games at all, the champion's most-played role is the only
+/// same-champion evidence. Callers label the result as a fallback; it never becomes the assignment.
+/// `None` when the assigned role has data (no fallback needed) or nothing else is known.
+pub fn fallback_position(requested: Position, positions: &[PositionStat]) -> Option<Position> {
+    if choose_position(Some(requested), positions).is_some() {
+        return None;
+    }
+    choose_position(None, positions).filter(|main| *main != requested)
+}
+
 pub fn champion_url(region: &str, tier: &str, champion_key: u32, position: Position) -> String {
     format!(
         "{BASE}/{region}/champions/ranked/{champion_key}/{}?tier={tier}",
@@ -964,8 +976,10 @@ async fn load_positions_index(
     Ok((positions, cached.provenance))
 }
 
-/// A champion's aggregate for the requested role. Small samples are labelled; missing role data
-/// is an error. Without a role assignment, the most-played known role is selected from evidence.
+/// A champion's aggregate for the requested role. Small samples are labelled. When the champion
+/// has no games in the requested role at this rank, the most-played role's aggregate is returned
+/// with `requested_position` set and a warning, so the planner can show a labelled same-champion
+/// starting point instead of nothing. Without a role assignment, the most-played known role is used.
 pub async fn load(
     cache_dir: &Path,
     region: &str,
@@ -986,7 +1000,13 @@ pub async fn load(
     let index_unavailable_or_stale = index_provenance
         .as_ref()
         .is_none_or(|provenance| provenance.cache_status == CacheStatus::Stale);
-    let position = choose_position(requested, &positions)
+    let exact = choose_position(requested, &positions);
+    let fallback_from = match (exact, requested) {
+        (None, Some(role)) => fallback_position(role, &positions).map(|main| (role, main)),
+        _ => None,
+    };
+    let position = exact
+        .or(fallback_from.map(|(_, main)| main))
         // A failed index must not hide a usable exact-role cache/endpoint. The champion payload
         // still has to identify that role and contain a nonzero sample before cache promotion.
         .or_else(|| requested.filter(|_| index_unavailable_or_stale))
@@ -998,16 +1018,41 @@ pub async fn load(
                     .unwrap_or_default()
             )
         })?;
-    let name = format!("{champion_key}-{}.json", position.slug());
-    let cached = cached_json(
-        &cache_path(cache_dir, region, tier, &name),
-        &champion_url(region, tier, champion_key, position),
-        PayloadKind::Champion {
-            key: champion_key,
-            position,
-        },
-    )
-    .await?;
+    // For a fallback, the most-played role comes first; if it cannot be fetched (offline with
+    // only another role cached), any other role the champion is actually played in will do.
+    let mut candidates = vec![position];
+    if fallback_from.is_some() {
+        candidates.extend(
+            positions
+                .iter()
+                .filter(|p| p.games > 0 && p.position != position && Some(p.position) != requested)
+                .map(|p| p.position),
+        );
+    }
+    let mut loaded = None;
+    let mut last_error = None;
+    for candidate in candidates {
+        let name = format!("{champion_key}-{}.json", candidate.slug());
+        match cached_json(
+            &cache_path(cache_dir, region, tier, &name),
+            &champion_url(region, tier, champion_key, candidate),
+            PayloadKind::Champion {
+                key: champion_key,
+                position: candidate,
+            },
+        )
+        .await
+        {
+            Ok(cached) => {
+                loaded = Some((candidate, cached));
+                break;
+            }
+            Err(error) => last_error = Some(error),
+        }
+    }
+    let Some((position, cached)) = loaded else {
+        return Err(last_error.unwrap_or_else(|| anyhow!("no aggregate available")));
+    };
     let mut agg = decode(&cached.value, champion_key, position, region, tier)?;
     let limited_data_warning = agg.provenance.warning.take();
     agg.provenance = cached.provenance;
@@ -1018,6 +1063,10 @@ pub async fn load(
         .into_iter()
         .chain(limited_data_warning)
         .collect();
+    if let Some((requested_role, _)) = fallback_from {
+        // The planner composes the user-facing label from this; see engine::plan_in_mode.
+        agg.requested_position = Some(requested_role);
+    }
     if index_provenance.is_some_and(|provenance| provenance.cache_status == CacheStatus::Stale) {
         agg.provenance.cache_status = CacheStatus::Stale;
         warnings.push("Position information uses an older cached source.".to_string());
@@ -1315,8 +1364,32 @@ mod tests {
         .is_err());
     }
 
+    #[test]
+    fn fallback_position_is_the_most_played_role_only_when_the_assigned_one_has_no_games() {
+        let stats = xayah().positions;
+        assert_eq!(
+            fallback_position(Position::Jungle, &stats),
+            Some(Position::Adc)
+        );
+        assert_eq!(fallback_position(Position::Adc, &stats), None, "exact data exists");
+        assert_eq!(fallback_position(Position::Jungle, &[]), None);
+        let irelia: Vec<PositionStat> = [(Position::Top, 83637), (Position::Mid, 53921)]
+            .into_iter()
+            .map(|(position, games)| PositionStat {
+                position,
+                games,
+                role_rate: 0.5,
+                win_rate: 0.5,
+            })
+            .collect();
+        assert_eq!(
+            fallback_position(Position::Jungle, &irelia),
+            Some(Position::Top)
+        );
+    }
+
     #[tokio::test]
-    async fn load_preserves_a_small_real_roles_warning_and_rejects_a_missing_role() {
+    async fn load_preserves_a_small_real_roles_warning_and_labels_a_missing_role_as_a_fallback() {
         let cache = TestCache::new();
         let mut source: Value = serde_json::from_str(include_str!(
             "../../../m0/tests/fixtures/opgg_lulu_support.json"
@@ -1358,15 +1431,66 @@ mod tests {
             .unwrap()
             .contains("87"));
         assert_eq!(aggregate.requested_position, None);
-        assert!(load(
+        // Lulu has no Jungle games: the Support build comes back labelled, never relabelled.
+        let fallback = load(
             &cache.0,
             "global",
             "emerald_plus",
             117,
-            Some(Position::Jungle)
+            Some(Position::Jungle),
         )
         .await
-        .is_err());
+        .unwrap();
+        assert_eq!(
+            (fallback.position, fallback.requested_position),
+            (Position::Support, Some(Position::Jungle))
+        );
+        assert_eq!(fallback.games, 87, "the Support sample, still labelled small");
+        assert_eq!(fallback.provenance.cache_status, CacheStatus::Fresh);
+    }
+
+    #[tokio::test]
+    async fn fallback_tries_the_most_played_role_first_and_never_the_network_when_a_role_is_cached() {
+        // Lulu listed as Support (87) and Mid (40); only the Support response is cached.
+        // A Jungle assignment must use the cached Support build without any request.
+        let cache = TestCache::new();
+        let mut source: Value = serde_json::from_str(include_str!(
+            "../../../m0/tests/fixtures/opgg_lulu_support.json"
+        ))
+        .unwrap();
+        source["data"]["summary"]["positions"][0]["stats"]["play"] = serde_json::json!(87);
+        let mut mid = source["data"]["summary"]["positions"][0].clone();
+        mid["name"] = serde_json::json!("MID");
+        mid["stats"]["play"] = serde_json::json!(40);
+        source["data"]["summary"]["positions"]
+            .as_array_mut()
+            .unwrap()
+            .push(mid);
+        let index = serde_json::json!({"meta": source["meta"], "data": [source["data"]["summary"].clone()]});
+        let directory = cache.0.join("global-emerald_plus");
+        std::fs::create_dir(&directory).unwrap();
+        std::fs::write(
+            directory.join("index.json"),
+            serde_json::to_vec(&index).unwrap(),
+        )
+        .unwrap();
+        std::fs::write(
+            directory.join("117-support.json"),
+            serde_json::to_vec(&source).unwrap(),
+        )
+        .unwrap();
+        let fallback = load(
+            &cache.0,
+            "global",
+            "emerald_plus",
+            117,
+            Some(Position::Jungle),
+        )
+        .await
+        .unwrap();
+        assert_eq!(fallback.position, Position::Support);
+        assert_eq!(fallback.requested_position, Some(Position::Jungle));
+        assert_eq!(fallback.provenance.cache_status, CacheStatus::Fresh);
     }
 
     #[test]

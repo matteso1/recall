@@ -15,6 +15,10 @@ pub struct ShopContext<'a> {
     pub champion: Option<&'a str>,
     pub spell_ids: Option<&'a [u32]>,
     pub boots_locked: bool,
+    /// Swiftplay uses the Summoner's Rift map with a different shop: Doran's items are
+    /// disabled and Guardian's items are sold (patch 26.1 Swiftplay overhaul; observed in
+    /// recorded Swiftplay games on patch 26.17). `false` means the classic shop.
+    pub swiftplay: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -405,6 +409,13 @@ fn purchase_restriction(
         return Some("The required allied champion has not been verified".to_string());
     }
     let groups = item.exclusive_groups();
+    // Mode-specific shop contents that Data Dragon's per-map flags cannot express.
+    if context.swiftplay && normalize(&item.name).starts_with("dorans") {
+        return Some("Doran's items are disabled in Swiftplay".to_string());
+    }
+    if !context.swiftplay && groups.contains(&"GuardiansItems") {
+        return Some("Guardian's items are only sold in Swiftplay and ARAM".to_string());
+    }
     let support_choice_unlocked = groups.contains(&"SupportQuest")
         && item.from == [3867]
         && original
@@ -900,6 +911,35 @@ mod tests {
         assert!(!compatible(&cat, 3077, &[6631]));
         assert!(!compatible(&cat, 3076, &[3075]));
         assert!(compatible(&cat, 3075, &[3076]));
+    }
+
+    #[test]
+    fn swiftplay_disables_dorans_items_and_the_classic_shop_has_no_guardians_items() {
+        let cat = catalog();
+        let swiftplay = ShopContext {
+            swiftplay: true,
+            ..Default::default()
+        };
+        let classic = ShopContext::default();
+        for doran in [1055, 1054, 1056, 1086, 1120] {
+            let blocked = quote_with_context(&cat, doran, &[], 1400.0, &swiftplay);
+            assert!(!blocked.affordable && blocked.blocked.is_some(), "{doran} in Swiftplay");
+            assert!(
+                quote_with_context(&cat, doran, &[], 500.0, &classic).affordable,
+                "{doran} in classic"
+            );
+        }
+        for guardian in [3177, 3184, 2051, 3112] {
+            assert!(
+                quote_with_context(&cat, guardian, &[], 1400.0, &swiftplay).affordable,
+                "{guardian} in Swiftplay"
+            );
+            let blocked = quote_with_context(&cat, guardian, &[], 1400.0, &classic);
+            assert!(!blocked.affordable && blocked.blocked.is_some(), "{guardian} in classic");
+        }
+        // Ordinary items are unaffected by the mode.
+        assert!(quote_with_context(&cat, 1038, &[], 1400.0, &swiftplay).affordable);
+        assert!(compatible_with_context(&cat, 3153, &[1103], &swiftplay));
     }
 
     #[test]
