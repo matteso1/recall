@@ -32,6 +32,9 @@ Run the tests from WSL: `cd overlay && cargo test -p featherstorm-core`.
 7. Live: an enemy stacking armor items -> armor pen earlier.
 8. Live: behind (3+ deaths, <=1 kill) -> Navori before IE.
 9. Two assassins, or one fed assassin (live) -> defensive item at slot 4.
+10. Magical Footwear on the rune page -> the boots slot is tagged `free @12`; live, while no boots are owned,
+    NEXT skips boots and the first why line says they are locked (the shop greys them out until the free
+    Slightly Magical Footwear arrives, which then counts as the Boots component of the upgrade).
 
 Champion traits come from `data/pack/champion_traits.json` (164 champions); unknown champions fall
 back to Data Dragon class tags. Every rule that changes the path pushes one line to `plan.why`.

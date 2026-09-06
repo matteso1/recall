@@ -102,3 +102,19 @@
 - Next: a real champ select with the new build. Expect in the log: `aggregate: champion 498 as ADC ...`,
   `auto-import runes: Rune page 'Featherstorm Xayah ADC' set`, `auto-import spells: Flash + Barrier selected`,
   `auto-import item set: ...` at lock. Also try any non-Xayah champion.
+- 19:25 First real draft game on the aggregate build (Xayah vs Yone, Vi, Katarina, Vayne, Lux). Live path
+  Yun Tal > Greaves > Navori > IE > LDR > Maw (AP comp) with the why line; NEXT followed the shop. User asked
+  why the shop showed Greaves as "item unavailable" and then "randomly" got boots: the rune page (op.gg's,
+  and the old pack's too) has Magical Footwear, which locks boots until the free Slightly Magical Footwear
+  arrives (12:00, 45 s earlier per takedown; here about 8:00). The panel had said NEXT: Greaves during the
+  lock. Rule 10 added: boots slot tagged `free @12`, NEXT skips locked boots, first why line explains,
+  the footwear counts as the Boots component (Greaves shows 800 remaining). Item-set block titles fall back
+  to the short name when a tag would push them past 30 chars. 34 core tests. Deploy after the game.
+- The log of that game shows the whole chain firing in a *one-second* ChampSelect phase (ReadyCheck ->
+  ChampSelect 02:17:02, -> InProgress 02:17:03): a Quickplay-style queue where the champion is chosen in the
+  lobby. `aggregate: champion 498 as ADC (op.gg emerald+ global, 87k games, patch 16.17)`, then
+  `auto-import runes: Rune page 'Featherstorm Xayah ADC' set`, `auto-import spells: Flash + Barrier selected`,
+  `auto-import item set: Item set 'Featherstorm Xayah' is in the client`, all inside that second. Enemies
+  were empty at that point (`vs []`), so the pushed item set had GA where the live plan later said Maw (AP
+  comp). Known gap for Quickplay: enemy comps are only known in game, and the shop reads item sets at
+  game start. Candidate fix: read the gameflow session's team data at GameStart and push once more.

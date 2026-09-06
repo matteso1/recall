@@ -63,7 +63,14 @@ pub fn build(plan: &Plan, pack: Option<&ChampionPack>, cat: &Catalog, champion_k
         let mut list = comps;
         list.push(item.id);
         let heading = match &item.tag {
-            Some(tag) => format!("{}. {} ({})", n + 1, item.name, tag),
+            Some(tag) => {
+                let full = format!("{}. {} ({})", n + 1, item.name, tag);
+                if full.chars().count() <= MAX_BLOCK_TITLE {
+                    full
+                } else {
+                    format!("{}. {} ({})", n + 1, item.short, tag)
+                }
+            }
             None => format!("{}. {}", n + 1, item.name),
         };
         blocks.push(block(&heading, &list));

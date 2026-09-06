@@ -112,6 +112,12 @@ pub struct Inputs<'a> {
 /// Item ids that mean "this enemy is stacking armor".
 const ARMOR_ITEM_MIN_COST: u32 = 900;
 const PATH_LEN: usize = 6;
+/// Magical Footwear (Inspiration): no boots can be bought until the free Slightly Magical Footwear
+/// arrives (12:00, 45 s earlier per takedown); those then upgrade into the real boots.
+const MAGICAL_FOOTWEAR_PERK: u32 = 8304;
+const SLIGHTLY_MAGICAL_FOOTWEAR: u32 = 2422;
+const BOOTS: u32 = 1001;
+const FOOTWEAR_TAG: &str = "free @12";
 
 /// Short labels for the path line; a pack's own shorts win.
 const SHORTS: &[(&str, &str)] = &[
@@ -479,12 +485,15 @@ fn component_ids(cat: &Catalog, pack: Option<&ChampionPack>, item: &PlanItem) ->
     }
 }
 
-pub fn next_item(cat: &Catalog, pack: Option<&ChampionPack>, path: &[PlanItem], me: Option<&Me>) -> Option<NextItem> {
-    let target = path.iter().find(|p| !p.owned)?;
+/// The first item still to buy; boots are skipped while Magical Footwear has them locked.
+pub fn next_item(cat: &Catalog, pack: Option<&ChampionPack>, path: &[PlanItem], me: Option<&Me>, boots_locked: bool) -> Option<NextItem> {
+    let target = path.iter().find(|p| !p.owned && !(boots_locked && p.role == "boots"))?;
     let mut inventory: HashMap<u32, u32> = HashMap::new();
     if let Some(m) = me {
         for i in &m.player.items {
-            *inventory.entry(i.id).or_insert(0) += i.count;
+            // The free footwear stands in for Boots in every boots recipe.
+            let id = if i.id == SLIGHTLY_MAGICAL_FOOTWEAR { BOOTS } else { i.id };
+            *inventory.entry(id).or_insert(0) += i.count;
         }
     }
     let mut components = Vec::new();
@@ -713,8 +722,25 @@ pub fn plan(inp: &Inputs) -> Plan {
             i
         })
         .collect();
+    // Magical Footwear: say so on the boots slot, and do not point at boots while they are locked.
+    let footwear = runes_page.as_ref().map(|r| r.perks.contains(&MAGICAL_FOOTWEAR_PERK)).unwrap_or(false);
+    let mut boots_locked = false;
+    if footwear {
+        if let Some(b) = path.iter_mut().find(|p| p.role == "boots") {
+            b.tag = Some(FOOTWEAR_TAG.to_string());
+            b.why = Some("Magical Footwear: free boots at 12:00 (45 s sooner per takedown), then upgrade them".to_string());
+        }
+        if let Some(m) = me {
+            let has_boots = m.player.items.iter().any(|i| i.id == SLIGHTLY_MAGICAL_FOOTWEAR || has_tag(cat, i.id, "Boots"));
+            let boots_pending = path.iter().any(|p| p.role == "boots" && !p.owned);
+            if !has_boots && boots_pending {
+                boots_locked = true;
+                why.insert(0, "Boots are locked until Magical Footwear delivers them (12:00, sooner with takedowns)".to_string());
+            }
+        }
+    }
     let options = options(cat, pack, agg, &path);
-    let next = next_item(cat, pack, &path, me);
+    let next = next_item(cat, pack, &path, me, boots_locked);
     let (seq, label) = match (agg.filter(|a| !a.skill_order.is_empty()), pack) {
         (Some(a), _) => (sequence(&a.skill_order, &a.skill_max), skill_label(&a.skill_max)),
         (None, Some(p)) => (skill_sequence(&p.skill_order), p.skill_order.label.clone()),
@@ -898,6 +924,34 @@ mod tests {
         // 6 points spent at level 7 -> a point is available; Q E W E R E -> next is E
         assert!(plan.skill.point_available);
         assert_eq!(plan.skill.next, Some('E'));
+    }
+
+    #[test]
+    fn magical_footwear_locks_boots_until_they_arrive() {
+        let (cat, pack, traits, agg) = (catalog(), load_xayah().unwrap(), load_traits().unwrap(), xayah_aggregate());
+        let mut data: serde_json::Value = serde_json::from_str(include_str!("../../../m0/tests/fixtures/allgamedata.json")).unwrap();
+        let me = data["allPlayers"].as_array_mut().unwrap().iter_mut().find(|p| p["riotId"] == "matteso#NA1").unwrap();
+        me["items"] = serde_json::json!([{"itemID": 3032, "displayName": "Yun Tal Wildarrows", "count": 1, "slot": 0}]);
+        data["activePlayer"]["currentGold"] = serde_json::json!(900.0);
+        let live = summarize(&data);
+        let p = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: Some(&live) });
+        // The op.gg page has Magical Footwear: the boots slot says so, and NEXT skips it while no boots are owned.
+        assert_eq!(p.path[1].tag.as_deref(), Some(FOOTWEAR_TAG));
+        assert_eq!(p.next.as_ref().unwrap().name, "Navori Flickerblade");
+        assert!(p.why[0].contains("Magical Footwear"), "{:?}", p.why);
+        // The free footwear arrives: boots are the next item again, and the footwear counts as the Boots component.
+        let me = data["allPlayers"].as_array_mut().unwrap().iter_mut().find(|p| p["riotId"] == "matteso#NA1").unwrap();
+        me["items"].as_array_mut().unwrap().push(serde_json::json!({"itemID": 2422, "displayName": "Slightly Magical Footwear", "count": 1, "slot": 1}));
+        let live = summarize(&data);
+        let p = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: Some(&live) });
+        let next = p.next.unwrap();
+        assert_eq!(next.name, "Berserker's Greaves");
+        assert_eq!(next.remaining_cost, 1100 - 300);
+        assert!(next.components.iter().any(|c| c.id == 1001 && c.owned));
+        assert!(!p.why.iter().any(|w| w.contains("locked")), "{:?}", p.why);
+        // Without live data nothing is locked and NEXT is the first item.
+        let p = plan(&Inputs { champion: "Xayah", pack: Some(&pack), aggregate: Some(&agg), traits: &traits, catalog: &cat, enemies: &[], live: None });
+        assert_eq!(p.next.unwrap().name, "Yun Tal Wildarrows");
     }
 
     #[test]
