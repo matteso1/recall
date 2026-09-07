@@ -1,45 +1,38 @@
 #!/usr/bin/env bash
-# Install (or remove) the Recall auto-start watcher on Windows: a hidden PowerShell loop that starts
-# the overlay whenever the League client is running and closes it when the client closes.
-# No admin rights: the script is copied to %LOCALAPPDATA%\Recall and a shortcut goes into the
-# user's Startup folder. Also starts the watcher right away.
+# Install (or remove) Recall's auto-start: a shortcut in the user's Startup folder that runs the
+# canonical `recall.exe --autostart`. In that mode the overlay itself stays hidden until the League
+# client is running, shows while it is, and hides again 20 s after the client closes. No admin
+# rights, no scripts, no terminal window. Also starts it right away.
 # Usage: scripts/autostart-install.sh [install|remove|status]
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ACTION="${1:-install}"
 WINHOME="$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')"
-LOCALAPP="$(cmd.exe /c 'echo %LOCALAPPDATA%' 2>/dev/null | tr -d '\r')"
+EXE_WIN="$WINHOME\\code\\recall-win\\overlay\\target\\swiftplay\\release\\recall.exe"
 STARTUP_WIN="$WINHOME\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
-SCRIPT_WIN="$LOCALAPP\\Recall\\recall-autostart.ps1"
-LINK_WIN="$STARTUP_WIN\\Recall auto-start.lnk"
-ps() { powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$1" 2>&1 | tr -d '\r'; }
-# The query excludes itself (its own command line names the script).
-WATCHERS='Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.Name -eq "powershell.exe" -and $_.CommandLine -like "*-File*recall-autostart.ps1*" }'
-watcher_running() {
-    ps "$WATCHERS | Measure-Object | Select-Object -ExpandProperty Count"
-}
+LINK_WIN="$STARTUP_WIN\\Recall.lnk"
+LINK="$(wslpath -u "$LINK_WIN")"
+ps() { powershell.exe -NoProfile -NonInteractive -Command "$1" 2>&1 | tr -d '\r'; }
 case "$ACTION" in
 install)
-    mkdir -p "$(wslpath -u "$LOCALAPP")/Recall"
-    cp scripts/windows/recall-autostart.ps1 "$(wslpath -u "$SCRIPT_WIN")"
-    ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('$LINK_WIN'); \$s.TargetPath = 'powershell.exe'; \$s.Arguments = '-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"$SCRIPT_WIN\"'; \$s.WorkingDirectory = '$LOCALAPP\\Recall'; \$s.Description = 'Start Recall with the League client'; \$s.Save()"
-    if [ "$(watcher_running)" = "0" ]; then
-        # Start it the same way logon will: through the shortcut.
+    [ -f "$(wslpath -u "$EXE_WIN")" ] || { echo "not built: $EXE_WIN (run scripts/overlay-build.sh)" >&2; exit 1; }
+    ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('$LINK_WIN'); \$s.TargetPath = '$EXE_WIN'; \$s.Arguments = '--autostart'; \$s.WorkingDirectory = '$(dirname "$EXE_WIN" | sed 's|/|\\\\|g')'; \$s.Description = 'Recall: build overlay for League of Legends'; \$s.Save()"
+    # Leftovers of the earlier PowerShell watcher.
+    ps 'Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.Name -eq "powershell.exe" -and $_.CommandLine -like "*-File*recall-autostart.ps1*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }' >/dev/null || true
+    rm -f "$(wslpath -u "$STARTUP_WIN")/Recall auto-start.lnk" "$(wslpath -u "$WINHOME")/AppData/Local/Recall/recall-autostart.ps1"
+    if ! tasklist.exe 2>/dev/null | tr -d '\r' | grep -q "^recall.exe"; then
         nohup cmd.exe /c start "" "$LINK_WIN" >/dev/null 2>&1 </dev/null &
-        sleep 3
+        sleep 2
     fi
     echo "installed: $LINK_WIN"
-    echo "watcher processes: $(watcher_running)"
     ;;
 remove)
-    ps "$WATCHERS"' | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }'
-    rm -f "$(wslpath -u "$LINK_WIN")" "$(wslpath -u "$SCRIPT_WIN")"
-    echo "removed"
+    rm -f "$LINK"
+    echo "removed $LINK_WIN (a running overlay is left alone)"
     ;;
 status)
-    [ -f "$(wslpath -u "$LINK_WIN")" ] && echo "startup shortcut: present" || echo "startup shortcut: absent"
-    echo "watcher processes: $(watcher_running)"
-    tail -n 5 "$(wslpath -u "$LOCALAPP")/Recall/autostart.log" 2>/dev/null || true
+    [ -f "$LINK" ] && echo "startup shortcut: present" || echo "startup shortcut: absent"
+    echo "overlay processes: $(tasklist.exe 2>/dev/null | tr -d '\r' | grep -c '^recall.exe' || true)"
     ;;
 *)
     echo "usage: $0 [install|remove|status]" >&2

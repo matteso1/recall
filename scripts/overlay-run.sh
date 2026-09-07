@@ -19,11 +19,9 @@ if tasklist.exe 2>/dev/null | tr -d '\r' | grep -qE "^(recall|featherstorm).exe"
     sleep 1
 fi
 # Fully detach: a GUI exe that inherits our stdout keeps the caller's pipe open forever.
-nohup cmd.exe /c start "" "$EXE_WIN" >/dev/null 2>&1 </dev/null &
+# With auto-start installed the overlay hides itself while no client is running, like at logon.
+ARGS=""
+[ -f "$(wslpath -u "$WINHOME")/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/Recall.lnk" ] && ARGS="--autostart"
+nohup cmd.exe /c start "" "$EXE_WIN" $ARGS >/dev/null 2>&1 </dev/null &
 sleep 2
 echo "running: $(tasklist.exe 2>/dev/null | tr -d '\r' | grep -c recall.exe) process(es)"
-# Re-arm the auto-start watcher if it is installed (overlay-stop.sh stops it).
-LINK="$(wslpath -u "$WINHOME")/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/Recall auto-start.lnk"
-if [ -f "$LINK" ]; then
-    nohup cmd.exe /c start "" "$(wslpath -w "$LINK")" >/dev/null 2>&1 </dev/null &
-fi

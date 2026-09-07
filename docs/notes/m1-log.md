@@ -247,3 +247,10 @@ deviation is measured descriptively, not treated as evidence of better decisions
   component is buyable); an Oblivion Orb the player declined came back six times because its anti-heal
   score alone beat the next core item's prior (a declined detour is never the target again this game;
   it stays on the path and among the options).
+
+## 2026-09-07 (auto-start, second attempt)
+- The PowerShell watcher showed a terminal window (Windows 11's default terminal ignores
+  `-WindowStyle Hidden`) and on 09-07 it never noticed the client although it was polling. Replaced by
+  `recall.exe --autostart`: the overlay is its own launcher, created hidden, shown while the client is
+  up, hidden 20 s after it closes, and the x button dismisses it for that client session. The Startup
+  shortcut points at the exe directly.

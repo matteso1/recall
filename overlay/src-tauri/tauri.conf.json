@@ -23,7 +23,7 @@
         "resizable": false,
         "shadow": false,
         "focus": false,
-        "visible": true,
+        "visible": false,
         "focusable": true
       }
     ],

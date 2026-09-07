@@ -1,6 +1,7 @@
 //! Recall overlay: a small always-on-top panel driven by the core "brain".
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod autostart;
 mod commands;
 mod controller;
 mod demo;
@@ -55,6 +56,10 @@ pub struct App {
     pub session: Mutex<controller::RecommendationSession>,
     pub journal: Mutex<Journal>,
     pub journal_sink: journal_store::JournalSink,
+    /// `--autostart`: the panel follows the League client (see autostart.rs).
+    pub autostart: bool,
+    /// In autostart mode the x button hides the panel until the client restarts.
+    pub dismissed: Mutex<bool>,
 }
 
 impl App {
@@ -187,6 +192,7 @@ fn main() {
         std::process::exit(probe::run());
     }
     // `--demo [champselect|ingame|ingame-flash|idle]`: staged panel, no client (design work, screenshots).
+    let autostart = std::env::args().any(|a| a == "--autostart");
     let demo: Option<String> = {
         let args: Vec<String> = std::env::args().collect();
         args.iter().position(|a| a == "--demo").map(|i| {
@@ -231,6 +237,8 @@ fn main() {
         session: Mutex::new(controller::RecommendationSession::default()),
         journal: Mutex::new(journal),
         journal_sink,
+        autostart: autostart && demo.is_none(),
+        dismissed: Mutex::new(false),
     });
 
     tauri::Builder::default()
@@ -261,6 +269,16 @@ fn main() {
                 }
             });
             place_window(&window, &state);
+            // The window is created hidden (tauri.conf.json) so autostart never flashes at logon.
+            if state.autostart {
+                let handle = app.handle().clone();
+                let st = state.clone();
+                tauri::async_runtime::spawn(async move {
+                    autostart::run(handle, st).await;
+                });
+            } else if let Err(e) = window.show() {
+                log::warn!("show failed: {e}");
+            }
             let handle = app.handle().clone();
             let st = state.clone();
             let writer_app = handle.clone();

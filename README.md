@@ -50,12 +50,15 @@ The project is developed from WSL with the build running on the Windows side; th
 `scripts/` (`overlay-build.sh`, `overlay-run.sh`, `overlay-probe.sh`) do that. See
 [docs/notes/dev-setup.md](docs/notes/dev-setup.md).
 
-To have Recall start and stop with the League client (no admin rights; a hidden watcher in your
-Startup folder):
+To have Recall follow the League client (a shortcut to `recall.exe --autostart` in your Startup
+folder; no admin rights, no extra process, no console window):
 
 ```bash
-scripts/autostart-install.sh          # install and start the watcher; `remove` undoes it, `status` shows it
+scripts/autostart-install.sh          # `remove` undoes it, `status` shows it
 ```
+
+In that mode the panel stays hidden until the client is running, shows while it is, and hides
+again 20 seconds after the client closes. The x button hides it for the rest of that client session.
 
 Then:
 

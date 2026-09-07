@@ -441,6 +441,15 @@ pub fn set_collapsed(
 }
 
 #[tauri::command]
-pub fn quit(app: AppHandle) {
+pub fn quit(app: AppHandle, st: tauri::State<'_, Arc<App>>) {
+    // Under --autostart the x button means "not this game": hide until the client restarts.
+    if st.autostart {
+        *st.dismissed.lock().unwrap() = true;
+        if let Some(window) = app.get_webview_window("main") {
+            let _ = window.hide();
+        }
+        log::info!("autostart: panel dismissed until the client restarts");
+        return;
+    }
     app.exit(0);
 }
