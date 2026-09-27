@@ -201,3 +201,33 @@ Replayed on the Malphite states (`core/tests/resist_balance.rs`, rebuilt by hand
 | 22:54 | next Thornmail ("armor for Yone's damage profile") | next Kaenic Rookern ("259 armor vs 50 MR"), then Thornmail |
 
 All earlier recorded-game regressions pass unchanged.
+
+## Update 2026-09-26: who is actually killing you, and a steadier panel
+
+In a draft game Lux Mid won lane against Azir while Darius went 1/0 at 1:24, 6/0 at 13:54 and 14/1
+by 20:24; he killed Lux at 13:48 (Azir assisting), assisted at 16:12 and killed her again at 19:36.
+The panel kept the core line (Luden's, boots, Stormsurge) with Zhonya's fifth all game, and its tags
+and tail order flickered: 27 polls flipped a tag and the path reordered 11 times.
+
+- **Kill feed and scoreboard.** `LiveSnapshot::my_deaths` reads the active player's deaths from the
+  kill feed (killer and assisters mapped from Riot game names to enemy champions; a name two rows
+  share is dropped). An enemy's threat now also rises with a kill lead (8% per kill ahead, up to six)
+  and with recent involvement in your deaths (killer 1, assister 0.5, fading over six minutes, x0.4
+  threat per point), and that involvement counts as dive: an enemy who reached and killed you is
+  diving you, assassin trait or not.
+- **Detour timing.** With that evidence, the planned defensive answer with a real need (`DETOUR_NEED`)
+  and tied to the enemy (the buffer the kill feed calls for, or the resistance against that enemy's
+  damage) moves ahead of the core, after the first core item; the reason names the evidence
+  ("Zhonya's: Darius (6/0) killed you; stasis stops the all-in"). It stays promoted until its need
+  drops below 1.2.
+- **Stability.** The cause of the flicker was the threat weight's ratio of levels (level 3 against 2
+  counted 50% more dangerous), which swung pressure between 0.07 and 0.61 on early level-ups and moved
+  defensive scores across the tag threshold. Levels now count 10% per level of difference; the tail
+  keeps the previous plan's choice unless a candidate is 0.25 better, tags turn off 0.15 below their
+  threshold, and a target keeps the tag its path entry had.
+
+Replay of the recorded game (185 observations): tag flips 27 to 1, path reorders 11 to 3, target
+changes 4 to 6 (Zhonya's at 13:51, boots when affordable at 15:13, Zhonya's again at 15:27), Zhonya's
+first the target at 13:51 instead of never; 0 invalid recommendations before and after. Tests are in
+`core/tests/threat_awareness.rs`; the replay tool now rebuilds the whole kill feed on every line of
+a recorded game.

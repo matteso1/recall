@@ -91,6 +91,16 @@ pub struct PlannerPreferences {
     /// so the panel does not trade two finishable items back and forth as gold moves.
     #[serde(default)]
     pub last_target: Option<u32>,
+    /// The previous plan's path and tags. The flexible tail keeps its order and tags unless a
+    /// score moves by a clear margin, so the panel does not reshuffle as levels and gold tick.
+    #[serde(default)]
+    pub last_path: Vec<u32>,
+    #[serde(default)]
+    pub last_tags: Vec<(u32, String)>,
+    /// A defensive answer moved ahead of the core because an enemy has been killing you; kept
+    /// there until the evidence clearly fades.
+    #[serde(default)]
+    pub promoted: Option<u32>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]

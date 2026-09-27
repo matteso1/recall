@@ -340,11 +340,15 @@ fn same_champion(cat: &Catalog, a: &str, b: &str) -> bool {
 }
 
 /// A game saved by the overlay's recorder: one JSON object per line, a `game` header then `live`
-/// observations. Runes and summoner spells are only in the first observation (the overlay drops them
-/// afterwards to keep files small), so they are restored on every later line from the first one;
-/// each line then replays like a raw capture. Returns (line number, allGameData) pairs.
+/// observations. Runes and summoner spells are only in the first observation and each event only
+/// in the line where it first appeared (the overlay keeps files small), so both are restored: every
+/// line gets the static data of the first one and the whole event feed up to that point, and then
+/// replays like a raw capture (the kill feed feeds the planner's threat). Returns (line number,
+/// allGameData) pairs.
 fn recorded_game(bytes: &[u8]) -> Vec<(usize, Value)> {
     let mut first: Option<Value> = None;
+    let mut feed: Vec<Value> = Vec::new();
+    let mut seen: HashSet<i64> = HashSet::new();
     let mut out = Vec::new();
     for (index, line) in bytes.split(|byte| *byte == b'\n').enumerate() {
         let Ok(record) = serde_json::from_slice::<Value>(line) else {
@@ -357,6 +361,19 @@ fn recorded_game(bytes: &[u8]) -> Vec<(usize, Value)> {
         match &first {
             None => first = Some(data.clone()),
             Some(first) => restore_static(&mut data, first),
+        }
+        for event in data
+            .pointer("/events/Events")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            if event["EventID"].as_i64().is_none_or(|id| seen.insert(id)) {
+                feed.push(event.clone());
+            }
+        }
+        if data.is_object() {
+            data["events"] = json!({"Events": feed.clone()});
         }
         out.push((index + 1, data));
     }
@@ -1598,6 +1615,36 @@ mod tests {
             .violations
             .iter()
             .any(|violation| violation.kind == "score"));
+    }
+
+    #[test]
+    fn a_recorded_game_rebuilds_the_whole_kill_feed_on_every_line() {
+        let line = |time: f64, events: Value| {
+            json!({"kind": "live", "data": {"activePlayer": {}, "allPlayers": [],
+                   "events": {"Events": events}, "gameData": {"gameTime": time}}})
+        };
+        let file = [
+            line(60.0, json!([{"EventID": 0}, {"EventID": 1}])),
+            line(80.0, json!([{"EventID": 2}])),
+            line(90.0, json!([])),
+            line(95.0, json!([{"EventID": 2}, {"EventID": 3}])),
+        ]
+        .iter()
+        .map(Value::to_string)
+        .collect::<Vec<_>>()
+        .join("\n");
+        let ids = |data: &Value| -> Vec<i64> {
+            data["events"]["Events"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|e| e["EventID"].as_i64().unwrap())
+                .collect()
+        };
+        let games = recorded_game(file.as_bytes());
+        assert_eq!(ids(&games[0].1), [0, 1]);
+        assert_eq!(ids(&games[2].1), [0, 1, 2]);
+        assert_eq!(ids(&games[3].1), [0, 1, 2, 3]);
     }
 
     #[test]

@@ -2,6 +2,7 @@
 //! Everything here is information the player can already see by pressing Tab.
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct LiveClient {
@@ -138,6 +139,16 @@ pub struct Me {
     pub stats: CombatStats,
 }
 
+/// One of the active player's deaths from the kill feed, by champion: who landed it and who
+/// assisted. Only enemy champions are named; a turret, minion or monster kill leaves `killer` empty.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct Death {
+    /// Game time of the kill, in seconds.
+    pub time: f64,
+    pub killer: String,
+    pub assisters: Vec<String>,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct LiveSnapshot {
     pub game_time: f64,
@@ -145,6 +156,9 @@ pub struct LiveSnapshot {
     pub me: Option<Me>,
     pub allies: Vec<Player>,
     pub enemies: Vec<Player>,
+    /// The active player's deaths in the visible kill feed, oldest first.
+    #[serde(default)]
+    pub my_deaths: Vec<Death>,
 }
 
 fn u32_of(v: &Value, key: &str) -> u32 {
@@ -304,6 +318,81 @@ fn actual_stats(active: &Value) -> CombatStats {
     }
 }
 
+/// The kill feed names players by Riot game name (`riotIdGameName`; older clients the summoner
+/// name). Each name maps to one scoreboard row; a name two rows share is dropped rather than
+/// guessed.
+fn feed_names(players: &[Value]) -> HashMap<String, usize> {
+    let mut index: HashMap<String, Option<usize>> = HashMap::new();
+    for (i, player) in players.iter().enumerate() {
+        let mut keys: Vec<String> = ["riotIdGameName", "summonerName", "riotId"]
+            .iter()
+            .filter_map(|key| player.get(*key).and_then(Value::as_str))
+            .filter(|name| !name.is_empty())
+            .map(str::to_owned)
+            .collect();
+        keys.sort();
+        keys.dedup();
+        for key in keys {
+            index
+                .entry(key)
+                .and_modify(|slot| {
+                    if *slot != Some(i) {
+                        *slot = None;
+                    }
+                })
+                .or_insert(Some(i));
+        }
+    }
+    index
+        .into_iter()
+        .filter_map(|(name, slot)| slot.map(|i| (name, i)))
+        .collect()
+}
+
+/// The active player's deaths from `events.Events` (ChampionKill), naming only enemy champions.
+fn my_deaths(data: &Value, players: &[Value], own: usize, own_team: &str) -> Vec<Death> {
+    let names = feed_names(players);
+    let enemy = |name: &str| -> Option<String> {
+        let i = *names.get(name)?;
+        let p = &players[i];
+        (i != own && str_of(p, "team") != own_team && !str_of(p, "championName").is_empty())
+            .then(|| str_of(p, "championName"))
+    };
+    let mut deaths: Vec<Death> = data
+        .pointer("/events/Events")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|e| e.get("EventName").and_then(Value::as_str) == Some("ChampionKill"))
+        .filter(|e| {
+            e.get("VictimName")
+                .and_then(Value::as_str)
+                .and_then(|victim| names.get(victim))
+                == Some(&own)
+        })
+        .filter_map(|e| {
+            let time = finite_of(e, "EventTime")?;
+            Some(Death {
+                time,
+                killer: e
+                    .get("KillerName")
+                    .and_then(Value::as_str)
+                    .and_then(enemy)
+                    .unwrap_or_default(),
+                assisters: e
+                    .get("Assisters")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(|a| a.as_str().and_then(enemy))
+                    .collect(),
+            })
+        })
+        .collect();
+    deaths.sort_by(|a, b| a.time.total_cmp(&b.time));
+    deaths
+}
+
 pub fn summarize(data: &Value) -> LiveSnapshot {
     let active = &data["activePlayer"];
     let game = &data["gameData"];
@@ -346,6 +435,12 @@ pub fn summarize(data: &Value) -> LiveSnapshot {
     });
     let mut allies = Vec::new();
     let mut enemies = Vec::new();
+    let mut deaths = Vec::new();
+    if let (Some(m), Some(own)) = (&me, own_index) {
+        if matches!(m.player.team.as_str(), "ORDER" | "CHAOS") {
+            deaths = my_deaths(data, players, own, &m.player.team);
+        }
+    }
     if let Some(m) = &me {
         if matches!(m.player.team.as_str(), "ORDER" | "CHAOS") {
             for (i, raw) in players.iter().enumerate() {
@@ -370,6 +465,7 @@ pub fn summarize(data: &Value) -> LiveSnapshot {
         me,
         allies,
         enemies,
+        my_deaths: deaths,
     }
 }
 
@@ -493,6 +589,44 @@ mod tests {
             serde_json::json!("Barrière");
         let me = serde_json::to_value(summarize(&data).me.unwrap()).unwrap();
         assert_eq!(me.get("spell_ids"), Some(&serde_json::json!([4, 21])));
+    }
+
+    #[test]
+    fn the_kill_feed_keeps_only_your_deaths_and_only_enemy_names() {
+        let player = |name: &str, champion: &str, team: &str| {
+            serde_json::json!({"riotId": format!("{name}#T"), "riotIdGameName": name,
+                               "championName": champion, "team": team, "items": []})
+        };
+        let kill = |id: i64, killer: &str, victim: &str, assisters: &[&str]| {
+            serde_json::json!({"EventID": id, "EventName": "ChampionKill", "EventTime": id as f64,
+                               "KillerName": killer, "VictimName": victim,
+                               "Assisters": assisters})
+        };
+        let data = serde_json::json!({
+            "activePlayer": {"riotId": "Me#T"},
+            "allPlayers": [
+                player("Me", "Lux", "ORDER"),
+                player("Ally", "Yone", "ORDER"),
+                player("Top", "Darius", "CHAOS"),
+                player("Twin", "Azir", "CHAOS"),
+                player("Twin", "Karma", "CHAOS")
+            ],
+            "events": {"Events": [
+                kill(1, "Top", "Me", &["Ally", "Twin"]),
+                kill(2, "Turret_T2_C_05_A", "Me", &["Top"]),
+                kill(3, "Top", "Ally", &[]),
+                {"EventID": 4, "EventName": "DragonKill", "KillerName": "Top"}
+            ]},
+            "gameData": {"gameTime": 900.0}
+        });
+        let deaths = summarize(&data).my_deaths;
+        assert_eq!(deaths.len(), 2);
+        // An ally's assist and a name two enemies share are dropped, not guessed.
+        assert_eq!(deaths[0].killer, "Darius");
+        assert!(deaths[0].assisters.is_empty());
+        // A turret execution has no champion killer; the assisting enemy still counts.
+        assert_eq!(deaths[1].killer, "");
+        assert_eq!(deaths[1].assisters, ["Darius"]);
     }
 
     #[test]

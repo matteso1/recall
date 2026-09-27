@@ -4,7 +4,7 @@ use crate::ddragon::{normalize, Catalog, GrievousTrigger, Item, ShieldEffect};
 use crate::engine::{
     self, Alternative, BuildPreference, Inputs, NextItem, PlanItem, PlannerPreferences,
 };
-use crate::live::{Me, Player};
+use crate::live::{self, Me, Player};
 use crate::pack::ControlKind;
 use crate::shop;
 use serde::{Deserialize, Serialize};
@@ -61,6 +61,29 @@ const MIN_BOOTS_PICK: f64 = 0.05;
 /// Before a game (champion select planning) there are no measured stats; the first finished items
 /// land around this level, so base resistances and health are taken there.
 const PLANNING_LEVEL: u32 = 9;
+/// Each level an enemy is ahead of (or behind) you changes their threat by 10%, held inside
+/// 0.6-1.5. A ratio of levels made level 3 against level 2 look 50% more dangerous, which swung the
+/// defensive scores, the tags and the tail order on every early level-up (Lux game, 2026-09-26).
+const LEVEL_STEP: f64 = 0.1;
+/// A fed enemy (more kills than deaths on the scoreboard) counts up to about half again as
+/// dangerous: 8% per kill of lead, counting at most six.
+const FED_STEP: f64 = 0.08;
+const FED_LEAD_CAP: f64 = 6.0;
+/// Kill-feed memory: one of your deaths counts fully when it just happened and fades out over six
+/// minutes. The killer counts 1, each assister 0.5, capped at 2 per enemy.
+const HUNT_MEMORY_SECONDS: f64 = 360.0;
+const HUNT_CAP: f64 = 2.0;
+/// Each point of kill-feed evidence raises that enemy's threat by 40% and is evidence of dive:
+/// an enemy who reached and killed you is diving you, assassin trait or not.
+const HUNT_THREAT: f64 = 0.4;
+const HUNT_DIVE: f64 = 0.5;
+/// An answer promoted ahead of the core at `DETOUR_NEED` stays promoted until its need falls
+/// below this, so it does not flip as the evidence slowly fades.
+const PROMOTE_KEEP: f64 = 1.2;
+/// A tail candidate replaces the previous plan's choice only when it scores this much higher, and
+/// a tag appears at its threshold but disappears only this far below it.
+const TAIL_MARGIN: f64 = 0.25;
+const TAG_MARGIN: f64 = 0.15;
 
 #[derive(Clone, Copy, Debug, Default)]
 struct Archetype {
@@ -167,10 +190,48 @@ struct Needs {
     poke: f64,
     ally_antiheal: Vec<String>,
     context: Vec<String>,
+    /// The enemy with the strongest kill-feed evidence against you (recent deaths they landed or
+    /// assisted), named in the reason when a defensive answer is moved ahead of the core.
+    hunter: Option<Hunter>,
     /// The player's durability before any candidate is added.
     defense: Defense,
     /// Owned item ids (one per unit), so planned-but-unbought items can be told apart.
     owned: Vec<u32>,
+}
+
+#[derive(Clone, Debug, Default)]
+struct Hunter {
+    champion: String,
+    kills: u32,
+    deaths: u32,
+    /// Landed at least one of the remembered kills (not only assisted).
+    landed: bool,
+    /// Kill-feed evidence, `hunting` below.
+    score: f64,
+}
+
+/// How much of your recent dying one enemy did: the killer counts 1 and an assister 0.5 per death,
+/// fading linearly over `HUNT_MEMORY_SECONDS`. Returns (score, landed a kill).
+fn hunting(deaths: &[live::Death], now: f64, champion: &str) -> (f64, bool) {
+    let mut score = 0.0;
+    let mut landed = false;
+    for death in deaths {
+        let fade = (1.0 - (now - death.time) / HUNT_MEMORY_SECONDS).clamp(0.0, 1.0);
+        if fade <= 0.0 {
+            continue;
+        }
+        if normalize(&death.killer) == normalize(champion) {
+            score += fade;
+            landed = true;
+        } else if death
+            .assisters
+            .iter()
+            .any(|a| normalize(a) == normalize(champion))
+        {
+            score += 0.5 * fade;
+        }
+    }
+    (score.min(HUNT_CAP), landed)
 }
 
 /// The player's armor, magic resist and health, for valuing more of them as damage actually
@@ -403,14 +464,32 @@ impl Needs {
                 1.0
             };
             let levels = match (player, me) {
-                (Some(p), Some(m)) if m.player.level > 0 => {
-                    (f64::from(p.level) / f64::from(m.player.level)).clamp(0.5, 1.5)
-                }
+                (Some(p), Some(m)) if m.player.level > 0 && p.level > 0 => (1.0
+                    + LEVEL_STEP * (f64::from(p.level) - f64::from(m.player.level)))
+                .clamp(0.6, 1.5),
                 _ => 1.0,
             };
+            // The scoreboard and the kill feed: a fed enemy, and above all one who has been
+            // killing you, is the one to itemize against.
+            let fed = player.map_or(1.0, |p| {
+                1.0 + FED_STEP * (f64::from(p.kills) - f64::from(p.deaths)).clamp(0.0, FED_LEAD_CAP)
+            });
+            let (hunt, landed) = inp
+                .live
+                .map_or((0.0, false), |l| hunting(&l.my_deaths, l.game_time, &name));
+            if hunt > 0.0 && n.hunter.as_ref().is_none_or(|h| hunt > h.score) {
+                n.hunter = Some(Hunter {
+                    champion: name.clone(),
+                    kills: player.map_or(0, |p| p.kills),
+                    deaths: player.map_or(0, |p| p.deaths),
+                    landed,
+                    score: hunt,
+                });
+            }
+            n.dive = (n.dive + HUNT_DIVE * hunt).min(1.0);
             // Pressure and dive are about how strong an enemy is; the damage split also weighs
             // who you face in lane, so the lane opponent names the need early.
-            let threat = relative * levels;
+            let threat = relative * levels * fed * (1.0 + HUNT_THREAT * hunt);
             strongest_pressure = strongest_pressure.max(threat);
             let weight = if lane.contains(&normalize(&name)) {
                 threat * boost
@@ -691,6 +770,56 @@ fn order_defense(
     }
 }
 
+/// With kill-feed evidence (an enemy has been killing you), the planned defensive answer with a
+/// real need (`DETOUR_NEED`) moves to the front of what is left to buy, ahead of the next core item:
+/// Zhonya's for a mage a fed bruiser keeps killing. The answer must be tied to that enemy (the
+/// buffer the kill feed calls for, or the resistance against that enemy's damage), it stays in
+/// front while its need stays above `PROMOTE_KEEP`, and nothing moves before the first core item is
+/// finished. Returns the promoted item.
+fn promote_answer(
+    path: &mut Vec<PlanItem>,
+    inp: &Inputs,
+    n: &Needs,
+    archetype: Archetype,
+    owned: &[u32],
+    completed_core: usize,
+    preferences: &PlannerPreferences,
+) -> Option<u32> {
+    let hunter = n.hunter.as_ref()?;
+    if completed_core == 0 {
+        return None;
+    }
+    let cat = inp.catalog;
+    let front = path.iter().position(|p| !p.owned)?;
+    let (_, index, f) = path
+        .iter()
+        .enumerate()
+        .skip(front)
+        .filter(|(_, p)| !p.owned && p.role != "boots")
+        .filter_map(|(index, p)| {
+            let item = cat.item(p.id)?;
+            if !item.is_finished(cat) {
+                return None;
+            }
+            let f = fit(item, inp, n, archetype, owned, preferences.mode);
+            let answers_hunter = f.evidence == Evidence::KillFeed
+                || (f.kind == DecisionKind::PhysicalDefense && n.physical_name == hunter.champion)
+                || (f.kind == DecisionKind::MagicDefense && n.magic_name == hunter.champion);
+            let bar = if preferences.promoted == Some(p.id) {
+                PROMOTE_KEEP
+            } else {
+                DETOUR_NEED
+            };
+            (answers_hunter && f.score >= bar).then_some((f.score, index, f))
+        })
+        .max_by(|a, b| a.0.total_cmp(&b.0))?;
+    let mut item = path.remove(index);
+    item.why = Some(f.reason);
+    item.tag = Some("situational".into());
+    path.insert(front, item);
+    Some(path[front].id)
+}
+
 #[derive(Clone, Debug)]
 struct Fit {
     score: f64,
@@ -834,11 +963,38 @@ fn fit(
         } else {
             1.0
         };
+        // When the kill feed shows who has been killing you, the reason says so: that is the
+        // evidence a player can check, and it is what the buffer is for.
+        let (reason, evidence) = match &n.hunter {
+            Some(h) => {
+                let answer = if e.stasis {
+                    "stasis stops the all-in"
+                } else if e.spell_shield {
+                    "its spell shield blocks the engage"
+                } else {
+                    "its shield absorbs the burst"
+                };
+                (
+                    format!(
+                        "{short}: {} ({}/{}) {} you; {answer}",
+                        h.champion,
+                        h.kills,
+                        h.deaths,
+                        if h.landed { "killed" } else { "helped kill" }
+                    ),
+                    Evidence::KillFeed,
+                )
+            }
+            None => (
+                format!("{short}: a defensive buffer against their burst threats"),
+                Evidence::Composition,
+            ),
+        };
         terms.push((
             defense_weight * relevance * n.dive,
             DecisionKind::AntiBurst,
-            format!("{short}: a defensive buffer against their burst threats"),
-            Evidence::Composition,
+            reason,
+            evidence,
         ));
     }
     if let Some(sustain) = e.life_steal.or(e.omnivamp) {
@@ -857,6 +1013,15 @@ fn fit(
     terms.retain(|(v, _, _, _)| v.is_finite() && *v > 0.01);
     terms.sort_by(|a, b| b.0.total_cmp(&a.0));
     let score = terms.iter().map(|t| t.0).sum::<f64>().min(MAX_NEED_SCORE);
+    // Kill-feed evidence names the reason whenever it is a real part of the need, even when the
+    // item's resistance term is larger: "Darius killed you" is why the item is worth it now.
+    if let Some(index) = terms
+        .iter()
+        .position(|t| t.3 == Evidence::KillFeed && t.0 >= 0.3)
+    {
+        let evidenced = terms.remove(index);
+        terms.insert(0, evidenced);
+    }
     let (_, kind, reason, evidence) = terms.into_iter().next().unwrap_or((
         0.0,
         DecisionKind::Core,
@@ -1163,12 +1328,30 @@ pub(crate) fn select(
             ranked.push((score, id, f));
         }
         ranked.sort_by(|a, b| b.0.total_cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
-        let Some((_, id, f)) = ranked.into_iter().next() else {
+        let Some(best) = ranked.first().map(|r| r.0) else {
             break;
         };
+        // Hysteresis: among candidates within `TAIL_MARGIN` of the best, the one the previous plan
+        // listed first keeps its place, so near-ties (Banshee's Veil and Zhonya's, Banshee's and
+        // Deathcap in the Lux game) do not swap every time a level or a component ticks.
+        let chosen = ranked
+            .iter()
+            .enumerate()
+            .filter(|(_, r)| r.0 >= best - TAIL_MARGIN)
+            .filter_map(|(i, r)| {
+                preferences
+                    .last_path
+                    .iter()
+                    .position(|p| *p == r.1)
+                    .map(|previous| (previous, i))
+            })
+            .min()
+            .map_or(0, |(_, i)| i);
+        let (_, id, f) = ranked.remove(chosen);
         if let Some(mut item) = engine::item_by_id(cat, inp.pack, id, Some(f.reason)) {
             // A named need is worth a tag at any real score; the generic label needs a clear one,
             // so a Guardian Angel hovering around the threshold does not flicker between polls.
+            // A tag shown last poll stays until the score falls `TAG_MARGIN` below the threshold.
             let named = matches!(
                 f.kind,
                 DecisionKind::AntiHeal
@@ -1176,7 +1359,16 @@ pub(crate) fn select(
                     | DecisionKind::ArmorPen
                     | DecisionKind::MagicPen
             );
-            if f.score > 0.2 && named || f.score >= 0.75 {
+            let threshold = if named { 0.2 } else { 0.75 };
+            let tagged_before = preferences.last_tags.iter().any(|(t, _)| *t == id);
+            let tagged = if tagged_before {
+                f.score > threshold - TAG_MARGIN
+            } else if named {
+                f.score > threshold
+            } else {
+                f.score >= threshold
+            };
+            if tagged {
                 item.tag = Some(
                     match f.kind {
                         DecisionKind::AntiHeal => "anti-heal",
@@ -1192,6 +1384,15 @@ pub(crate) fn select(
         }
     }
     order_defense(&mut path, inp, &needs, first, me, boots_locked, swiftplay);
+    out.preferences.promoted = promote_answer(
+        &mut path,
+        inp,
+        &needs,
+        archetype,
+        &ids,
+        completed_core,
+        preferences,
+    );
     let pending: Vec<_> = path
         .iter()
         .filter(|p| !p.owned && !(boots_locked && p.role == "boots"))
@@ -1412,6 +1613,13 @@ pub(crate) fn select(
             target.why = Some(reason.clone());
             if pinned {
                 target.tag = Some("pinned".into());
+            } else {
+                // Becoming the target does not change what the item is for: it keeps the tag its
+                // path entry carried, so the tag does not blink off and on with target changes.
+                target.tag = path
+                    .iter()
+                    .find(|p| p.id == target.id && !p.owned)
+                    .and_then(|p| p.tag.clone());
             }
             out.next = Some(engine::next_for_target(
                 cat,
@@ -1494,6 +1702,12 @@ pub(crate) fn select(
             .then_with(|| a.id.cmp(&b.id))
     });
     out.options.truncate(16);
+    // What the next poll compares against (tail order and tags, see `TAIL_MARGIN`).
+    out.preferences.last_path = path.iter().map(|p| p.id).collect();
+    out.preferences.last_tags = path
+        .iter()
+        .filter_map(|p| p.tag.clone().map(|tag| (p.id, tag)))
+        .collect();
     out.path = path;
     out
 }

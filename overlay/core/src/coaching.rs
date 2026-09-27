@@ -30,6 +30,8 @@ pub enum Evidence {
     Composition,
     Inventory,
     PlayerChoice,
+    /// The visible kill feed and scoreboard (who has been killing you, who is fed).
+    KillFeed,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
