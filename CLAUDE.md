@@ -31,11 +31,19 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   `C:\Users\nilsm\code\recall-win\overlay\target\swiftplay\release\recall.exe`, and
   `scripts/overlay-run.sh` / `overlay-probe.sh` / `overlay-demo-shots.sh` use that same path. The build refuses
   to run while the exe is running (cargo cannot replace it). Never build from the WSL path.
-- `scripts/autostart-install.sh` puts a shortcut to `recall.exe --autostart` in the user's Startup folder.
-  In that mode (`src-tauri/src/autostart.rs`) the window is created hidden, shows while the panel phase is
-  not `noclient`, hides 20 s after the client goes away, and the x button hides instead of quitting. There
-  is no separate watcher process (the earlier PowerShell one showed a terminal window and stalled).
-  `overlay-run.sh` passes `--autostart` when the shortcut exists; `overlay-build.sh` still needs the exe stopped.
+- The user opens Recall like an app: `scripts/shortcut-install.sh` puts a Recall shortcut (plain
+  `recall.exe`) on the Desktop and in the Start menu and removes the Startup auto-start. Since 2026-09-26 the
+  user does not want auto-start ("just make it an app i can click"); do not reinstall it unasked.
+- One overlay at a time (`src-tauri/src/instance.rs`): the first process holds `%LOCALAPPDATA%\Recall\instance.lock`
+  exclusively; a second launch writes `show.request`, which the running one turns into showing its panel
+  (clearing an x-button dismissal), and exits. `--probe` and `--demo` are exempt. Two copies once ran side
+  by side and imported in parallel.
+- `scripts/overlay-update.sh` is the one-command update: waits while League is in queue, champ select or a
+  game, stops the overlay, builds, probes, relaunches (the old exe is relaunched if the build fails).
+- `scripts/autostart-install.sh` (optional, currently removed) puts `recall.exe --autostart` in the Startup
+  folder. In that mode (`src-tauri/src/autostart.rs`) the window is created hidden, shows while the panel
+  phase is not `noclient`, hides 20 s after the client goes away, and the x button hides instead of quitting.
+  `overlay-run.sh` passes `--autostart` when that shortcut exists; `overlay-build.sh` still needs the exe stopped.
 - `scripts/overlay-probe.sh --champion Irelia --role jungle --swiftplay` plans an offline request on the real
   cache from the built exe, no client or game needed: use it to verify an artifact before handing it over.
 - The Tauri crate cannot be type-checked from WSL (needs MSVC `lib.exe`), so keep logic in `core`.

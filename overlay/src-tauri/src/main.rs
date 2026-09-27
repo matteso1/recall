@@ -5,6 +5,7 @@ mod autostart;
 mod commands;
 mod controller;
 mod demo;
+mod instance;
 mod journal_store;
 mod poller;
 mod probe;
@@ -202,6 +203,21 @@ fn main() {
         })
     };
 
+    // A demo is a staged panel for screenshots and may run beside the real overlay.
+    let demo_mode = demo.is_some();
+    let _instance = if !demo_mode {
+        match instance::claim() {
+            instance::Claim::Second => {
+                log::info!("another Recall overlay is running; asked it to show its panel");
+                instance::ask_running_overlay_to_show();
+                return;
+            }
+            instance::Claim::First(lock) => lock,
+        }
+    } else {
+        None
+    };
+
     let pack = recall_core::pack::load_xayah().expect("data pack");
     let traits = recall_core::pack::load_traits().expect("champion traits");
     let saved = settings::load();
@@ -278,6 +294,12 @@ fn main() {
                 });
             } else if let Err(e) = window.show() {
                 log::warn!("show failed: {e}");
+            }
+            if !demo_mode {
+                tauri::async_runtime::spawn(instance::serve_show_requests(
+                    app.handle().clone(),
+                    state.clone(),
+                ));
             }
             let handle = app.handle().clone();
             let st = state.clone();
