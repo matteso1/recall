@@ -95,6 +95,13 @@ const TYPED_MARGIN: f64 = 1.0;
 /// return as one death fades and the next renews the evidence (the Xayah game of 2026-09-26 traded
 /// Bloodthirster and Mortal Reminder six times between 23:40 and 28:00).
 const PROMOTE_HOLD_SECONDS: f64 = 180.0;
+/// A promoted answer the player has started buying (see `started`) stays promoted until it is
+/// finished, while its need holds at `PROMOTE_KEEP`, and gives way only to an answer whose need is
+/// this much higher: switching strands the gold already spent. In the Xayah game of 2026-09-26 the
+/// player bought Null-Magic Mantle toward Mercurial Scimitar after "Lillia (3/0) killed you", then
+/// one solo death to Yasuo switched the answer to Guardian Angel, Mercurial left the path, and the
+/// Mantle was sold. A second answer for another enemy follows the committed one instead.
+const COMMIT_MARGIN: f64 = 1.0;
 /// The target shown last poll stays the target unless a challenger's total is this much higher
 /// (or it was bought, declined, blocked or left the candidates). Finishable targets stay regardless.
 const TARGET_MARGIN: f64 = 0.75;
@@ -207,6 +214,10 @@ struct Needs {
     /// The enemy with the strongest kill-feed evidence against you (recent deaths they landed or
     /// assisted), named in the reason when a defensive answer is moved ahead of the core.
     hunter: Option<Hunter>,
+    /// Every enemy's damage type (share of magic, 0-1) and strength without the kill feed
+    /// (equipment, levels, kill lead; 1.0 is even with you), for what a committed answer still
+    /// answers.
+    threats: Vec<(String, f64, f64)>,
     /// The player's durability before any candidate is added.
     defense: Defense,
     /// Owned item ids (one per unit), so planned-but-unbought items can be told apart.
@@ -552,6 +563,7 @@ impl Needs {
                     magic,
                 });
             }
+            n.threats.push((name.clone(), magic, strength));
             weighted_magic += weight * magic;
             weighted_physical += weight * (1.0 - magic);
             if weight * magic > strongest_magic {
@@ -794,6 +806,89 @@ fn order_defense(
     }
 }
 
+/// Owned progress toward `answer` that nothing else still to buy explains: a component that builds
+/// into it and into no other unowned path item. Null-Magic Mantle toward Mercurial Scimitar counts;
+/// a Long Sword that also builds into the core line does not. Returns that component.
+fn started(cat: &Catalog, path: &[PlanItem], owned: &[u32], answer: u32) -> Option<u32> {
+    if owned.contains(&answer) {
+        return None;
+    }
+    owned.iter().copied().find(|&component| {
+        component != answer
+            && builds_into(cat, component, answer)
+            && !path
+                .iter()
+                .any(|p| !p.owned && p.id != answer && builds_into(cat, component, p.id))
+    })
+}
+
+/// An enemy who is even with you or ahead (strength without the kill feed).
+const COMMIT_THREAT: f64 = 1.0;
+
+/// Whether some enemy still calls for `item`: its magic resist answers an enemy dealing mostly
+/// magic damage, its armor one dealing mostly physical damage, who is even with you or ahead
+/// (`COMMIT_THREAT`); a buffer without either answers any such enemy. This is the commitment
+/// test instead of the item's need against the whole team, which falls as soon as the player buys
+/// a component (Null-Magic Mantle's own magic resist took Mercurial Scimitar's need from 1.05 to
+/// 0.91 in the Xayah game) and whenever another enemy's evidence weighs the mix, so a team-wide
+/// threshold would release every commitment right after its first purchase.
+fn still_answers(n: &Needs, item: &Item) -> bool {
+    let magic_resist = item.effects.magic_resist.is_some_and(|v| v > 0.0);
+    let armor = item.effects.armor.is_some_and(|v| v > 0.0);
+    n.threats.iter().any(|(_, magic, strength)| {
+        *strength >= COMMIT_THREAT
+            && ((magic_resist && *magic >= 0.5)
+                || (armor && *magic < 0.5)
+                || (!magic_resist && !armor))
+    })
+}
+
+/// A committed answer (see `started`) with no current kill-feed evidence: it stays at the front of
+/// what is left to buy while `still_answers` holds, with its own reason and what the player
+/// already owns of it. Returns it with the current game second, or None when released.
+fn keep_commitment(
+    path: &mut Vec<PlanItem>,
+    inp: &Inputs,
+    n: &Needs,
+    archetype: Archetype,
+    owned: &[u32],
+    commitment: Option<(u32, u32)>,
+    mode: BuildPreference,
+) -> Option<(u32, u32)> {
+    let (id, component) = commitment?;
+    let cat = inp.catalog;
+    let item = cat.item(id)?;
+    if !still_answers(n, item) {
+        return None;
+    }
+    let now = inp.live.map_or(0.0, |l| l.game_time.max(0.0));
+    let f = fit(item, inp, n, archetype, owned, mode);
+    let mut entry = match path.iter().position(|p| p.id == id && !p.owned) {
+        Some(index) => path.remove(index),
+        None => {
+            if path.len() >= 6 {
+                // Make room with the last flexible item the player has not started.
+                let index = path.iter().rposition(|p| {
+                    !p.owned && p.role != "boots" && started(cat, path, owned, p.id).is_none()
+                })?;
+                path.remove(index);
+            }
+            engine::item_by_id(cat, inp.pack, id, None)?
+        }
+    };
+    entry.why = Some(format!(
+        "{}; you already own {}",
+        f.reason,
+        cat.item(component)
+            .map(|i| i.name.clone())
+            .unwrap_or_default()
+    ));
+    entry.tag = Some("situational".into());
+    let front = path.iter().position(|p| !p.owned).unwrap_or(path.len());
+    path.insert(front, entry);
+    Some((id, now as u32))
+}
+
 /// With kill-feed evidence (an enemy has been killing you), a defensive answer moves to the front
 /// of what is left to buy, ahead of the next core item, once the first core item is finished. Two
 /// kinds of answer qualify: resistance against the blamed enemy's damage type (magic resist against
@@ -805,7 +900,11 @@ fn order_defense(
 /// unless the buffer's need is `TYPED_MARGIN` higher. An answer already promoted stays while its
 /// need is above `PROMOTE_KEEP` or for `PROMOTE_HOLD_SECONDS` after it last met its bar, and gives
 /// way only to a resistance answer, so the front of the path does not flip as deaths fade and
-/// renew. Returns the promoted item and the game second it last met its bar.
+/// renew. An answer the player has started buying (`started`) is committed: it stays in front until
+/// finished while its need holds at `PROMOTE_KEEP`, unless another answer's need is `COMMIT_MARGIN`
+/// higher, and a qualifying answer for another enemy goes right after it instead of replacing it.
+/// Nothing with owned progress is ever the item a pool answer replaces. Returns the promoted item
+/// and the game second it last met its bar.
 #[allow(clippy::too_many_arguments)]
 fn promote_answer(
     path: &mut Vec<PlanItem>,
@@ -824,13 +923,23 @@ fn promote_answer(
         score: f64,
         typed: bool,
         met: bool,
+        committed: bool,
         fit: Fit,
     }
-    let hunter = n.hunter.as_ref()?;
     if completed_core == 0 {
         return None;
     }
     let cat = inp.catalog;
+    // The promoted answer the player has started buying, and the component that shows it.
+    let commitment = preferences
+        .promoted
+        .and_then(|id| started(cat, path, owned, id).map(|component| (id, component)));
+    let committed_id = commitment.map(|(id, _)| id);
+    let Some(hunter) = n.hunter.as_ref() else {
+        // The kill-feed evidence has faded (six minutes after the last death), but an answer the
+        // player has started buying stays in front while some enemy still calls for it.
+        return keep_commitment(path, inp, n, archetype, owned, commitment, preferences.mode);
+    };
     let now = inp.live.map_or(0.0, |l| l.game_time.max(0.0));
     let front = path.iter().position(|p| !p.owned)?;
     let magic_hunter = hunter.magic >= 0.5;
@@ -840,11 +949,22 @@ fn promote_answer(
         })
     };
     // The flexible path item a pool answer would replace when the path is full: the unowned
-    // non-core item (not boots) with the least need.
+    // non-core item (not boots) with the least need, never the committed answer or an item the
+    // player has started (`started`: a component only that item explains, so dropping it would
+    // strand the gold). A component shared with another item still to buy (a Long Sword toward
+    // both Mortal Reminder and Mercurial Scimitar) strands nothing and does not protect it.
+    let snapshot: Vec<PlanItem> = path.clone();
+    let replaceable = |p: &PlanItem| {
+        !p.owned
+            && p.role != "boots"
+            && !core.contains(&p.id)
+            && Some(p.id) != committed_id
+            && started(cat, &snapshot, owned, p.id).is_none()
+    };
     let weakest = path
         .iter()
         .enumerate()
-        .filter(|(_, p)| !p.owned && p.role != "boots" && !core.contains(&p.id))
+        .filter(|(_, p)| replaceable(p))
         .map(|(index, p)| (need(p.id), index))
         .min_by(|a, b| a.0.total_cmp(&b.0))
         .map(|(_, index)| index);
@@ -878,7 +998,8 @@ fn promote_answer(
             && preferences
                 .promoted_seen
                 .is_some_and(|seen| now - f64::from(seen) <= PROMOTE_HOLD_SECONDS);
-        if !typed && !buffer && !held {
+        let committed = committed_id == Some(id);
+        if !typed && !buffer && !held && !committed {
             continue;
         }
         let met = (typed || buffer)
@@ -889,13 +1010,14 @@ fn promote_answer(
                     DETOUR_NEED
                 }
             || preferences.promoted == Some(id) && f.score >= PROMOTE_KEEP;
-        if met || held {
+        if met || held || committed {
             candidates.push(Candidate {
                 id,
                 slot,
                 score: f.score,
                 typed,
                 met,
+                committed,
                 fit: f,
             });
         }
@@ -920,7 +1042,24 @@ fn promote_answer(
             choice = previous;
         }
     }
-    let seen = if choice.met {
+    // Commitment: the answer the player has started buying stays in front while it is still
+    // needed, unless another answer is clearly more needed; that other answer, if it qualified on
+    // its own, follows it.
+    let mut second = None;
+    if let Some(committed) = candidates.iter().find(|c| c.committed) {
+        let outclassed =
+            choice.id != committed.id && choice.score >= committed.score + COMMIT_MARGIN;
+        let answers = cat
+            .item(committed.id)
+            .is_some_and(|item| still_answers(n, item));
+        if answers && !outclassed {
+            if choice.id != committed.id && choice.met {
+                second = Some(choice);
+            }
+            choice = committed;
+        }
+    }
+    let seen = if choice.met || choice.committed {
         now as u32
     } else {
         preferences.promoted_seen.unwrap_or(now as u32)
@@ -931,27 +1070,40 @@ fn promote_answer(
         .unwrap_or_default();
     // A buffer's own reason already names the evidence ("stasis stops the all-in"); a resistance
     // answer says what it cuts; an answer kept only by its hold keeps its own reason rather than
-    // claiming to answer an enemy whose damage it does not resist.
-    let reason = if choice.fit.evidence == Evidence::KillFeed || !choice.typed {
-        choice.fit.reason.clone()
-    } else {
-        format!(
-            "{short}: {} ({}/{}) {} you; its {} cuts that damage",
-            hunter.champion,
-            hunter.kills,
-            hunter.deaths,
-            if hunter.landed {
-                "killed"
-            } else {
-                "helped kill"
-            },
-            if magic_hunter {
-                "magic resist"
-            } else {
-                "armor"
+    // claiming to answer an enemy whose damage it does not resist, and a committed one says what
+    // the player already owns of it.
+    let reason_for = |candidate: &Candidate, short: &str| -> String {
+        if candidate.fit.evidence == Evidence::KillFeed || !candidate.typed {
+            let own = candidate.fit.reason.clone();
+            match commitment {
+                Some((id, component)) if id == candidate.id => format!(
+                    "{own}; you already own {}",
+                    cat.item(component)
+                        .map(|i| i.name.clone())
+                        .unwrap_or_default()
+                ),
+                _ => own,
             }
-        )
+        } else {
+            format!(
+                "{short}: {} ({}/{}) {} you; its {} cuts that damage",
+                hunter.champion,
+                hunter.kills,
+                hunter.deaths,
+                if hunter.landed {
+                    "killed"
+                } else {
+                    "helped kill"
+                },
+                if magic_hunter {
+                    "magic resist"
+                } else {
+                    "armor"
+                }
+            )
+        }
     };
+    let reason = reason_for(choice, &short);
     let mut item = match choice.slot {
         Some(index) => path.remove(index),
         None => {
@@ -966,7 +1118,46 @@ fn promote_answer(
     item.tag = Some("situational".into());
     let front = path.iter().position(|p| !p.owned).unwrap_or(path.len());
     path.insert(front, item);
-    Some((path[front].id, seen))
+    let promoted = path[front].id;
+    // The answer for another enemy follows the committed one rather than replacing it.
+    if let Some(second) = second {
+        let short = cat
+            .item(second.id)
+            .map(|item| engine::short_of(inp.pack, &item.name))
+            .unwrap_or_default();
+        let reason = reason_for(second, &short);
+        let entry = match path.iter().position(|p| p.id == second.id && !p.owned) {
+            Some(index) => Some(path.remove(index)),
+            None => {
+                let room = path.len() < 6
+                    || path
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, p)| replaceable(p) && p.id != promoted)
+                        .map(|(index, p)| (need(p.id), index))
+                        .min_by(|a, b| a.0.total_cmp(&b.0))
+                        .map(|(_, index)| {
+                            path.remove(index);
+                        })
+                        .is_some();
+                if room {
+                    engine::item_by_id(cat, inp.pack, second.id, None)
+                } else {
+                    None
+                }
+            }
+        };
+        if let Some(mut entry) = entry {
+            entry.why = Some(reason);
+            entry.tag = Some("situational".into());
+            let after = path
+                .iter()
+                .position(|p| p.id == promoted)
+                .map_or(path.len(), |index| index + 1);
+            path.insert(after, entry);
+        }
+    }
+    Some((promoted, seen))
 }
 
 #[derive(Clone, Debug)]

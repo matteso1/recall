@@ -257,3 +257,31 @@ every kill-feed reason now names Orianna (was Rengar in 46 polls, Miss Fortune i
 Scimitar is the target at 18:36 ("Orianna (9/1) helped kill you; its magic resist cuts that damage");
 Lux 6/3/1 -> 4/2/1 with Zhonya's still first at 13:51; the Xayah remake unchanged. Tests:
 `core/tests/hunter_blame.rs` (all three fail on the previous engine).
+
+## Update 2026-09-26: finish the answer you started
+
+A low-farm Xayah game showed the promotion abandoning an answer the player had started. At 13:26
+Lillia (3/0) killed Xayah and Mercurial Scimitar was promoted; the player bought Null-Magic Mantle.
+At 17:18 Yasuo (8/3) killed her alone: the answer switched to Guardian Angel, Mercurial left the path
+(28 polls with a started answer off the path), and the player spent until 26:48 on Guardian Angel and
+sold the Mantle.
+
+- **Started.** An answer is started when the player owns a component of it that no other item still
+  to buy explains (Null-Magic Mantle toward Mercurial counts; a Long Sword that also builds into the
+  core line does not).
+- **Commitment.** A started promoted answer stays in front until finished, as long as some enemy who
+  is even or ahead still deals the damage it resists (a buffer: any such enemy), and gives way only
+  to an answer whose need is a full point higher. Its own need is not the test: the Mantle's magic
+  resist alone took Mercurial's need from 1.05 to 0.91, and Yasuo's evidence diluted it to 0.78, so a
+  need threshold released the commitment right after the first purchase.
+- **Second answer.** A qualifying answer for another enemy follows the committed one on the path with
+  its own reason ("GA: Yasuo (8/3) killed you; its armor cuts that damage") instead of replacing it.
+- **Faded evidence.** Six minutes after the last death no enemy is blamed; a started answer still
+  stays in front ("...; you already own Null-Magic Mantle"). The recorded game lost it at 23:24.
+- **Room.** A pool answer never replaces the committed answer or an item the player has started.
+
+Replays (target changes / path reorders / tag flips / polls with a started answer off the path):
+Xayah game 4 10/13/2/28 -> 8/11/1/0, Mercurial the target from 13:30 to 26:48 with Guardian Angel
+behind it; Lux, Xayah game 3 and the remake unchanged. Tests: `core/tests/answer_commitment.rs`
+(the commitment and faded-evidence cases fail on the previous engine; Lillia's promotion and the
+no-Mantle control, where Guardian Angel may take over, pass on both).
