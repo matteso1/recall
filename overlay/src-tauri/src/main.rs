@@ -9,6 +9,7 @@ mod instance;
 mod journal_store;
 mod poller;
 mod probe;
+mod recorder;
 mod rune_queue;
 mod settings;
 mod swiftplay;

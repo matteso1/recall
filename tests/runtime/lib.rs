@@ -11,6 +11,8 @@ mod journal_store;
 mod poller;
 #[path = "../../overlay/src-tauri/src/probe.rs"]
 mod probe;
+#[path = "../../overlay/src-tauri/src/recorder.rs"]
+mod recorder;
 #[path = "../../overlay/src-tauri/src/rune_queue.rs"]
 mod rune_queue;
 #[path = "../../overlay/src-tauri/src/settings.rs"]

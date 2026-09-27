@@ -38,6 +38,11 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   exclusively; a second launch writes `show.request`, which the running one turns into showing its panel
   (clearing an x-button dismissal), and exits. `--probe` and `--demo` are exempt. Two copies once ran side
   by side and imported in parallel.
+- Every game the overlay watches is saved to `%LOCALAPPDATA%\Recall\games\<UTC start>-<champion>.jsonl`
+  (`src-tauri/src/recorder.rs`): a champ-select header (chat credentials removed), then Live Client
+  observations with the panel's plan summary, written on any item/level/recommendation change and at least
+  every 20 s of game time; the newest 40 are kept. Analyse games from there together with `recall.log` and
+  `decisions.json`. They carry Riot IDs: never commit or upload them; scrub into fixtures instead.
 - `scripts/overlay-update.sh` is the one-command update: waits while League is in queue, champ select or a
   game, stops the overlay, builds, probes, relaunches (the old exe is relaunched if the build fails).
 - `scripts/autostart-install.sh` (optional, currently removed) puts `recall.exe --autostart` in the Startup

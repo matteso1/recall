@@ -689,6 +689,8 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
     let mut last_live_sequence = 0;
     let mut identity_failed = false;
     let mut swiftplay = crate::swiftplay::Runtime::default();
+    let mut recorder =
+        crate::recorder::GameRecorder::new(crate::settings::data_dir().join("games"));
 
     loop {
         interval.tick().await;
@@ -839,6 +841,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                 });
                 continue;
             };
+            recorder.observe_champselect(raw_session, now);
             let mut lobby = champselect::extract(raw_session);
             let own_rows = raw_session
                 .get("myTeam")
@@ -1034,6 +1037,9 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                             identity_known,
                             live_observation.received_at_ms,
                         );
+                        // What the panel showed, saved with the game after the planning lock is
+                        // released (the recorder writes to disk).
+                        let mut shown: Option<String> = None;
                         if !freshness.status(now).stale {
                             let _planning = st.planning.lock().unwrap();
                             let me = snap.me.as_ref().expect("identifiable live player");
@@ -1096,6 +1102,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                                 enemies,
                                 plan_summary(&plan)
                             );
+                            shown = Some(plan_summary(&plan));
                             if summary != last_summary {
                                 log::info!("{summary}");
                                 last_summary = summary;
@@ -1159,6 +1166,13 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                                     ))
                                 };
                             });
+                        }
+                        if identity_known {
+                            recorder.observe_live(
+                                data,
+                                shown.as_deref(),
+                                live_observation.received_at_ms,
+                            );
                         }
                     }
                     None => {

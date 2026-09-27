@@ -74,8 +74,9 @@ Then:
 4. In **Swiftplay**, open Recall in the lobby and wait for both choices to read **Ready** before
    you queue. Its champion select lasts one second, so preparation has to happen beforehand.
 
-Settings (auto-import switches, data region and tier, saved position), caches, logs and the
-decision journal live in `%LOCALAPPDATA%\Recall`.
+Settings (auto-import switches, data region and tier, saved position), caches, logs, the
+decision journal and your recorded games live in `%LOCALAPPDATA%\Recall`. Every game Recall watches
+is saved in its `games` folder (the newest 40), so a game can be reviewed afterwards.
 
 ## Modes and limits
 
@@ -95,9 +96,11 @@ your gold, inventory, abilities, the visible rosters and scoreboard, and the gam
 
 It does not read process memory, capture packets, inject into the game, infer hidden positions,
 enemy gold or cooldowns, or automate any gameplay. The only things it writes to your account
-are rune pages and item sets named `Recall <champion> <role>`, which it also reuses and replaces;
-personal pages are never edited or deleted. Nothing leaves your machine except requests for
-public patch data and public build statistics.
+are rune pages and item sets named `Recall <champion> <role>`, which it also reuses and replaces
+(its own oldest sets are removed when the client's upload limit is near); personal pages and other
+apps' sets are never edited or deleted. Recorded games hold only what the scoreboard shows, stay on
+your PC and are never uploaded. Nothing leaves your machine except requests for public patch data
+and public build statistics.
 
 Recall isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or
 anyone officially involved in producing or managing Riot Games properties. Riot Games and
