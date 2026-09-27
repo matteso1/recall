@@ -247,6 +247,9 @@ pub struct Champion {
     pub tags: Vec<String>,
     /// Data Dragon base stats (`hp`, `armor`, `spellblock` and their `...perlevel` growth).
     pub stats: HashMap<String, f64>,
+    /// Riot's rough 0-10 `info` ratings for physical attack and magic (0 when missing).
+    pub attack_rating: f64,
+    pub magic_rating: f64,
 }
 
 impl Champion {
@@ -261,6 +264,23 @@ impl Champion {
             .unwrap_or(0.0);
         let n = f64::from(level.clamp(1, 18) - 1);
         Some(base + growth * n * (0.7025 + 0.0175 * n))
+    }
+
+    /// The share of this champion's damage that is magic, for a champion the hand-written traits do
+    /// not cover yet (a new release): Riot's attack/magic ratings, else the class tags (Mage against
+    /// Marksman or Fighter). Held inside 0.15-0.85 because the ratings are rough (Bel'Veth is rated
+    /// 7 magic), so an unknown champion never counts as purely one damage type.
+    pub fn magic_share_prior(&self) -> f64 {
+        let rated = self.attack_rating + self.magic_rating;
+        if rated > 0.0 {
+            return (self.magic_rating / rated).clamp(0.15, 0.85);
+        }
+        let tagged = |tag: &str| self.tags.iter().any(|t| t == tag);
+        match (tagged("Mage"), tagged("Marksman") || tagged("Fighter")) {
+            (true, false) => 0.85,
+            (false, true) => 0.15,
+            _ => 0.5,
+        }
     }
 }
 
@@ -621,6 +641,16 @@ impl Catalog {
                         .unwrap_or("")
                         .to_string(),
                     tags: strings_of(v, "tags"),
+                    attack_rating: v
+                        .pointer("/info/attack")
+                        .and_then(Value::as_f64)
+                        .filter(|r| r.is_finite() && *r >= 0.0)
+                        .unwrap_or(0.0),
+                    magic_rating: v
+                        .pointer("/info/magic")
+                        .and_then(Value::as_f64)
+                        .filter(|r| r.is_finite() && *r >= 0.0)
+                        .unwrap_or(0.0),
                     stats: v
                         .get("stats")
                         .and_then(Value::as_object)
@@ -871,6 +901,22 @@ mod tests {
         assert!((malphite.stat_at("armor", 18).unwrap() - (40.0 + 4.95 * 17.0)).abs() < 1e-9);
         assert!((malphite.stat_at("spellblock", 9).unwrap() - 41.817).abs() < 0.01);
         assert_eq!(malphite.stat_at("nonexistent", 9), None);
+        // Riot's ratings decide an uncovered champion's damage split, held inside 0.15-0.85.
+        let mel = cat.champion(cat.champion_key("Mel").unwrap()).unwrap();
+        assert!((mel.magic_share_prior() - 9.0 / 11.0).abs() < 1e-9);
+        let xayah = cat.champion(498).unwrap();
+        assert_eq!(xayah.magic_share_prior(), 0.15);
+        let unrated = |tags: &[&str]| Champion {
+            tags: tags.iter().map(|t| t.to_string()).collect(),
+            ..Default::default()
+        };
+        assert_eq!(unrated(&["Mage"]).magic_share_prior(), 0.85);
+        assert_eq!(unrated(&["Marksman", "Assassin"]).magic_share_prior(), 0.15);
+        // Mage-tagged assassins (LeBlanc, Fizz, Evelynn) deal magic damage; an assassin alone
+        // (Zed or Akali) or a marksman-mage (Teemo) is left undecided.
+        assert_eq!(unrated(&["Assassin", "Mage"]).magic_share_prior(), 0.85);
+        assert_eq!(unrated(&["Assassin"]).magic_share_prior(), 0.5);
+        assert_eq!(unrated(&["Marksman", "Mage"]).magic_share_prior(), 0.5);
     }
 
     #[test]

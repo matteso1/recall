@@ -29,6 +29,13 @@
    "assassin": true,
    "burst": true
   },
+  "Akshan": {
+   "damage": "ad",
+   "roles": [
+    "middle",
+    "top"
+   ]
+  },
   "Alistar": {
    "damage": "ap",
    "roles": [
@@ -37,6 +44,13 @@
    "tank": true,
    "healing": true
   },
+  "Ambessa": {
+   "damage": "ad",
+   "roles": [
+    "top",
+    "jungle"
+   ]
+  },
   "Amumu": {
    "damage": "ap",
    "roles": [
@@ -44,6 +58,12 @@
    ],
    "tank": true,
    "lockdown_ult": true
+  },
+  "Anivia": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ]
   },
   "Annie": {
    "damage": "ap",
@@ -68,6 +88,12 @@
    "control": {"ability": "Enchanted Crystal Arrow", "kind": "stun", "verified_patch": "16.17"},
    "poke": true
   },
+  "Aurelion Sol": {
+   "damage": "ap",
+   "roles": [
+    "middle"
+   ]
+  },
   "Aurora": {
    "damage": "ap",
    "roles": [
@@ -89,6 +115,12 @@
     "utility"
    ],
    "healing": true
+  },
+  "Bel'Veth": {
+   "damage": "ad",
+   "roles": [
+    "jungle"
+   ]
   },
   "Blitzcrank": {
    "damage": "ap",
@@ -246,6 +278,12 @@
     "utility"
    ],
    "tank": true
+  },
+  "Gangplank": {
+   "damage": "ad",
+   "roles": [
+    "top"
+   ]
   },
   "Garen": {
    "damage": "ad",
@@ -1168,6 +1206,12 @@
    "damage": "ad",
    "roles": [
     "top"
+   ]
+  },
+  "Yunara": {
+   "damage": "ad",
+   "roles": [
+    "bottom"
    ]
   },
   "Yuumi": {

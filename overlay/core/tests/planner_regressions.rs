@@ -213,10 +213,20 @@ fn qss_is_not_an_answer_to_mordekaiser_zed_or_fizz_ults() {
             "unsafe cleanse claim against {champion}: {:?}",
             p.why
         );
+        // Quicksilver Sash is never bought for them. Mercurial Scimitar may appear, but only as
+        // magic protection against a magic-damage champion (its resistance counts since
+        // 2026-09-26), never as an answer to the ult.
         assert!(
-            !p.path.iter().any(|i| [3139, 3140].contains(&i.id)),
-            "no QSS item solely due to {champion}"
+            !p.path.iter().any(|i| i.id == 3140),
+            "no Quicksilver Sash due to {champion}"
         );
+        for item in p.path.iter().filter(|i| i.id == 3139) {
+            let why = item.why.as_deref().unwrap_or_default();
+            assert!(
+                why.contains("magic protection") && champion != "Zed",
+                "Mercurial against {champion} must be about magic damage: {why}"
+            );
+        }
     }
 }
 
@@ -458,14 +468,23 @@ fn actual_armor_amount_can_bring_penetration_forward() {
 
 #[test]
 fn verified_suppression_can_get_a_small_detour_then_resume_the_core() {
+    // A realistic lineup around the one suppression: with Malzahar alone every point of damage is
+    // magic, which (since Mercurial's resistance counts) turns this into a magic-resist question
+    // instead of the detour contract this test is about.
+    let lineup = ["Darius", "Lee Sin", "Malzahar", "Jinx", "Leona"];
     let mut snap = live(&[3032, 3006], 1300.0);
-    snap.enemies.push(live::Player {
-        champion: "Malzahar".into(),
-        level: 10,
-        position: "MIDDLE".into(),
-        ..Default::default()
-    });
-    let p = planned(Some(&snap), &["Malzahar"], true);
+    for (champion, position) in lineup
+        .iter()
+        .zip(["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"])
+    {
+        snap.enemies.push(live::Player {
+            champion: champion.to_string(),
+            level: 10,
+            position: position.into(),
+            ..Default::default()
+        });
+    }
+    let p = planned(Some(&snap), &lineup, true);
     assert_eq!(
         p.next.as_ref().map(|n| n.id),
         Some(3140),
@@ -480,7 +499,7 @@ fn verified_suppression_can_get_a_small_detour_then_resume_the_core() {
         ..Default::default()
     });
     snap.me.as_mut().unwrap().gold = 0.0;
-    let after = planned(Some(&snap), &["Malzahar"], true);
+    let after = planned(Some(&snap), &lineup, true);
     assert_ne!(after.next.as_ref().map(|n| n.id), Some(3140));
     assert_ne!(
         after.next.as_ref().map(|n| n.id),
@@ -499,4 +518,62 @@ fn a_full_completed_build_has_no_automatic_seventh_item() {
     );
     assert_eq!(p.path.len(), 6);
     assert!(p.path.iter().all(|i| i.owned));
+}
+
+#[test]
+fn an_all_magic_bot_lane_gets_magic_resist_and_every_champion_counts() {
+    // From the draft game of 2026-09-26 (a remake after 1:40): Xayah bot against Mel and Lux, with
+    // Aurelion Sol mid, Gwen top and Tristana jungling. The plan was Yun Tal > Navori > IE > BT >
+    // LDR > GA with "GA: armor for Aurelion Sol's damage profile": Aurelion Sol was missing from the
+    // traits (counted half physical) and Mercurial Scimitar's magic resist did not count, so Xayah
+    // had no magic-resist candidate against four magic-damage champions.
+    let lineup = [
+        ("Gwen", "TOP"),
+        ("Tristana", "JUNGLE"),
+        ("Aurelion Sol", "MIDDLE"),
+        ("Mel", "BOTTOM"),
+        ("Lux", "UTILITY"),
+    ];
+    let names: Vec<&str> = lineup.iter().map(|(name, _)| *name).collect();
+    let pregame = planned(None, &names, true);
+    assert!(pregame.enemy.unknown.is_empty(), "{:?}", pregame.enemy);
+    assert_eq!((pregame.enemy.ap, pregame.enemy.ad), (4, 1));
+
+    let mut snap = live(&[3032, 3006], 1300.0);
+    for (champion, position) in lineup {
+        snap.enemies.push(live::Player {
+            champion: champion.into(),
+            level: 10,
+            position: position.into(),
+            ..Default::default()
+        });
+    }
+    let p = planned(Some(&snap), &names, true);
+    let resists_magic = |id: u32| {
+        catalog()
+            .item(id)
+            .is_some_and(|i| i.effects.magic_resist.is_some_and(|mr| mr > 0.0))
+    };
+    let magic_items: Vec<_> = p.path.iter().filter(|i| resists_magic(i.id)).collect();
+    assert!(
+        !magic_items.is_empty(),
+        "a magic-resist item on the path: {:?}",
+        p.path.iter().map(|i| &i.name).collect::<Vec<_>>()
+    );
+    for item in magic_items {
+        let why = item.why.as_deref().unwrap_or_default();
+        assert!(why.contains("magic"), "{}: {why}", item.name);
+    }
+    let reasons: Vec<&str> = p
+        .path
+        .iter()
+        .filter_map(|i| i.why.as_deref())
+        .chain(p.why.iter().map(String::as_str))
+        .collect();
+    assert!(
+        !reasons
+            .iter()
+            .any(|why| why.contains("armor") && why.contains("Aurelion Sol")),
+        "{reasons:?}"
+    );
 }

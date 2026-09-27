@@ -293,6 +293,16 @@ pub fn profile(traits: &Traits, catalog: &Catalog, enemies: &[String]) -> EnemyP
                 .champion_key(name)
                 .and_then(|key| catalog.champion(key))
             {
+                // The same Data Dragon split the needs use (decision.rs), so a new champion still
+                // counts toward the damage profile.
+                match c.magic_share_prior() {
+                    share if share >= 0.65 => p.ap += 1,
+                    share if share <= 0.35 => p.ad += 1,
+                    _ => {
+                        p.ap += 1;
+                        p.ad += 1;
+                    }
+                }
                 if c.tags.iter().any(|t| t == "Tank") {
                     p.tanks.push(name.clone());
                 }

@@ -431,10 +431,17 @@ impl Needs {
                     })
                 })
                 .unwrap_or(0.0);
+            // A champion the hand-written traits do not cover yet (a new release) takes its split
+            // from Data Dragon instead of counting as half physical, half magic.
             let prior_magic = match t.map(|t| t.damage.as_str()) {
                 Some("ap") => 1.0,
                 Some("ad") => 0.0,
-                _ => 0.5,
+                Some(_) => 0.5,
+                None => inp
+                    .catalog
+                    .champion_key(&name)
+                    .and_then(|key| inp.catalog.champion(key))
+                    .map_or(0.5, |c| c.magic_share_prior()),
             };
             let magic = if equipment_ap + equipment_ad > 0.0 {
                 // Item stats adjust, rather than replace, the champion's damage-type prior.
@@ -798,9 +805,14 @@ fn fit(
     // player already has (measured in game) plus the planned items not bought yet, so a third
     // armor item on 259 armor and 50 MR is worth little and magic resist a lot.
     let defense = n.defense.plus(inp.catalog, unbought(already, &n.owned));
-    // A cleanse item's magic resistance is a side stat; its reason to exist is the active. It is
-    // scored above as a cleanse only, never sold as "magic protection".
-    if let Some(mr) = e.magic_resist.filter(|v| *v > 0.0 && e.cleanse.is_none()) {
+    // Quicksilver Sash's magic resistance is a side stat of a component bought for its cleanse, so
+    // it is scored as a cleanse only, never sold as "magic protection". A finished cleanse item's
+    // resistance is real: Mercurial Scimitar is the magic-resist item marksmen buy against mages
+    // (Xayah's only one above the late-item floor), so it counts like any other.
+    if let Some(mr) = e
+        .magic_resist
+        .filter(|v| *v > 0.0 && (e.cleanse.is_none() || item.is_finished(inp.catalog)))
+    {
         terms.push((
             defense_weight * RESIST_SCALE * defense.removed(n, 0.0, mr),
             DecisionKind::MagicDefense,
