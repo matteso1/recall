@@ -26,7 +26,8 @@ replay --session PATH --items PATH --champions PATH --aggregate PATH
 replay --fixtures [--items PATH] [--champions PATH] [--runes PATH]
        [--champion NAME] [--role ROLE] [--json]
 
---session accepts one raw allGameData JSON file or a capture directory.
+--session accepts one raw allGameData JSON file, a capture directory, or a game the
+overlay recorded (%LOCALAPPDATA%\\Recall\\games\\*.jsonl, one observation per line).
 Captures are ordered by gameTime within each parent directory. Directory groups
 are not verified match boundaries; repeated snapshots are not independent games.
 --champion/--role filter known identities/roles; they never replace observed ones.
@@ -197,9 +198,9 @@ fn collect_files(
     }
     if metadata.is_file() {
         if explicit
-            || path
-                .extension()
-                .is_some_and(|extension| extension.eq_ignore_ascii_case("json"))
+            || path.extension().is_some_and(|extension| {
+                extension.eq_ignore_ascii_case("json") || extension.eq_ignore_ascii_case("jsonl")
+            })
         {
             paths.push(path.to_path_buf());
         } else {
@@ -338,6 +339,53 @@ fn same_champion(cat: &Catalog, a: &str, b: &str) -> bool {
     }
 }
 
+/// A game saved by the overlay's recorder: one JSON object per line, a `game` header then `live`
+/// observations. Runes and summoner spells are only in the first observation (the overlay drops them
+/// afterwards to keep files small), so they are restored on every later line from the first one;
+/// each line then replays like a raw capture. Returns (line number, allGameData) pairs.
+fn recorded_game(bytes: &[u8]) -> Vec<(usize, Value)> {
+    let mut first: Option<Value> = None;
+    let mut out = Vec::new();
+    for (index, line) in bytes.split(|byte| *byte == b'\n').enumerate() {
+        let Ok(record) = serde_json::from_slice::<Value>(line) else {
+            continue;
+        };
+        if record["kind"] != "live" {
+            continue;
+        }
+        let mut data = record["data"].clone();
+        match &first {
+            None => first = Some(data.clone()),
+            Some(first) => restore_static(&mut data, first),
+        }
+        out.push((index + 1, data));
+    }
+    out
+}
+
+fn restore_static(data: &mut Value, first: &Value) {
+    if data["activePlayer"].is_object() && data["activePlayer"].get("fullRunes").is_none() {
+        if let Some(runes) = first["activePlayer"].get("fullRunes") {
+            data["activePlayer"]["fullRunes"] = runes.clone();
+        }
+    }
+    let originals = first["allPlayers"].as_array().cloned().unwrap_or_default();
+    for player in data["allPlayers"].as_array_mut().into_iter().flatten() {
+        let Some(original) = originals.iter().find(|p| {
+            p["riotId"] == player["riotId"] && p["championName"] == player["championName"]
+        }) else {
+            continue;
+        };
+        for key in ["runes", "summonerSpells"] {
+            if player.get(key).is_none() {
+                if let Some(value) = original.get(key) {
+                    player[key] = value.clone();
+                }
+            }
+        }
+    }
+}
+
 fn capture_cases(
     options: &Options,
     cat: &Catalog,
@@ -357,7 +405,15 @@ fn capture_cases(
             counts.unreadable_paths += 1;
             continue;
         };
-        if metadata.len() > MAX_CAPTURE_BYTES {
+        let recorded = path
+            .extension()
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("jsonl"));
+        let file_limit = if recorded {
+            MAX_DATA_BYTES
+        } else {
+            MAX_CAPTURE_BYTES
+        };
+        if metadata.len() > file_limit {
             counts.oversized_files += 1;
             continue;
         }
@@ -365,65 +421,81 @@ fn capture_cases(
             counts.byte_limit_reached = true;
             continue;
         }
-        let limit = MAX_CAPTURE_BYTES.min(MAX_TOTAL_CAPTURE_BYTES - counts.bytes_read);
+        let limit = file_limit.min(MAX_TOTAL_CAPTURE_BYTES - counts.bytes_read);
         let Ok(bytes) = read_bytes(&path, limit) else {
             counts.unreadable_paths += 1;
             continue;
         };
         counts.files_read += 1;
         counts.bytes_read += bytes.len() as u64;
-        let Ok(value) = serde_json::from_slice::<Value>(&bytes) else {
-            counts.invalid_json += 1;
-            continue;
-        };
-        let snapshot = match parse_snapshot(&value) {
-            Ok(Some(snapshot)) => snapshot,
-            Ok(None) => {
-                counts.irrelevant_json += 1;
+        let observations: Vec<(String, Value)> = if recorded {
+            recorded_game(&bytes)
+                .into_iter()
+                .map(|(line, data)| (format!("{}#{line}", path.to_string_lossy()), data))
+                .collect()
+        } else {
+            let Ok(value) = serde_json::from_slice::<Value>(&bytes) else {
+                counts.invalid_json += 1;
                 continue;
-            }
-            Err(_) => {
-                counts.invalid_capture += 1;
-                continue;
-            }
+            };
+            vec![(path.to_string_lossy().into_owned(), value)]
         };
-        if let Some(me) = &snapshot.me {
-            if options
-                .champion
+        // One recorded game is one session; a capture directory groups by folder.
+        let session = if recorded {
+            path.to_string_lossy().into_owned()
+        } else {
+            path.parent().unwrap_or(root).to_string_lossy().into_owned()
+        };
+        for (source, value) in observations {
+            let snapshot = match parse_snapshot(&value) {
+                Ok(Some(snapshot)) => snapshot,
+                Ok(None) => {
+                    counts.irrelevant_json += 1;
+                    continue;
+                }
+                Err(_) => {
+                    counts.invalid_capture += 1;
+                    continue;
+                }
+            };
+            if let Some(me) = &snapshot.me {
+                if options
+                    .champion
+                    .as_ref()
+                    .is_some_and(|name| !same_champion(cat, name, &me.player.champion))
+                {
+                    counts.champion_filtered += 1;
+                    continue;
+                }
+                if options
+                    .role
+                    .zip(Position::parse(&me.player.position))
+                    .is_some_and(|(requested, observed)| requested != observed)
+                {
+                    counts.role_filtered += 1;
+                    continue;
+                }
+            }
+            let champion = snapshot
+                .me
                 .as_ref()
-                .is_some_and(|name| !same_champion(cat, name, &me.player.champion))
-            {
-                counts.champion_filtered += 1;
-                continue;
-            }
-            if options
-                .role
-                .zip(Position::parse(&me.player.position))
-                .is_some_and(|(requested, observed)| requested != observed)
-            {
-                counts.role_filtered += 1;
-                continue;
-            }
+                .map(|me| me.player.champion.clone())
+                .or_else(|| options.champion.clone())
+                .or_else(|| {
+                    aggregate
+                        .and_then(|a| cat.champion(a.champion_key))
+                        .map(|c| c.name.clone())
+                })
+                .unwrap_or_default();
+            cases.push(ReplayCase {
+                source,
+                session: session.clone(),
+                scenario: "recorded_visible_state",
+                champion,
+                aggregate_index: aggregate.map(|_| 0),
+                live: Some(snapshot),
+            });
         }
-        let champion = snapshot
-            .me
-            .as_ref()
-            .map(|me| me.player.champion.clone())
-            .or_else(|| options.champion.clone())
-            .or_else(|| {
-                aggregate
-                    .and_then(|a| cat.champion(a.champion_key))
-                    .map(|c| c.name.clone())
-            })
-            .unwrap_or_default();
-        cases.push(ReplayCase {
-            source: path.to_string_lossy().into_owned(),
-            session: path.parent().unwrap_or(root).to_string_lossy().into_owned(),
-            scenario: "recorded_visible_state",
-            champion,
-            aggregate_index: aggregate.map(|_| 0),
-            live: Some(snapshot),
-        });
     }
     sort_cases(&mut cases);
     Ok(cases)
@@ -1526,6 +1598,39 @@ mod tests {
             .violations
             .iter()
             .any(|violation| violation.kind == "score"));
+    }
+
+    #[test]
+    fn a_recorded_game_replays_every_observation_with_its_runes_and_spells_restored() {
+        let first = json!({"kind": "live", "data": {
+            "activePlayer": {"riotId": "me#1", "fullRunes": {"keystone": {"id": 8008}}},
+            "allPlayers": [{"riotId": "me#1", "championName": "Xayah",
+                            "summonerSpells": {"summonerSpellOne": {"displayName": "Flash"}},
+                            "runes": {"keystone": {"id": 8008}}}],
+            "gameData": {"gameTime": 10.0}}});
+        let later = json!({"kind": "live", "data": {
+            "activePlayer": {"riotId": "me#1"},
+            "allPlayers": [{"riotId": "me#1", "championName": "Xayah"}],
+            "gameData": {"gameTime": 30.0}}});
+        let file = format!(
+            "{}\n{first}\n\n{later}\n",
+            json!({"kind": "game", "champion": "Xayah"})
+        );
+        let games = recorded_game(file.as_bytes());
+        assert_eq!(
+            games.iter().map(|(line, _)| *line).collect::<Vec<_>>(),
+            [2, 4]
+        );
+        let restored = &games[1].1;
+        assert_eq!(
+            restored["activePlayer"]["fullRunes"]["keystone"]["id"],
+            8008
+        );
+        assert_eq!(
+            restored["allPlayers"][0]["summonerSpells"]["summonerSpellOne"]["displayName"],
+            "Flash"
+        );
+        assert_eq!(restored["gameData"]["gameTime"], 30.0);
     }
 
     #[test]

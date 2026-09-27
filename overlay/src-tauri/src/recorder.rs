@@ -2,10 +2,11 @@
 //! `%LOCALAPPDATA%\Recall\games\<UTC start>-<champion>.jsonl`. The first line holds the champion
 //! select that led to the game; every later line is one Live Client Data observation (the
 //! scoreboard view, nothing hidden) with the recommendation the panel showed at that moment. A line
-//! is written when the recommendation or anyone's items or level change, and at least every 20 s of
-//! game time. Runes and summoner spells are kept only in the first observation and each event is
-//! written once, so a game is about a megabyte. The newest 40 games are kept. The files stay on
-//! this PC; they carry the players' Riot IDs as the scoreboard shows them.
+//! is written when the recommendation, anyone's items or your level change, and at least every 20 s
+//! of game time. Runes and summoner spells are kept only in the first observation, each event is
+//! written once, and item and skin fields the planner never reads are dropped, so a game is one to
+//! two megabytes. The newest 40 games are kept. The files stay on this PC; they carry the players'
+//! Riot IDs as the scoreboard shows them.
 use serde_json::{json, Value};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
@@ -151,12 +152,13 @@ fn champion_of(data: &Value) -> Option<String> {
         .map(str::to_string)
 }
 
-/// Everyone's level and items: a change here is worth a line.
+/// Your level and everyone's items: a change here is worth a line. Other players' levels are left
+/// to the 20-second lines; ten players levelling up would otherwise write a line each time.
 fn signature(data: &Value) -> String {
-    let mut out = String::new();
+    let mut out = format!("{}|", data["activePlayer"]["level"]);
     for player in data["allPlayers"].as_array().into_iter().flatten() {
         out.push_str(player["championName"].as_str().unwrap_or("?"));
-        out.push_str(&format!(":{}:", player["level"]));
+        out.push(':');
         for item in player["items"].as_array().into_iter().flatten() {
             out.push_str(&format!("{}x{},", item["itemID"], item["count"]));
         }
@@ -165,9 +167,36 @@ fn signature(data: &Value) -> String {
     out
 }
 
-/// Events already written are dropped; after the first observation so is static data.
+/// Item fields the planner reads; the rest (price, descriptions) is looked up from Data Dragon.
+const ITEM_FIELDS: [&str; 4] = ["itemID", "count", "slot", "displayName"];
+
+/// Events already written are dropped; after the first observation so is static data. Item and
+/// skin fields the planner never reads are dropped from every line.
 fn compact(data: &Value, last_event_id: i64, first: bool) -> (Value, i64) {
     let mut out = data.clone();
+    for player in out
+        .get_mut("allPlayers")
+        .and_then(Value::as_array_mut)
+        .into_iter()
+        .flatten()
+    {
+        let Some(player) = player.as_object_mut() else {
+            continue;
+        };
+        for key in ["rawChampionName", "rawSkinName", "skinName"] {
+            player.remove(key);
+        }
+        for item in player
+            .get_mut("items")
+            .and_then(Value::as_array_mut)
+            .into_iter()
+            .flatten()
+        {
+            if let Some(item) = item.as_object_mut() {
+                item.retain(|key, _| ITEM_FIELDS.contains(&key.as_str()));
+            }
+        }
+    }
     let mut newest = last_event_id;
     if let Some(events) = out
         .pointer_mut("/events/Events")
@@ -360,6 +389,27 @@ mod tests {
         assert_eq!(game[2]["data"]["events"]["Events"], json!([{"EventID": 2}]));
         assert_eq!(game[3]["data"]["events"]["Events"], json!([]));
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn unread_fields_are_dropped_and_only_your_level_triggers_a_line() {
+        let data = json!({
+            "activePlayer": {"level": 7},
+            "allPlayers": [{"championName": "Mel", "level": 8, "rawChampionName": "x",
+                            "skinName": "y", "items": [{"itemID": 1056, "count": 1, "slot": 0,
+                            "displayName": "Doran's Ring", "price": 400, "rawDescription": "z"}]}]
+        });
+        let (compact, _) = compact(&data, -1, true);
+        assert_eq!(
+            compact["allPlayers"][0],
+            json!({"championName": "Mel", "level": 8, "items": [{"itemID": 1056, "count": 1,
+                   "slot": 0, "displayName": "Doran's Ring"}]})
+        );
+        let mut levelled = data.clone();
+        levelled["allPlayers"][0]["level"] = json!(9);
+        assert_eq!(signature(&data), signature(&levelled));
+        levelled["activePlayer"]["level"] = json!(8);
+        assert_ne!(signature(&data), signature(&levelled));
     }
 
     #[test]
