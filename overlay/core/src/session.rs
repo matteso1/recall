@@ -98,12 +98,44 @@ struct PendingSpells {
     acknowledge_by_ms: u64,
 }
 
+/// A refused write for one loadout, retried with backoff (2, 4, 8, 16 s, then every 30 s) rather than
+/// on every poll: the client refuses a full rune-page list or an oversized item-set upload the same
+/// way each time, and a new champion or loadout is tried at once.
+#[derive(Clone, Debug)]
+struct Failure {
+    champion: u32,
+    signature: String,
+    attempts: u32,
+    retry_at_ms: u64,
+}
+
+impl Failure {
+    fn after(previous: Option<&Failure>, champion: u32, signature: String, now_ms: u64) -> Self {
+        let attempts = previous
+            .filter(|failure| failure.champion == champion && failure.signature == signature)
+            .map_or(1, |failure| failure.attempts.saturating_add(1));
+        let delay_ms = (1000u64 << attempts.min(5)).min(30_000);
+        Self {
+            champion,
+            signature,
+            attempts,
+            retry_at_ms: now_ms.saturating_add(delay_ms),
+        }
+    }
+
+    fn waiting(&self, champion: u32, signature: &str, now_ms: u64) -> bool {
+        self.champion == champion && self.signature == signature && now_ms < self.retry_at_ms
+    }
+}
+
 /// Import signatures advance only on success. Observed manual edits take precedence for the match.
 #[derive(Clone, Debug, Default)]
 pub struct ImportTracker {
     runes_done: Option<(u32, String)>,
+    runes_failed: Option<Failure>,
     spells_done: Option<(u32, (u32, u32))>,
     itemset_done: Option<(u32, String)>,
+    itemset_failed: Option<Failure>,
     observed_spells: Option<(u32, u32)>,
     pending_spells: Option<PendingSpells>,
     manual_spells: bool,
@@ -114,7 +146,7 @@ impl ImportTracker {
         *self = Self::default();
     }
 
-    pub fn runes_needed(&self, champion: u32, signature: &str) -> bool {
+    pub fn runes_needed(&self, champion: u32, signature: &str, now_ms: u64) -> bool {
         champion > 0
             && !signature.is_empty()
             && self
@@ -122,15 +154,27 @@ impl ImportTracker {
                 .as_ref()
                 .map(|(key, sig)| (*key, sig.as_str()))
                 != Some((champion, signature))
+            && !self
+                .runes_failed
+                .as_ref()
+                .is_some_and(|failure| failure.waiting(champion, signature, now_ms))
     }
 
-    pub fn record_runes(&mut self, champion: u32, signature: String, succeeded: bool) {
+    pub fn record_runes(&mut self, champion: u32, signature: String, now_ms: u64, succeeded: bool) {
         if succeeded {
             self.runes_done = Some((champion, signature));
+            self.runes_failed = None;
+        } else {
+            self.runes_failed = Some(Failure::after(
+                self.runes_failed.as_ref(),
+                champion,
+                signature,
+                now_ms,
+            ));
         }
     }
 
-    pub fn itemset_needed(&self, champion: u32, signature: &str) -> bool {
+    pub fn itemset_needed(&self, champion: u32, signature: &str, now_ms: u64) -> bool {
         champion > 0
             && !signature.is_empty()
             && self
@@ -138,11 +182,29 @@ impl ImportTracker {
                 .as_ref()
                 .map(|(key, sig)| (*key, sig.as_str()))
                 != Some((champion, signature))
+            && !self
+                .itemset_failed
+                .as_ref()
+                .is_some_and(|failure| failure.waiting(champion, signature, now_ms))
     }
 
-    pub fn record_itemset(&mut self, champion: u32, signature: String, succeeded: bool) {
+    pub fn record_itemset(
+        &mut self,
+        champion: u32,
+        signature: String,
+        now_ms: u64,
+        succeeded: bool,
+    ) {
         if succeeded {
             self.itemset_done = Some((champion, signature));
+            self.itemset_failed = None;
+        } else {
+            self.itemset_failed = Some(Failure::after(
+                self.itemset_failed.as_ref(),
+                champion,
+                signature,
+                now_ms,
+            ));
         }
     }
 
@@ -656,22 +718,51 @@ mod tests {
     #[test]
     fn failed_imports_retry_independently_until_each_succeeds() {
         let mut imports = ImportTracker::default();
-        imports.record_runes(498, "precision".into(), false);
+        imports.record_runes(498, "precision".into(), 1000, false);
         imports.record_spells(498, (4, 21), 1000, false);
-        imports.record_itemset(498, "3508,3031".into(), false);
-        assert!(imports.runes_needed(498, "precision"));
+        imports.record_itemset(498, "3508,3031".into(), 1000, false);
+        assert!(imports.runes_needed(498, "precision", 3000));
         assert!(imports.spells_needed(498, (4, 21), false));
-        assert!(imports.itemset_needed(498, "3508,3031"));
+        assert!(imports.itemset_needed(498, "3508,3031", 3000));
 
-        imports.record_runes(498, "precision".into(), true);
-        assert!(!imports.runes_needed(498, "precision"));
+        imports.record_runes(498, "precision".into(), 3000, true);
+        assert!(!imports.runes_needed(498, "precision", 9000));
         assert!(imports.spells_needed(498, (4, 21), false));
-        assert!(imports.itemset_needed(498, "3508,3031"));
+        assert!(imports.itemset_needed(498, "3508,3031", 3000));
         imports.record_spells(498, (4, 21), 2000, true);
-        imports.record_itemset(498, "3508,3031".into(), true);
+        imports.record_itemset(498, "3508,3031".into(), 3000, true);
         assert!(!imports.spells_needed(498, (4, 21), true));
-        assert!(!imports.itemset_needed(498, "3508,3031"));
-        assert!(imports.itemset_needed(498, "3508,3036"));
+        assert!(!imports.itemset_needed(498, "3508,3031", 9000));
+        assert!(imports.itemset_needed(498, "3508,3036", 9000));
+    }
+
+    #[test]
+    fn a_refused_write_backs_off_instead_of_retrying_every_poll() {
+        let mut imports = ImportTracker::default();
+        imports.record_runes(54, "comet".into(), 0, false);
+        assert!(!imports.runes_needed(54, "comet", 1_999));
+        assert!(imports.runes_needed(54, "comet", 2_000));
+        imports.record_runes(54, "comet".into(), 2_000, false);
+        assert!(!imports.runes_needed(54, "comet", 5_999));
+        assert!(imports.runes_needed(54, "comet", 6_000));
+        // Another loadout or champion is not held back by this one's failure.
+        assert!(imports.runes_needed(54, "grasp", 2_500));
+        assert!(imports.runes_needed(86, "comet", 2_500));
+        // The wait grows to 30 s and stays there.
+        for attempt in 3..=9 {
+            imports.record_runes(54, "comet".into(), attempt * 100_000, false);
+        }
+        assert!(!imports.runes_needed(54, "comet", 929_999));
+        assert!(imports.runes_needed(54, "comet", 930_000));
+        // Success clears the backoff; the next failure starts again at 2 s.
+        imports.record_runes(54, "comet".into(), 930_000, true);
+        assert!(!imports.runes_needed(54, "comet", 2_000_000));
+        imports.record_runes(54, "grasp".into(), 940_000, false);
+        assert!(imports.runes_needed(54, "grasp", 942_000));
+
+        imports.record_itemset(54, "3068".into(), 0, false);
+        assert!(!imports.itemset_needed(54, "3068", 1_999));
+        assert!(imports.itemset_needed(54, "3068", 2_000));
     }
 
     #[test]
@@ -718,14 +809,14 @@ mod tests {
     #[test]
     fn reset_allows_same_champion_to_import_in_the_next_match() {
         let mut imports = ImportTracker::default();
-        imports.record_runes(498, "precision".into(), true);
+        imports.record_runes(498, "precision".into(), 100, true);
         imports.record_spells(498, (4, 21), 100, true);
-        imports.record_itemset(498, "3508,3031".into(), true);
+        imports.record_itemset(498, "3508,3031".into(), 100, true);
         imports.observe_spells((4, 3), 1100);
         imports.reset();
-        assert!(imports.runes_needed(498, "precision"));
+        assert!(imports.runes_needed(498, "precision", 1200));
         assert!(imports.spells_needed(498, (4, 21), false));
-        assert!(imports.itemset_needed(498, "3508,3031"));
+        assert!(imports.itemset_needed(498, "3508,3031", 1200));
         assert!(!imports.manual_spell_override());
     }
 

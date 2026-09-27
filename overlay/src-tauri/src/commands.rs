@@ -155,47 +155,18 @@ impl ImportGuard {
     }
 }
 
+/// The page logic (which page to reuse, when a slot is free, Swiftplay pages) lives in core, where
+/// it is tested against recorded client states; the guard re-checks the match before each write.
 async fn import_rune_page(
     lcu: &Lcu,
     guard: &ImportGuard,
     st: &App,
     page: &Value,
 ) -> Result<(), String> {
-    let pages = lcu.perk_pages().await.map_err(|error| error.to_string())?;
-    let all_pages = pages
-        .as_array()
-        .ok_or("Client rune-page list is unavailable")?;
-    let name = page
-        .get("name")
-        .and_then(Value::as_str)
-        .ok_or("Rune page name is unavailable")?;
-    if let Some(id) = runes::replacement_page_id(&pages, name) {
-        guard.check(st)?;
-        lcu.update_perk_page(id, page)
-            .await
-            .map_err(|error| error.to_string())?;
-        return Ok(());
-    }
-    let owned = lcu
-        .perk_inventory()
+    runes::import(lcu, page.clone(), || guard.check(st))
         .await
-        .ok()
-        .and_then(|inventory| inventory.get("ownedPageCount").and_then(Value::as_u64))
-        .unwrap_or(2) as usize;
-    let used = all_pages
-        .iter()
-        .filter(|page| page.get("isDeletable").and_then(Value::as_bool) == Some(true))
-        .count();
-    if used >= owned {
-        return Err(format!(
-            "all {owned} rune pages are in use; delete one in the client and retry"
-        ));
-    }
-    guard.check(st)?;
-    lcu.create_perk_page(page)
-        .await
-        .map_err(|error| error.to_string())?;
-    Ok(())
+        .map(|_| ())
+        .map_err(|error| error.to_string())
 }
 
 pub async fn do_import_item_set(app: &AppHandle, st: &Arc<App>) -> Result<String, String> {
@@ -246,7 +217,7 @@ pub async fn do_import_item_set_for_plan(
             .item_sets(summoner_id)
             .await
             .map_err(|e| e.to_string())?;
-        let payload = itemset::upsert(&current, set);
+        let payload = itemset::merge(&current, &[set])?;
         guard.check(st)?;
         lcu.put_item_sets(summoner_id, &payload)
             .await

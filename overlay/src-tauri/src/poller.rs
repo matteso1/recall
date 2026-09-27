@@ -556,13 +556,13 @@ impl ImportJobs {
             }
             match job.signature {
                 ImportSignature::Runes(signature) => {
-                    imports.record_runes(champion, signature, succeeded)
+                    imports.record_runes(champion, signature, now_ms(), succeeded)
                 }
                 ImportSignature::Spells(spells) => {
                     imports.record_spells(champion, spells, now_ms(), succeeded)
                 }
                 ImportSignature::ItemSet(signature) => {
-                    imports.record_itemset(champion, signature, succeeded)
+                    imports.record_itemset(champion, signature, now_ms(), succeeded)
                 }
             }
         }
@@ -948,8 +948,8 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                     )
                 };
                 if auto_runes && import_jobs.runes.is_none() {
-                    if let Some(signature) =
-                        rune_signature(&plan).filter(|sig| imports.runes_needed(my_champion, sig))
+                    if let Some(signature) = rune_signature(&plan)
+                        .filter(|sig| imports.runes_needed(my_champion, sig, now))
                     {
                         import_jobs.runes = Some(ImportJob::start(
                             &app,
@@ -981,7 +981,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                 }
                 if auto_itemset && lobby.my_locked && import_jobs.itemset.is_none() {
                     let signature = itemset_signature(&plan);
-                    if imports.itemset_needed(my_champion, &signature) {
+                    if imports.itemset_needed(my_champion, &signature, now) {
                         import_jobs.itemset = Some(ImportJob::start(
                             &app,
                             &st,

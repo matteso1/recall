@@ -539,13 +539,11 @@ async fn import_prepared(
             .filter(|id| *id > 0)
             .context("Current summoner is unavailable")?;
         let original = lcu.item_sets(id).await?;
-        let mut payload = original.clone();
-        if !payload["itemSets"].is_array() {
+        if !original["itemSets"].is_array() {
             bail!("Existing item sets could not be read safely");
         }
-        for (_, set) in sets {
-            payload = itemset::upsert(&payload, set.clone());
-        }
+        let written: Vec<Value> = sets.iter().map(|(_, set)| set.clone()).collect();
+        let payload = itemset::merge(&original, &written).map_err(anyhow::Error::msg)?;
         guard(lcu, expected, &raw).await?;
         let latest = lcu.item_sets(id).await?;
         if latest["itemSets"] != original["itemSets"]

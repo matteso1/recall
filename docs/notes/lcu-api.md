@@ -19,7 +19,23 @@
 | My champion | `GET /lol-champ-select/v1/current-champion` | int, 0 before lock |
 | Spells | `PATCH /lol-champ-select/v1/session/my-selection` | `{"spell1Id","spell2Id"}` |
 | Item sets | `GET/PUT /lol-item-sets/v1/item-sets/{summonerId}/sets` | PUT **replaces all** sets: GET, modify, PUT. `POST .../sets` adds one set |
-| Runes | `GET/POST /lol-perks/v1/pages`, `DELETE /lol-perks/v1/pages/{id}`, `PUT /lol-perks/v1/currentpage`, `GET /lol-perks/v1/inventory` | M1 |
+| Runes | `GET/POST /lol-perks/v1/pages`, `PUT/DELETE /lol-perks/v1/pages/{id}`, `PUT /lol-perks/v1/currentpage`, `GET /lol-perks/v1/inventory` | Page slots: see Limits below |
+
+## Limits (observed on patch 16.19, 2026-09-26, in a draft champ select)
+- **Rune page slots.** `GET /lol-perks/v1/inventory` returned
+  `{"canAddCustomPage": false, "customPageCount": 2, "isCustomPageCreationUnlocked": true, "ownedPageCount": 2}`.
+  `canAddCustomPage` is the client's own answer. A page the client ties to a Swiftplay pick
+  (`quickPlayChampionIds: [498]`, `isTemporary: false`) reports `isDeletable: false` yet still takes a
+  slot; the client's temporary Swiftplay page (`isTemporary: true`) does not. Counting only deletable
+  pages made the importer POST into a full inventory: `HTTP 400 {"errorCode":"RPC_ERROR","message":"Max pages reached"}`.
+  Champion select now updates our page for the loadout or our free page, creates a page only while a
+  slot is free, and otherwise borrows our Swiftplay-tied page with its `quickPlayChampionIds` and
+  `isTemporary` sent back unchanged (`core/src/runes.rs`); Swiftplay preparation rewrites that page
+  for its pick in the next lobby. Personal pages are never written or deleted.
+- **Item-set upload size.** A `PUT .../sets` body above about 64 KiB fails with
+  `HTTP 413 {"errorCode":"BAD_REQUEST_HEADERS","message":"Content length is too large"}`. The account's
+  30 sets (all ours, about 2.2 KB each) were 64,891 bytes and accepted; one more set was refused.
+  `itemset::merge` keeps uploads under 60 KiB by dropping our own oldest sets, never anyone else's.
 
 ## Item set schema (`LolItemSetsItemSets` / `LolItemSetsItemSet`)
 ```json

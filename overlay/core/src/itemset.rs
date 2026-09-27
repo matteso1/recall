@@ -173,6 +173,49 @@ pub fn upsert(payload: &Value, set: Value) -> Value {
     out
 }
 
+/// Every item-set write uploads the whole collection, and the client refuses a request body above
+/// 64 KiB (HTTP 413 "Content length is too large"). Stay under that with room to spare.
+pub const UPLOAD_BUDGET: usize = 60 * 1024;
+
+/// [`upsert`] each set, then keep the collection within one upload: drop our own older sets, oldest
+/// first (upsert appends, so the front is the oldest), never one written now and never a set we did
+/// not make. Our sets are rewritten whenever that champion comes up again, so nothing is lost.
+/// Errors, before any request, when the player's own sets alone are too large.
+pub fn merge(payload: &Value, sets: &[Value]) -> Result<Value, String> {
+    let mut out = sets
+        .iter()
+        .fold(payload.clone(), |out, set| upsert(&out, set.clone()));
+    let written: Vec<&str> = sets
+        .iter()
+        .filter_map(|set| set.get("title").and_then(Value::as_str))
+        .collect();
+    loop {
+        let size = serde_json::to_vec(&out).map_or(usize::MAX, |body| body.len());
+        if size <= UPLOAD_BUDGET {
+            return Ok(out);
+        }
+        let Some(list) = out.get_mut("itemSets").and_then(Value::as_array_mut) else {
+            return Err("Item sets could not be read safely".into());
+        };
+        let oldest = list.iter().position(|set| {
+            set.get("title")
+                .and_then(Value::as_str)
+                .is_some_and(|title| crate::brand::owns(title) && !written.contains(&title))
+        });
+        match oldest {
+            Some(index) => {
+                list.remove(index);
+            }
+            None => {
+                return Err(format!(
+                    "Your item sets fill the client's limit ({} KB); remove some of yours in the client",
+                    size / 1024
+                ))
+            }
+        }
+    }
+}
+
 pub fn remove(payload: &Value, title: &str) -> Value {
     let sets: Vec<Value> = payload
         .get("itemSets")
@@ -196,6 +239,72 @@ mod tests {
     use crate::ddragon::test_support::catalog;
     use crate::engine::{plan, Inputs};
     use crate::pack::{load_traits, load_xayah};
+
+    /// A set about the size of a real one (ten blocks, about 2 KB). The account that hit the
+    /// upload limit on 2026-09-26 held 30 sets of this size.
+    fn sized_set(title: &str) -> Value {
+        let blocks: Vec<Value> = (0..10)
+            .map(|block| {
+                json!({
+                    "type": format!("{title} block {block} with a reason line"),
+                    "items": (0..6).map(|item| json!({"id": format!("{}", 3000 + item), "count": 1})).collect::<Vec<_>>()
+                })
+            })
+            .collect();
+        json!({"uid": format!("uid-{title}"), "title": title, "type": "custom", "map": "any",
+               "mode": "any", "priority": false, "sortrank": 0, "associatedChampions": [498],
+               "associatedMaps": [11, 12], "blocks": blocks})
+    }
+
+    fn titles(payload: &Value) -> Vec<String> {
+        payload["itemSets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|set| set["title"].as_str().unwrap().to_string())
+            .collect()
+    }
+
+    #[test]
+    fn a_full_collection_drops_our_oldest_sets_and_keeps_everything_else() {
+        let mut sets = vec![sized_set("OP.GG Xayah")];
+        sets.extend((0..40).map(|n| sized_set(&format!("Recall Champion{n} Top"))));
+        sets.push(sized_set("Featherstorm Irelia Jungle"));
+        let payload = json!({"accountId": 1, "timestamp": 0, "itemSets": sets});
+        assert!(serde_json::to_vec(&payload).unwrap().len() > UPLOAD_BUDGET);
+        let out = merge(&payload, &[sized_set("Recall Malphite")]).unwrap();
+        assert!(serde_json::to_vec(&out).unwrap().len() <= UPLOAD_BUDGET);
+        let kept = titles(&out);
+        assert_eq!(kept.first().map(String::as_str), Some("OP.GG Xayah"));
+        assert_eq!(kept.last().map(String::as_str), Some("Recall Malphite"));
+        assert!(kept.contains(&"Featherstorm Irelia Jungle".to_string()));
+        assert!(!kept.contains(&"Recall Champion0 Top".to_string()));
+        assert!(kept.contains(&"Recall Champion39 Top".to_string()));
+        assert_eq!(out["accountId"], 1);
+    }
+
+    #[test]
+    fn both_swiftplay_sets_survive_trimming_and_a_small_collection_is_untouched() {
+        let sets: Vec<Value> = (0..40)
+            .map(|n| sized_set(&format!("Recall Champion{n} Top")))
+            .collect();
+        let payload = json!({"itemSets": sets});
+        let written = [sized_set("Recall Xayah ADC"), sized_set("Recall Zed Mid")];
+        let kept = titles(&merge(&payload, &written).unwrap());
+        assert!(kept.ends_with(&["Recall Xayah ADC".to_string(), "Recall Zed Mid".to_string()]));
+        let small = json!({"itemSets": [sized_set("Mine"), sized_set("Recall Ahri")]});
+        assert_eq!(
+            titles(&merge(&small, &[sized_set("Recall Ahri")]).unwrap()),
+            ["Mine", "Recall Ahri"]
+        );
+    }
+
+    #[test]
+    fn only_personal_sets_over_the_limit_is_an_error_before_any_upload() {
+        let sets: Vec<Value> = (0..40).map(|n| sized_set(&format!("Mine {n}"))).collect();
+        let error = merge(&json!({"itemSets": sets}), &[sized_set("Recall Malphite")]).unwrap_err();
+        assert!(error.contains("remove some of yours"), "{error}");
+    }
 
     #[test]
     fn upsert_replaces_the_set_an_older_build_wrote_under_the_previous_name() {
