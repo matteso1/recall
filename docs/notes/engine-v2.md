@@ -165,3 +165,39 @@ panel waiting for build data. The engine now plans from a labelled same-champion
 (`engine::GameMode`, `shop::ShopContext.swiftplay`). Details, research and the offline verification
 are in [swiftplay.md](swiftplay.md). Counts after the change: 233 core tests, 35 runtime, 20 browser,
 34 Python; Clippy clean on core and the runtime crate.
+
+## Update 2026-09-26: resistances valued against what you already have
+
+In a draft game Malphite Top followed op.gg's all-armor line (Sunfire Aegis, Plated Steelcaps,
+Thornmail, Frozen Heart) against a Teemo top lane; at 22:54 the panel still said "Thornmail: armor
+for Yone's damage profile" with 259 armor and 50 magic resist, and magic resist first appeared as
+the fifth item. Three causes: a resist's value divided by resists from owned items only (Malphite's
+natural armor was invisible), the damage split ignored who you actually face in lane, and a
+situational magic-resist item could not outrank the next core item.
+
+- **Damage removed, not stat totals.** Armor or magic resist is valued as the share of all incoming
+  damage it removes: each damage type's share after current mitigation times the part the new
+  resistance stops. In game the base is the client's measured armor, magic resist and health; before
+  a game, Data Dragon base stats at level 9 plus items (`Champion::stat_at`). One documented scale
+  (`RESIST_SCALE`) keeps early single items near the old scores. When the measured balance drives a
+  choice the reason gives the numbers: "Rookern: 259 armor vs 50 MR; Teemo deals magic damage".
+- **Lane phase.** The lane opponent (both bot-lane enemies for ADC and support) counts x3 through
+  10:00, fading to x1 at 20:00. Draft hides enemy positions, so before the game the opponent is only
+  weighted when exactly one enemy can play the lane.
+- **Defensive order.** Unowned defensive items on the path (no damage stats) are ordered greedily by
+  effective health per remaining gold against the enemy mix, owned components counted; damage items,
+  boots and the first core item keep their places, and an item moves ahead only by a 15% margin.
+- **Boots.** Among the aggregate's boots of the build's family bought by at least 5% of players, the
+  pick-rate prior is weighed against three times the defensive fit: Mercury's Treads in lane against
+  Teemo, Plated Steelcaps against an all-physical lineup.
+
+Replayed on the Malphite states (`core/tests/resist_balance.rs`, rebuilt by hand from the scoreboard):
+
+| State | Before | After |
+|---|---|---|
+| Champion select | Sunfire > Steelcaps > Thornmail > Frozen Heart > Rookern > Jak'Sho | Sunfire > Steelcaps > Rookern > Jak'Sho > Thornmail > Frozen Heart |
+| 8:00 in lane | boots Plated Steelcaps | boots Mercury's Treads |
+| 15:30 | next Thornmail ("reduces Yone's healing") | next Kaenic Rookern ("200 armor vs 55 MR; Teemo deals magic damage") |
+| 22:54 | next Thornmail ("armor for Yone's damage profile") | next Kaenic Rookern ("259 armor vs 50 MR"), then Thornmail |
+
+All earlier recorded-game regressions pass unchanged.

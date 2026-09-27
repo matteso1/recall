@@ -44,6 +44,23 @@ const MIN_LATE_PICK: f64 = 0.02;
 /// Situational score at which an off-path item counts as a real detour (a verified cleanse scores
 /// 3.2, anti-heal against a healer about 2.7; incidental stats stay well below 1).
 const DETOUR_NEED: f64 = 1.5;
+/// Converts the fraction of incoming damage an item's armor or magic resist removes (see
+/// `Defense::removed`) into a need score. A first resist item early (about 40 of either at 60 armor
+/// and 40 MR against an even mix) removes about a tenth of incoming damage; x5 keeps that near the
+/// 0.5 the earlier per-item formula gave, so the scale of other needs is unchanged.
+const RESIST_SCALE: f64 = 5.0;
+/// A defensive item moves ahead of an earlier planned one only when it adds clearly more effective
+/// health per remaining gold (15%): near ties keep op.gg's order and the target does not flip
+/// between polls as levels and gold change.
+const ORDER_MARGIN: f64 = 0.15;
+/// Boots are the one slot chosen mostly by the enemy's damage type (Plated Steelcaps against
+/// attacks, Mercury's Treads against magic), so their defensive fit counts three times against the
+/// pick-rate prior, and only boots a real share of players buy (5%) are considered.
+const BOOTS_FIT_WEIGHT: f64 = 3.0;
+const MIN_BOOTS_PICK: f64 = 0.05;
+/// Before a game (champion select planning) there are no measured stats; the first finished items
+/// land around this level, so base resistances and health are taken there.
+const PLANNING_LEVEL: u32 = 9;
 
 #[derive(Clone, Copy, Debug, Default)]
 struct Archetype {
@@ -150,6 +167,181 @@ struct Needs {
     poke: f64,
     ally_antiheal: Vec<String>,
     context: Vec<String>,
+    /// The player's durability before any candidate is added.
+    defense: Defense,
+    /// Owned item ids (one per unit), so planned-but-unbought items can be told apart.
+    owned: Vec<u32>,
+}
+
+/// The player's armor, magic resist and health, for valuing more of them as damage actually
+/// removed. In game these are the client's measured totals (owned items, levels and passives
+/// included); before a game, or when the client does not report them, the champion's Data Dragon
+/// base stats at the current (or planning) level plus owned items.
+#[derive(Clone, Copy, Debug, Default)]
+struct Defense {
+    armor: f64,
+    magic_resist: f64,
+    health: f64,
+    observed: bool,
+}
+
+fn health_of(item: &Item) -> f64 {
+    item.stat("FlatHPPoolMod").unwrap_or(0.0)
+}
+
+impl Defense {
+    fn of(inp: &Inputs, me: Option<&Me>) -> Self {
+        let level = me
+            .map(|m| m.player.level)
+            .filter(|level| *level > 0)
+            .unwrap_or(PLANNING_LEVEL);
+        let champion = inp
+            .catalog
+            .champion_key(inp.champion)
+            .and_then(|key| inp.catalog.champion(key));
+        // A typical champion near the planning level, only when Data Dragon lacks the champion.
+        let base = |stat: &str, typical: f64| {
+            champion
+                .and_then(|c| c.stat_at(stat, level))
+                .unwrap_or(typical)
+        };
+        let owned = |value: fn(&Item) -> f64| {
+            me.map(|m| item_sum(inp.catalog, &m.player, value))
+                .unwrap_or(0.0)
+        };
+        let health = me
+            .and_then(|m| m.stats.max_health)
+            .unwrap_or_else(|| base("hp", 1500.0) + owned(health_of));
+        match me.map(|m| (m.stats.armor, m.stats.magic_resist)) {
+            Some((Some(armor), Some(magic_resist))) => Self {
+                armor,
+                magic_resist,
+                health,
+                observed: true,
+            },
+            _ => Self {
+                armor: base("armor", 60.0) + owned(|i| i.effects.armor.unwrap_or(0.0)),
+                magic_resist: base("spellblock", 40.0)
+                    + owned(|i| i.effects.magic_resist.unwrap_or(0.0)),
+                health,
+                observed: false,
+            },
+        }
+    }
+
+    /// With these items' stats added (items planned but not bought yet).
+    fn plus(&self, cat: &Catalog, ids: impl IntoIterator<Item = u32>) -> Self {
+        let mut out = *self;
+        for item in ids.into_iter().filter_map(|id| cat.item(id)) {
+            out.armor += item.effects.armor.unwrap_or(0.0);
+            out.magic_resist += item.effects.magic_resist.unwrap_or(0.0);
+            out.health += health_of(item);
+        }
+        out
+    }
+
+    /// Damage taken per point of incoming damage against the enemy mix.
+    fn taken(&self, n: &Needs, armor: f64, magic_resist: f64) -> f64 {
+        n.physical_share * 100.0 / (100.0 + (self.armor + armor).max(0.0))
+            + n.magic_share * 100.0 / (100.0 + (self.magic_resist + magic_resist).max(0.0))
+    }
+
+    /// Fraction of all incoming damage that extra armor and magic resist remove: each damage
+    /// type's share after current mitigation times the part of it the new resistance stops.
+    fn removed(&self, n: &Needs, armor: f64, magic_resist: f64) -> f64 {
+        let before = self.taken(n, 0.0, 0.0);
+        if before <= 0.0 {
+            return 0.0;
+        }
+        ((before - self.taken(n, armor, magic_resist)) / before).max(0.0)
+    }
+
+    /// Relative effective-health gain against the enemy mix from extra health and resistances.
+    fn ehp_gain(&self, n: &Needs, health: f64, armor: f64, magic_resist: f64) -> f64 {
+        let before = self.taken(n, 0.0, 0.0);
+        let after = self.taken(n, armor, magic_resist);
+        if before <= 0.0 || after <= 0.0 || self.health <= 0.0 {
+            return 0.0;
+        }
+        (self.health + health) / after / (self.health / before) - 1.0
+    }
+}
+
+/// `already` minus owned items, one unit at a time: what is planned but not bought yet.
+fn unbought(already: &[u32], owned: &[u32]) -> Vec<u32> {
+    let mut owned = owned.to_vec();
+    already
+        .iter()
+        .copied()
+        .filter(|id| match owned.iter().position(|o| o == id) {
+            Some(index) => {
+                owned.swap_remove(index);
+                false
+            }
+            None => true,
+        })
+        .collect()
+}
+
+/// Lane phase: the lane opponent deals most of the damage a laner takes until roams and
+/// objectives take over. x3 through 10:00, falling linearly to x1 at 20:00. Planning before the
+/// game counts as lane phase.
+fn lane_boost(game_time: Option<f64>) -> f64 {
+    let minutes = game_time.map_or(0.0, |seconds| seconds / 60.0);
+    3.0 - 2.0 * ((minutes - 10.0) / 10.0).clamp(0.0, 1.0)
+}
+
+/// The enemies a laner faces in lane: the opponent in the same position, and for bot lane both of
+/// them. A jungler has no lane, so no one is weighted up.
+fn lane_opponents(inp: &Inputs, role: Option<crate::aggregate::Position>) -> Vec<String> {
+    use crate::aggregate::Position;
+    let lanes: &[Position] = match role {
+        Some(Position::Top) => &[Position::Top],
+        Some(Position::Mid) => &[Position::Mid],
+        Some(Position::Adc) | Some(Position::Support) => &[Position::Adc, Position::Support],
+        _ => &[],
+    };
+    lanes
+        .iter()
+        .filter_map(|position| engine::lane_opponent(inp, *position))
+        .map(|name| normalize(&name))
+        .collect()
+}
+
+/// An item bought for durability: armor, magic resist or health and no damage stats.
+fn defensive(item: &Item) -> bool {
+    let damage = item.stat("FlatPhysicalDamageMod").unwrap_or(0.0)
+        + item.stat("FlatMagicDamageMod").unwrap_or(0.0)
+        + item.stat("PercentAttackSpeedMod").unwrap_or(0.0)
+        + item.stat("FlatCritChanceMod").unwrap_or(0.0);
+    damage <= 0.0
+        && (item.effects.armor.is_some_and(|v| v > 0.0)
+            || item.effects.magic_resist.is_some_and(|v| v > 0.0)
+            || health_of(item) > 0.0)
+}
+
+/// The why line for armor or magic resist. When the measured balance is what makes it worth
+/// buying (the other resistance at least half again as high), the line gives the numbers.
+fn resist_reason(short: &str, n: &Needs, magic: bool) -> String {
+    let d = &n.defense;
+    let (mine, other, name) = if magic {
+        (d.magic_resist, d.armor, &n.magic_name)
+    } else {
+        (d.armor, d.magic_resist, &n.physical_name)
+    };
+    if d.observed && !name.is_empty() && other >= 1.5 * mine.max(1.0) {
+        return format!(
+            "{short}: {:.0} armor vs {:.0} MR; {name} deals {} damage",
+            d.armor,
+            d.magic_resist,
+            if magic { "magic" } else { "physical" }
+        );
+    }
+    if magic {
+        format!("{short}: magic protection for {name}'s damage profile")
+    } else {
+        format!("{short}: armor for {name}'s damage profile")
+    }
 }
 
 fn equipped_value(cat: &Catalog, p: &Player) -> f64 {
@@ -188,6 +380,8 @@ impl Needs {
         let mut strongest_healing: f64 = 0.0;
         let mut strongest_pressure: f64 = 1.0;
         let own_role = inp.aggregate.map(engine::actual_position);
+        let lane = lane_opponents(inp, own_role);
+        let boost = lane_boost(inp.live.map(|l| l.game_time));
         let mut names: BTreeSet<String> = inp.enemies.iter().cloned().collect();
         if let Some(live) = inp.live {
             names.extend(live.enemies.iter().map(|p| p.champion.clone()));
@@ -214,8 +408,15 @@ impl Needs {
                 }
                 _ => 1.0,
             };
-            let weight = relative * levels;
-            strongest_pressure = strongest_pressure.max(weight);
+            // Pressure and dive are about how strong an enemy is; the damage split also weighs
+            // who you face in lane, so the lane opponent names the need early.
+            let threat = relative * levels;
+            strongest_pressure = strongest_pressure.max(threat);
+            let weight = if lane.contains(&normalize(&name)) {
+                threat * boost
+            } else {
+                threat
+            };
             let equipment_ap = player
                 .map(|p| {
                     item_sum(inp.catalog, p, |i| {
@@ -292,7 +493,7 @@ impl Needs {
                     }
                 }
                 if t.assassin || t.burst {
-                    n.dive = (n.dive + 0.25 * weight).min(1.0);
+                    n.dive = (n.dive + 0.25 * threat).min(1.0);
                 }
                 if t.poke {
                     n.poke = (n.poke + 0.3).min(1.0);
@@ -316,6 +517,8 @@ impl Needs {
             n.magic_share = weighted_magic / total;
         }
         n.pressure = (strongest_pressure - 1.0).clamp(0.0, 1.0);
+        n.owned = owned_ids(me);
+        n.defense = Defense::of(inp, me);
         if let Some(live) = inp.live {
             for ally in &live.allies {
                 if ally.items.iter().any(|i| {
@@ -365,6 +568,119 @@ impl Needs {
             }
         }
         n
+    }
+}
+
+/// The boots on the path: among the aggregate's boots of the build's family that a real share of
+/// players buy, the pick-rate prior against three times the defensive fit, so Mercury's Treads
+/// beats the more popular Plated Steelcaps when the enemy's damage is mostly magic.
+fn choose_boots(
+    inp: &Inputs,
+    agg: &crate::aggregate::Aggregate,
+    n: &Needs,
+    archetype: Archetype,
+    base: &PlanItem,
+    planned: &[u32],
+    pref: BuildPreference,
+) -> PlanItem {
+    let cat = inp.catalog;
+    let mut best: Option<(f64, u32, String)> = None;
+    for line in agg.boots_lines.iter().chain(agg.boots.iter()) {
+        let Some(&id) = line.ids.first() else {
+            continue;
+        };
+        let Some(item) = cat.item(id) else { continue };
+        if (line.pick_rate < MIN_BOOTS_PICK && id != base.id)
+            || !item.effects.boots
+            || !coherent_with(archetype, cat, id)
+        {
+            continue;
+        }
+        let f = fit(item, inp, n, archetype, planned, pref);
+        let score = 2.0 * line.pick_rate.max(0.0).sqrt() + BOOTS_FIT_WEIGHT * f.score;
+        if best.as_ref().is_none_or(|(top, _, _)| score > *top) {
+            best = Some((score, id, f.reason));
+        }
+    }
+    match best {
+        Some((_, id, reason)) if id != base.id => {
+            engine::item_by_id(cat, inp.pack, id, Some(reason)).unwrap_or_else(|| base.clone())
+        }
+        _ => base.clone(),
+    }
+}
+
+/// Planned defensive items in the order they add the most effective health per remaining gold
+/// against the enemy mix, greedily (each pick's stats count for the next). Only positions held by
+/// unowned defensive items are permuted: damage items, boots and the first core item (op.gg's
+/// first-item choice, bought for laning as much as for durability) keep their places, and an item
+/// moves ahead only by a clear margin (`ORDER_MARGIN`).
+fn order_defense(
+    path: &mut [PlanItem],
+    inp: &Inputs,
+    n: &Needs,
+    first: Option<u32>,
+    me: Option<&Me>,
+    locked: bool,
+    swiftplay: bool,
+) {
+    if n.physical_share + n.magic_share <= 0.0 {
+        return;
+    }
+    let cat = inp.catalog;
+    let slots: Vec<usize> = path
+        .iter()
+        .enumerate()
+        .filter(|(_, p)| {
+            !p.owned
+                && p.role != "boots"
+                && Some(p.id) != first
+                && cat
+                    .item(p.id)
+                    .is_some_and(|i| i.is_finished(cat) && defensive(i))
+        })
+        .map(|(index, _)| index)
+        .collect();
+    if slots.len() < 2 {
+        return;
+    }
+    let mut defense = n.defense.plus(
+        cat,
+        path[..slots[0]].iter().filter(|p| !p.owned).map(|p| p.id),
+    );
+    let mut pool: Vec<PlanItem> = slots.iter().map(|&index| path[index].clone()).collect();
+    let mut ordered = Vec::with_capacity(pool.len());
+    while !pool.is_empty() {
+        let values: Vec<f64> = pool
+            .iter()
+            .map(|p| {
+                cat.item(p.id).map_or(0.0, |item| {
+                    let cost = remaining(inp, p.id, me, locked, swiftplay)
+                        .remaining_cost
+                        .unwrap_or(item.total)
+                        .max(1);
+                    defense.ehp_gain(
+                        n,
+                        health_of(item),
+                        item.effects.armor.unwrap_or(0.0),
+                        item.effects.magic_resist.unwrap_or(0.0),
+                    ) / f64::from(cost)
+                })
+            })
+            .collect();
+        let best =
+            (0..values.len()).fold(0, |best, i| if values[i] > values[best] { i } else { best });
+        let pick = if values[best] > values[0] * (1.0 + ORDER_MARGIN) {
+            best
+        } else {
+            0
+        };
+        let item = pool.remove(pick);
+        defense = defense.plus(cat, [item.id]);
+        ordered.push(item);
+    }
+    for (slot, item) in slots.into_iter().zip(ordered) {
+        path[slot] = item;
     }
 }
 
@@ -478,34 +794,25 @@ fn fit(
     } else {
         0.9 + 0.9 * n.pressure
     };
+    // Resistances are valued as the share of incoming damage they remove on top of what the
+    // player already has (measured in game) plus the planned items not bought yet, so a third
+    // armor item on 259 armor and 50 MR is worth little and magic resist a lot.
+    let defense = n.defense.plus(inp.catalog, unbought(already, &n.owned));
     // A cleanse item's magic resistance is a side stat; its reason to exist is the active. It is
     // scored above as a cleanse only, never sold as "magic protection".
     if let Some(mr) = e.magic_resist.filter(|v| *v > 0.0 && e.cleanse.is_none()) {
-        let old: f64 = already
-            .iter()
-            .filter_map(|id| inp.catalog.item(*id))
-            .map(|i| i.effects.magic_resist.unwrap_or(0.0))
-            .sum();
         terms.push((
-            defense_weight * n.magic_share * mr / (40.0 + old),
+            defense_weight * RESIST_SCALE * defense.removed(n, 0.0, mr),
             DecisionKind::MagicDefense,
-            format!(
-                "{short}: magic protection for {}'s damage profile",
-                n.magic_name
-            ),
+            resist_reason(&short, n, true),
             Evidence::Composition,
         ));
     }
     if let Some(armor) = e.armor.filter(|v| *v > 0.0) {
-        let old: f64 = already
-            .iter()
-            .filter_map(|id| inp.catalog.item(*id))
-            .map(|i| i.effects.armor.unwrap_or(0.0))
-            .sum();
         terms.push((
-            defense_weight * n.physical_share * armor / (40.0 + old),
+            defense_weight * RESIST_SCALE * defense.removed(n, armor, 0.0),
             DecisionKind::PhysicalDefense,
-            format!("{short}: armor for {}'s damage profile", n.physical_name),
+            resist_reason(&short, n, false),
             Evidence::Composition,
         ));
     }
@@ -793,14 +1100,28 @@ pub(crate) fn select(
         if path.len() >= 6 {
             break;
         }
+        let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
+        let item = if item.role == "boots" {
+            choose_boots(
+                inp,
+                agg,
+                &needs,
+                archetype,
+                item,
+                &planned,
+                preferences.mode,
+            )
+        } else {
+            item.clone()
+        };
         if fulfilled(inp, item.id, me)
             || (Some(item.id) == first && alternative_first_owned)
             || !compatible(item.id, &ids)
-            || !compatible(item.id, &path.iter().map(|p| p.id).collect::<Vec<_>>())
+            || !compatible(item.id, &planned)
         {
             continue;
         }
-        path.push(item.clone());
+        path.push(item);
     }
     // Greedy marginal coverage for the small flexible tail. Effects already present
     // are discounted; mutually exclusive items are filtered before scoring.
@@ -858,6 +1179,7 @@ pub(crate) fn select(
             path.push(item);
         }
     }
+    order_defense(&mut path, inp, &needs, first, me, boots_locked, swiftplay);
     let pending: Vec<_> = path
         .iter()
         .filter(|p| !p.owned && !(boots_locked && p.role == "boots"))
@@ -1162,4 +1484,75 @@ pub(crate) fn select(
     out.options.truncate(16);
     out.path = path;
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn needs(physical: f64, magic: f64) -> Needs {
+        Needs {
+            physical_share: physical,
+            magic_share: magic,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn a_resistance_is_worth_more_where_less_of_it_is_owned() {
+        let d = Defense {
+            armor: 259.0,
+            magic_resist: 50.0,
+            health: 2614.0,
+            observed: true,
+        };
+        let n = needs(0.57, 0.43);
+        let armor = d.removed(&n, 75.0, 0.0);
+        let mr = d.removed(&n, 0.0, 80.0);
+        assert!(mr > 2.0 * armor, "armor {armor}, mr {mr}");
+        // Against an all-physical team magic resist removes nothing.
+        assert_eq!(d.removed(&needs(1.0, 0.0), 0.0, 80.0), 0.0);
+        // Effective health: 400 health and 80 MR outweigh 150 health and 75 armor here.
+        assert!(d.ehp_gain(&n, 400.0, 0.0, 80.0) > 2.0 * d.ehp_gain(&n, 150.0, 75.0, 0.0));
+        assert_eq!(d.ehp_gain(&needs(0.0, 0.0), 400.0, 0.0, 80.0), 0.0);
+    }
+
+    #[test]
+    fn early_single_resist_items_keep_the_old_score_scale() {
+        // About 40 of either at 60 armor and 40 MR against an even mix scored 0.5 before; the new
+        // scale keeps a first resist item near that so other needs keep their relative weight.
+        let d = Defense {
+            armor: 60.0,
+            magic_resist: 40.0,
+            health: 1500.0,
+            observed: false,
+        };
+        let n = needs(0.5, 0.5);
+        for score in [
+            RESIST_SCALE * d.removed(&n, 40.0, 0.0),
+            RESIST_SCALE * d.removed(&n, 0.0, 40.0),
+        ] {
+            assert!((0.35..0.65).contains(&score), "{score}");
+        }
+    }
+
+    #[test]
+    fn the_lane_opponent_counts_triple_until_ten_minutes_then_fades_by_twenty() {
+        assert_eq!(lane_boost(None), 3.0);
+        assert_eq!(lane_boost(Some(0.0)), 3.0);
+        assert_eq!(lane_boost(Some(600.0)), 3.0);
+        assert!((lane_boost(Some(900.0)) - 2.0).abs() < 1e-9);
+        assert_eq!(lane_boost(Some(1200.0)), 1.0);
+        assert_eq!(lane_boost(Some(2400.0)), 1.0);
+    }
+
+    #[test]
+    fn planned_items_are_the_ones_not_bought_yet_counting_units() {
+        assert_eq!(
+            unbought(&[1029, 1029, 3075, 3068], &[1029, 3068]),
+            [1029, 3075]
+        );
+        assert_eq!(unbought(&[3068], &[3068, 3068]), Vec::<u32>::new());
+        assert_eq!(unbought(&[], &[3068]), Vec::<u32>::new());
+    }
 }

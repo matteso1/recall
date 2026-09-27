@@ -245,6 +245,23 @@ pub struct Champion {
     pub name: String,
     /// Data Dragon class tags: Marksman, Support, Tank, Mage, Assassin, Fighter
     pub tags: Vec<String>,
+    /// Data Dragon base stats (`hp`, `armor`, `spellblock` and their `...perlevel` growth).
+    pub stats: HashMap<String, f64>,
+}
+
+impl Champion {
+    /// A base stat at `level` on League's growth curve: base + growth * (n) * (0.7025 + 0.0175 * n)
+    /// with n = level - 1. Items, runes and abilities are not included.
+    pub fn stat_at(&self, stat: &str, level: u32) -> Option<f64> {
+        let base = *self.stats.get(stat)?;
+        let growth = self
+            .stats
+            .get(&format!("{stat}perlevel"))
+            .copied()
+            .unwrap_or(0.0);
+        let n = f64::from(level.clamp(1, 18) - 1);
+        Some(base + growth * n * (0.7025 + 0.0175 * n))
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -604,6 +621,21 @@ impl Catalog {
                         .unwrap_or("")
                         .to_string(),
                     tags: strings_of(v, "tags"),
+                    stats: v
+                        .get("stats")
+                        .and_then(Value::as_object)
+                        .map(|stats| {
+                            stats
+                                .iter()
+                                .filter_map(|(key, value)| {
+                                    value
+                                        .as_f64()
+                                        .filter(|number| number.is_finite())
+                                        .map(|number| (key.clone(), number))
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default(),
                 };
                 cat.champ_by_name.insert(normalize(&champ.name), key);
                 cat.champ_by_name.entry(normalize(&champ.id)).or_insert(key);
@@ -833,6 +865,12 @@ mod tests {
         assert_eq!(cat.champion_key("Wukong"), Some(62));
         assert_eq!(cat.champion_name(16), "Soraka");
         assert!(cat.champion(516).unwrap().tags.iter().any(|t| t == "Tank"));
+        // Base stats follow League's growth curve; level 18 is exactly base + 17 levels of growth.
+        let malphite = cat.champion(54).unwrap();
+        assert_eq!(malphite.stat_at("armor", 1), Some(40.0));
+        assert!((malphite.stat_at("armor", 18).unwrap() - (40.0 + 4.95 * 17.0)).abs() < 1e-9);
+        assert!((malphite.stat_at("spellblock", 9).unwrap() - 41.817).abs() < 0.01);
+        assert_eq!(malphite.stat_at("nonexistent", 9), None);
     }
 
     #[test]
