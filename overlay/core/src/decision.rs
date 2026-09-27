@@ -84,6 +84,20 @@ const PROMOTE_KEEP: f64 = 1.2;
 /// a tag appears at its threshold but disappears only this far below it.
 const TAIL_MARGIN: f64 = 0.25;
 const TAG_MARGIN: f64 = 0.15;
+/// The kill feed is the confirmation a composition-only detour lacks: a resistance answer against
+/// the damage type of the enemy it blames is promoted at this need instead of `DETOUR_NEED`.
+const TYPED_ANSWER_NEED: f64 = 1.0;
+/// When a resistance answer against the blamed enemy and a generic buffer (a shield or stasis
+/// without that resistance) both qualify, the resistance answer goes first unless the buffer's need
+/// is higher by this much: resistance cuts all of that enemy's damage, a buffer one burst.
+const TYPED_MARGIN: f64 = 1.0;
+/// A promoted answer stays promoted this long after it last met its bar, so it does not drop and
+/// return as one death fades and the next renews the evidence (the Xayah game of 2026-09-26 traded
+/// Bloodthirster and Mortal Reminder six times between 23:40 and 28:00).
+const PROMOTE_HOLD_SECONDS: f64 = 180.0;
+/// The target shown last poll stays the target unless a challenger's total is this much higher
+/// (or it was bought, declined, blocked or left the candidates). Finishable targets stay regardless.
+const TARGET_MARGIN: f64 = 0.75;
 
 #[derive(Clone, Copy, Debug, Default)]
 struct Archetype {
@@ -206,8 +220,12 @@ struct Hunter {
     deaths: u32,
     /// Landed at least one of the remembered kills (not only assisted).
     landed: bool,
-    /// Kill-feed evidence, `hunting` below.
-    score: f64,
+    /// Kill-feed evidence (`hunting` below) times how strong the enemy is (equipment, levels, kill lead): the enemy blamed is
+    /// the one with the most, so a far-behind enemy landing a teamfight's last hit is not named
+    /// over the fed one who assisted every death.
+    blame: f64,
+    /// The share of this enemy's damage that is magic (0-1), for the resistance that answers it.
+    magic: f64,
 }
 
 /// How much of your recent dying one enemy did: the killer counts 1 and an assister 0.5 per death,
@@ -477,19 +495,14 @@ impl Needs {
             let (hunt, landed) = inp
                 .live
                 .map_or((0.0, false), |l| hunting(&l.my_deaths, l.game_time, &name));
-            if hunt > 0.0 && n.hunter.as_ref().is_none_or(|h| hunt > h.score) {
-                n.hunter = Some(Hunter {
-                    champion: name.clone(),
-                    kills: player.map_or(0, |p| p.kills),
-                    deaths: player.map_or(0, |p| p.deaths),
-                    landed,
-                    score: hunt,
-                });
-            }
-            n.dive = (n.dive + HUNT_DIVE * hunt).min(1.0);
+            // How strong this enemy is without the kill feed: what their evidence is weighed by.
+            let strength = relative * levels * fed;
+            // Kill-feed dive counts in proportion to strength: a far-behind enemy finishing a
+            // teamfight is weaker evidence of being dived than a fed one reaching you.
+            n.dive = (n.dive + HUNT_DIVE * hunt * strength.min(1.0)).min(1.0);
             // Pressure and dive are about how strong an enemy is; the damage split also weighs
             // who you face in lane, so the lane opponent names the need early.
-            let threat = relative * levels * fed * (1.0 + HUNT_THREAT * hunt);
+            let threat = strength * (1.0 + HUNT_THREAT * hunt);
             strongest_pressure = strongest_pressure.max(threat);
             let weight = if lane.contains(&normalize(&name)) {
                 threat * boost
@@ -528,6 +541,17 @@ impl Needs {
             } else {
                 prior_magic
             };
+            let blame = hunt * strength;
+            if blame > 0.0 && n.hunter.as_ref().is_none_or(|h| blame > h.blame) {
+                n.hunter = Some(Hunter {
+                    champion: name.clone(),
+                    kills: player.map_or(0, |p| p.kills),
+                    deaths: player.map_or(0, |p| p.deaths),
+                    landed,
+                    blame,
+                    magic,
+                });
+            }
             weighted_magic += weight * magic;
             weighted_physical += weight * (1.0 - magic);
             if weight * magic > strongest_magic {
@@ -770,54 +794,179 @@ fn order_defense(
     }
 }
 
-/// With kill-feed evidence (an enemy has been killing you), the planned defensive answer with a
-/// real need (`DETOUR_NEED`) moves to the front of what is left to buy, ahead of the next core item:
-/// Zhonya's for a mage a fed bruiser keeps killing. The answer must be tied to that enemy (the
-/// buffer the kill feed calls for, or the resistance against that enemy's damage), it stays in
-/// front while its need stays above `PROMOTE_KEEP`, and nothing moves before the first core item is
-/// finished. Returns the promoted item.
+/// With kill-feed evidence (an enemy has been killing you), a defensive answer moves to the front
+/// of what is left to buy, ahead of the next core item, once the first core item is finished. Two
+/// kinds of answer qualify: resistance against the blamed enemy's damage type (magic resist against
+/// a mage) at `TYPED_ANSWER_NEED`, because the kill feed confirms that need, and a buffer the kill
+/// feed calls for (stasis, a spell shield, a shield) at `DETOUR_NEED`. Buffers come from the planned
+/// path; a resistance answer may also come from the champion's candidate pool (`pool`), taking the
+/// place of the weakest flexible path item (never a core item or boots), because the path can be
+/// full of core items and boots when the kill feed calls for it. The resistance answer goes first
+/// unless the buffer's need is `TYPED_MARGIN` higher. An answer already promoted stays while its
+/// need is above `PROMOTE_KEEP` or for `PROMOTE_HOLD_SECONDS` after it last met its bar, and gives
+/// way only to a resistance answer, so the front of the path does not flip as deaths fade and
+/// renew. Returns the promoted item and the game second it last met its bar.
+#[allow(clippy::too_many_arguments)]
 fn promote_answer(
     path: &mut Vec<PlanItem>,
+    pool: &[u32],
+    core: &[u32],
     inp: &Inputs,
     n: &Needs,
     archetype: Archetype,
     owned: &[u32],
     completed_core: usize,
     preferences: &PlannerPreferences,
-) -> Option<u32> {
+) -> Option<(u32, u32)> {
+    struct Candidate {
+        id: u32,
+        slot: Option<usize>,
+        score: f64,
+        typed: bool,
+        met: bool,
+        fit: Fit,
+    }
     let hunter = n.hunter.as_ref()?;
     if completed_core == 0 {
         return None;
     }
     let cat = inp.catalog;
+    let now = inp.live.map_or(0.0, |l| l.game_time.max(0.0));
     let front = path.iter().position(|p| !p.owned)?;
-    let (_, index, f) = path
+    let magic_hunter = hunter.magic >= 0.5;
+    let need = |id: u32| {
+        cat.item(id).map_or(0.0, |item| {
+            fit(item, inp, n, archetype, owned, preferences.mode).score
+        })
+    };
+    // The flexible path item a pool answer would replace when the path is full: the unowned
+    // non-core item (not boots) with the least need.
+    let weakest = path
+        .iter()
+        .enumerate()
+        .filter(|(_, p)| !p.owned && p.role != "boots" && !core.contains(&p.id))
+        .map(|(index, p)| (need(p.id), index))
+        .min_by(|a, b| a.0.total_cmp(&b.0))
+        .map(|(_, index)| index);
+    let mut options: Vec<(u32, Option<usize>)> = path
         .iter()
         .enumerate()
         .skip(front)
         .filter(|(_, p)| !p.owned && p.role != "boots")
-        .filter_map(|(index, p)| {
-            let item = cat.item(p.id)?;
-            if !item.is_finished(cat) {
-                return None;
-            }
-            let f = fit(item, inp, n, archetype, owned, preferences.mode);
-            let answers_hunter = f.evidence == Evidence::KillFeed
-                || (f.kind == DecisionKind::PhysicalDefense && n.physical_name == hunter.champion)
-                || (f.kind == DecisionKind::MagicDefense && n.magic_name == hunter.champion);
-            let bar = if preferences.promoted == Some(p.id) {
-                PROMOTE_KEEP
+        .map(|(index, p)| (p.id, Some(index)))
+        .collect();
+    if path.len() < 6 || weakest.is_some() {
+        options.extend(pool.iter().map(|&id| (id, None)));
+    }
+    let mut candidates = Vec::new();
+    for (id, slot) in options {
+        let Some(item) = cat.item(id) else { continue };
+        if !item.is_finished(cat) {
+            continue;
+        }
+        let f = fit(item, inp, n, archetype, owned, preferences.mode);
+        let typed = if magic_hunter {
+            item.effects.magic_resist.is_some_and(|v| v > 0.0)
+        } else {
+            item.effects.armor.is_some_and(|v| v > 0.0)
+        };
+        let buffer = f.evidence == Evidence::KillFeed && slot.is_some();
+        // The answer already promoted stays a candidate through its hold even when a different
+        // enemy now has the most evidence (a later kill by another enemy while the first one's
+        // deaths fade must not drop Mercurial Scimitar for one poll and bring it back the next).
+        let held = preferences.promoted == Some(id)
+            && preferences
+                .promoted_seen
+                .is_some_and(|seen| now - f64::from(seen) <= PROMOTE_HOLD_SECONDS);
+        if !typed && !buffer && !held {
+            continue;
+        }
+        let met = (typed || buffer)
+            && f.score
+                >= if typed {
+                    TYPED_ANSWER_NEED
+                } else {
+                    DETOUR_NEED
+                }
+            || preferences.promoted == Some(id) && f.score >= PROMOTE_KEEP;
+        if met || held {
+            candidates.push(Candidate {
+                id,
+                slot,
+                score: f.score,
+                typed,
+                met,
+                fit: f,
+            });
+        }
+    }
+    let best = |typed: bool| {
+        candidates
+            .iter()
+            .filter(|c| c.typed == typed)
+            .max_by(|a, b| a.score.total_cmp(&b.score))
+    };
+    let mut choice = match (best(true), best(false)) {
+        (Some(typed), Some(buffer)) if buffer.score < typed.score + TYPED_MARGIN => typed,
+        (_, Some(buffer)) => buffer,
+        (Some(typed), None) => typed,
+        (None, None) => return None,
+    };
+    if let Some(previous) = candidates
+        .iter()
+        .find(|c| preferences.promoted == Some(c.id))
+    {
+        if previous.typed || !choice.typed {
+            choice = previous;
+        }
+    }
+    let seen = if choice.met {
+        now as u32
+    } else {
+        preferences.promoted_seen.unwrap_or(now as u32)
+    };
+    let short = cat
+        .item(choice.id)
+        .map(|item| engine::short_of(inp.pack, &item.name))
+        .unwrap_or_default();
+    // A buffer's own reason already names the evidence ("stasis stops the all-in"); a resistance
+    // answer says what it cuts; an answer kept only by its hold keeps its own reason rather than
+    // claiming to answer an enemy whose damage it does not resist.
+    let reason = if choice.fit.evidence == Evidence::KillFeed || !choice.typed {
+        choice.fit.reason.clone()
+    } else {
+        format!(
+            "{short}: {} ({}/{}) {} you; its {} cuts that damage",
+            hunter.champion,
+            hunter.kills,
+            hunter.deaths,
+            if hunter.landed {
+                "killed"
             } else {
-                DETOUR_NEED
-            };
-            (answers_hunter && f.score >= bar).then_some((f.score, index, f))
-        })
-        .max_by(|a, b| a.0.total_cmp(&b.0))?;
-    let mut item = path.remove(index);
-    item.why = Some(f.reason);
+                "helped kill"
+            },
+            if magic_hunter {
+                "magic resist"
+            } else {
+                "armor"
+            }
+        )
+    };
+    let mut item = match choice.slot {
+        Some(index) => path.remove(index),
+        None => {
+            let entry = engine::item_by_id(cat, inp.pack, choice.id, None)?;
+            if path.len() >= 6 {
+                path.remove(weakest?);
+            }
+            entry
+        }
+    };
+    item.why = Some(reason);
     item.tag = Some("situational".into());
+    let front = path.iter().position(|p| !p.owned).unwrap_or(path.len());
     path.insert(front, item);
-    Some(path[front].id)
+    Some((path[front].id, seen))
 }
 
 #[derive(Clone, Debug)]
@@ -1300,6 +1449,28 @@ pub(crate) fn select(
         }
         path.push(item);
     }
+    // An answer promoted because an enemy has been killing you keeps its place on the path while
+    // it stays promoted (`promote_answer` decides that): a component bought for another item must
+    // not push it out of the tail and hand its place to a weaker answer (the Xayah game: a B. F.
+    // Sword pulled Bloodthirster in and Mercurial Scimitar out a minute after Orianna's kill).
+    if let Some(id) = preferences.promoted {
+        let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
+        let keeps_place = path.len() < 6
+            && !planned.contains(&id)
+            && choices.contains_key(&id)
+            && !fulfilled(inp, id, me)
+            && compatible(id, &ids)
+            && compatible(id, &planned);
+        if let Some(item) = cat
+            .item(id)
+            .filter(|item| keeps_place && item.is_finished(cat))
+        {
+            let f = fit(item, inp, &needs, archetype, &planned, preferences.mode);
+            if let Some(entry) = engine::item_by_id(cat, inp.pack, id, Some(f.reason)) {
+                path.push(entry);
+            }
+        }
+    }
     // Greedy marginal coverage for the small flexible tail. Effects already present
     // are discounted; mutually exclusive items are filtered before scoring.
     while path.len() < 6 {
@@ -1384,8 +1555,27 @@ pub(crate) fn select(
         }
     }
     order_defense(&mut path, inp, &needs, first, me, boots_locked, swiftplay);
-    out.preferences.promoted = promote_answer(
+    // Finished items from the champion's candidate pool that are not on the path, can be bought
+    // with this inventory and were not declined: where a promoted resistance answer may come from.
+    let on_path: Vec<u32> = path.iter().map(|p| p.id).collect();
+    let pool_answers: Vec<u32> = choices
+        .keys()
+        .copied()
+        .filter(|&id| {
+            !on_path.contains(&id)
+                && !fulfilled(inp, id, me)
+                && compatible(id, &ids)
+                && compatible(id, &on_path)
+                && !out.preferences.declined_detours.contains(&id)
+                && cat
+                    .item(id)
+                    .is_some_and(|i| i.is_finished(cat) && !i.effects.boots)
+        })
+        .collect();
+    let promoted = promote_answer(
         &mut path,
+        &pool_answers,
+        core_ids,
         inp,
         &needs,
         archetype,
@@ -1393,6 +1583,8 @@ pub(crate) fn select(
         completed_core,
         preferences,
     );
+    out.preferences.promoted = promoted.map(|(id, _)| id);
+    out.preferences.promoted_seen = promoted.map(|(_, seen)| seen);
     let pending: Vec<_> = path
         .iter()
         .filter(|p| !p.owned && !(boots_locked && p.role == "boots"))
@@ -1537,11 +1729,33 @@ pub(crate) fn select(
     if out.preferences.pinned_item.is_none() {
         if let Some(last) = preferences.last_target {
             if let Some(index) = ranked.iter().position(|r| r.0.id == last) {
-                let keep = index > 0
-                    && ranked[index].2.blocked.is_none()
-                    && ranked[index].2.affordable
-                    && pending.contains(&last);
+                // Finishable right now and still planned, or within `TARGET_MARGIN` of the best:
+                // near-ties (Bloodthirster and Mortal Reminder in the Xayah game) keep the target
+                // the player has been shown; a clearly better target still takes over.
+                // A promoted answer is evidence-driven, not a near-tie: it takes over unless the old
+                // target can be finished right now.
+                let finishable = ranked[index].2.affordable && pending.contains(&last);
+                let promoted_first = out.preferences.promoted == Some(ranked[0].0.id);
+                let close =
+                    !promoted_first && ranked[0].0.total - ranked[index].0.total < TARGET_MARGIN;
+                let keep = index > 0 && ranked[index].2.blocked.is_none() && (finishable || close);
                 if keep {
+                    let chosen = ranked.remove(index);
+                    ranked.insert(0, chosen);
+                }
+            }
+        }
+        // Otherwise a near-tie goes to the answer the kill feed calls for: with Infinity Edge
+        // just bought, Mortal Reminder edged the promoted Mercurial Scimitar by 0.04 in the Xayah
+        // game and the target flipped until the next death.
+        let kept_last = preferences.last_target.is_some()
+            && ranked.first().map(|r| r.0.id) == preferences.last_target;
+        if let Some(promoted) = out.preferences.promoted.filter(|_| !kept_last) {
+            if let Some(index) = ranked.iter().position(|r| r.0.id == promoted) {
+                if index > 0
+                    && ranked[index].2.blocked.is_none()
+                    && ranked[0].0.total - ranked[index].0.total < TARGET_MARGIN
+                {
                     let chosen = ranked.remove(index);
                     ranked.insert(0, chosen);
                 }
@@ -1587,6 +1801,15 @@ pub(crate) fn select(
                     ),
                     Evidence::Inventory,
                 )
+            } else if let Some(why) = out
+                .preferences
+                .promoted
+                .filter(|id| *id == score.id)
+                .and_then(|id| path.iter().find(|p| p.id == id && !p.owned))
+                .and_then(|p| p.why.clone())
+            {
+                // The promoted answer says why it jumped ahead: who has been killing you.
+                (f.kind, why, Evidence::KillFeed)
             } else if f.score > 0.35 && score.situation > 0.0 {
                 (f.kind, f.reason.clone(), f.evidence)
             } else if target.role == "boots" {

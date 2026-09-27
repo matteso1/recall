@@ -231,3 +231,29 @@ changes 4 to 6 (Zhonya's at 13:51, boots when affordable at 15:13, Zhonya's agai
 first the target at 13:51 instead of never; 0 invalid recommendations before and after. Tests are in
 `core/tests/threat_awareness.rs`; the replay tool now rebuilds the whole kill feed on every line of
 a recorded game.
+
+## Update 2026-09-26: blame the real threat, answer how it kills you, keep the target steady
+
+A Xayah game (28/6/16, 38 minutes) showed three gaps in the kill-feed promotion. Orianna mid went 7/0
+by 16:54 and 19/8 by the end and took part in all six of Xayah's deaths, but the engine blamed whoever
+landed the kill ("BT: Rengar (2/13) killed you", "BT: Miss Fortune (2/13) killed you"), always promoted
+Bloodthirster's generic shield, and from 23:40 to 28:00 traded the target between Bloodthirster and
+Mortal Reminder six times as the death evidence faded and renewed.
+
+- **Blame.** The enemy named is the one with the most kill-feed evidence times strength (equipment,
+  levels, kill lead), so a far-behind enemy finishing a teamfight is not named over the fed one who
+  assisted. Kill-feed dive also counts in proportion to strength.
+- **Typed answers.** Resistance against the blamed enemy's damage type is promoted at a need of 1.0
+  (the kill feed confirms it) and may come from the champion's candidate pool, taking the place of the
+  weakest flexible path item; a buffer (stasis, spell shield, shield) still needs 1.5 and must be on the
+  path. The resistance answer goes first unless the buffer's need is a full point higher.
+- **Steadiness.** A promoted answer stays three minutes after it last met its bar, even when another
+  enemy lands the next kill; it keeps its place on the path. The target shown last poll stays unless a
+  challenger is 0.75 higher (a promotion or a finishable item still takes over), and near-ties go to
+  the promoted answer.
+
+Replays of the recorded games (target changes / path reorders / tag flips): Xayah 19/16/2 -> 14/9/2,
+every kill-feed reason now names Orianna (was Rengar in 46 polls, Miss Fortune in 31) and Mercurial
+Scimitar is the target at 18:36 ("Orianna (9/1) helped kill you; its magic resist cuts that damage");
+Lux 6/3/1 -> 4/2/1 with Zhonya's still first at 13:51; the Xayah remake unchanged. Tests:
+`core/tests/hunter_blame.rs` (all three fail on the previous engine).

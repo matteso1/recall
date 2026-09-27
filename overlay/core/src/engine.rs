@@ -101,6 +101,9 @@ pub struct PlannerPreferences {
     /// there until the evidence clearly fades.
     #[serde(default)]
     pub promoted: Option<u32>,
+    /// Game second at which the promoted answer last met its bar (see `PROMOTE_HOLD_SECONDS`).
+    #[serde(default)]
+    pub promoted_seen: Option<u32>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq)]
