@@ -71,6 +71,9 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   recorded games (`games/*.jsonl` through `replay`), never on one game.
   `tools/priors/backtest.py` evaluates the full planner on player- and match-disjoint timelines;
   see `tools/priors/README.md` for the persistent Python environment and before/after command.
+  `PlannerPreferences.last_chain` stores the conditional model's sequence before display
+  reordering. Never use `last_path` as conditional-model memory: it caused identical-poll flips.
+  The measured fix is in `docs/notes/planner-stability.md`.
   Richer data candidates and verified coverage are in `docs/notes/data-source-audit.md`.
   The ~1.2% opponent coverage describes held-out cases after exclusions; raw recent-patch coverage
   is 14.14%. The downloaded ten-player snapshot source is older and has reconstruction concerns;

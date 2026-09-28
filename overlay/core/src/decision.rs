@@ -1694,7 +1694,7 @@ fn prior_chain(
     mode: BuildPreference,
     compatible: &dyn Fn(u32, &[u32]) -> bool,
     comp: nextprior::Comp,
-    last_path: &[u32],
+    last_chain: &[u32],
 ) -> Option<Vec<(u32, f64)>> {
     let cat = inp.catalog;
     let mut legendaries = owned_legendaries.to_vec();
@@ -1715,13 +1715,14 @@ fn prior_chain(
         let Some(top) = scored.iter().map(|s| s.2).max_by(f64::total_cmp) else {
             break;
         };
-        // Among near-ties, the item the previous plan listed first keeps its place.
+        // Among near-ties, the previous model sequence keeps its order. The displayed
+        // path can be reordered by defense or affordability and is not model memory.
         let Some(&(id, p, _)) = scored
             .iter()
             .filter(|s| s.2 >= top - V3_TIE_MARGIN)
             .min_by_key(|s| {
                 (
-                    last_path
+                    last_chain
                         .iter()
                         .position(|x| *x == s.0)
                         .unwrap_or(usize::MAX),
@@ -1803,11 +1804,15 @@ pub(crate) fn select(
                 preferences.mode,
                 &compatible,
                 nextprior::Comp::of(inp.traits, &enemy_names(inp)),
-                &preferences.last_path,
+                &preferences.last_chain,
             )
         })
         .filter(|chain| !chain.is_empty() || owned_legendaries.len() >= V3_LEGENDARIES);
     let v3 = v3_chain.is_some();
+    out.preferences.last_chain = v3_chain
+        .as_ref()
+        .map(|chain| chain.iter().map(|(id, _)| *id).collect())
+        .unwrap_or_default();
     // An older provider response may omit the immediate learned target. Add that
     // target without also introducing every later chain item as a new detour.
     if let Some(&(id, probability)) = v3_chain.as_ref().and_then(|chain| chain.first()) {

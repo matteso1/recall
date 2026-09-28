@@ -276,6 +276,7 @@ def compare_reports(before, after):
         for numerator, denominator in [('target_hits', 'decisions'), ('path_hits', 'legendary_decisions'),
                                        ('path_top3_hits', 'legendary_decisions'), ('boots_hits', 'boots_decisions'),
                                        ('flips', 'transitions'), ('repeat_flips', 'frames'),
+                                       ('repeat_path_flips', 'frames'),
                                        ('invalid_frames', 'frames'), ('missing_target_candidates', 'frames')]:
             if not metrics.get(denominator) or not prior.get(denominator):
                 continue

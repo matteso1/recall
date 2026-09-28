@@ -86,6 +86,8 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
     let mut groups: BTreeMap<String, Counts> = BTreeMap::new();
     let mut violation_counts: Counts = BTreeMap::new();
     let mut examples = Vec::new();
+    let mut repeat_examples = Vec::new();
+    let mut repeat_target_examples = 0;
     let mut invalid = 0;
     let mut total_frames = 0;
     let mut game_count = 0;
@@ -127,10 +129,24 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
                 live: Some(snap),
             };
             let plan = engine::plan_with_preferences(&input, &preferences);
-            preferences = plan.preferences.clone();
             let target = plan.next.as_ref().map(|n| nextprior::normalize(n.id));
-            let repeat = engine::plan_with_preferences(&input, &preferences);
+            let repeat = engine::plan_with_preferences(&input, &plan.preferences);
             let repeat_target = repeat.next.as_ref().map(|n| nextprior::normalize(n.id));
+            if (target != repeat_target && repeat_target_examples < 20)
+                || (plan.preferences.last_path != repeat.preferences.last_path
+                    && repeat_examples.len() < 20)
+            {
+                repeat_target_examples += usize::from(target != repeat_target);
+                repeat_examples.push(json!({
+                    "session": game.session, "champion": game.champion, "role": game.role,
+                    "time": snap.game_time, "gold": me.gold,
+                    "inventory": me.player.items.iter().map(|i| (i.id, i.count)).collect::<Vec<_>>(),
+                    "target": target, "repeat_target": repeat_target,
+                    "before": preferences, "after": plan.preferences, "repeat": repeat.preferences,
+                    "scores": plan.score_trace, "repeat_scores": repeat.score_trace
+                }));
+            }
+            preferences = plan.preferences.clone();
             let checked = assessment::validate_plan(&plan, &cat, Some(snap));
             let is_invalid = !checked.violations.is_empty();
             invalid += u64::from(is_invalid);
@@ -275,7 +291,8 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
     Ok(
         json!({"schema": 1,"fingerprint":manifest["fingerprint"], "split":split,
         "games":game_count,"frames":total_frames,"invalid_frames":invalid,"groups":groups,
-        "violation_counts":violation_counts,"violation_examples":examples}),
+        "violation_counts":violation_counts,"violation_examples":examples,
+        "repeat_examples":repeat_examples}),
     )
 }
 

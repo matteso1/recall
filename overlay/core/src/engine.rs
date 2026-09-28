@@ -95,6 +95,10 @@ pub struct PlannerPreferences {
     /// score moves by a clear margin, so the panel does not reshuffle as levels and gold tick.
     #[serde(default)]
     pub last_path: Vec<u32>,
+    /// Previous conditional-model sequence, before display ordering and buy-now promotion.
+    /// Feeding the displayed path back into the model changes its conditioning on identical polls.
+    #[serde(default)]
+    pub last_chain: Vec<u32>,
     #[serde(default)]
     pub last_tags: Vec<(u32, String)>,
     /// A defensive answer moved ahead of the core because an enemy has been killing you; kept

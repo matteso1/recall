@@ -63,3 +63,13 @@
 - Added a reproducible aggregate-only audit and corrected the scope of the earlier 1.2% coverage
   statement: raw recent-patch opponent-frame coverage is 14.14% before evaluation exclusions.
   Findings and next data requirements: `data-source-audit.md`. Production models/app unchanged.
+
+## 2026-09-28 — Planner stability
+
+- Separated conditional-model sequence memory from the reordered display path. A small failing
+  regression reproduces the previous feedback loop; no weights were changed.
+- Same-input comparisons over 181,106 observations remove all 18 repeated-state target changes
+  and 378 path changes, with zero invalid recommendations before or after. Purchase agreement
+  remains effectively unchanged. Full denominators and limits: `planner-stability.md`.
+- 310 core tests with evaluation enabled, 39 runtime tests, Clippy and Windows type-check pass.
+  Recorded-game replay is legal but sparse legacy captures can miss hidden-boot transitions.

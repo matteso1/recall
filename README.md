@@ -139,7 +139,9 @@ Nothing in the test suites contacts League or the network.
 The [full planner backtest](tools/priors/README.md#full-planner-evaluation) compares changes on
 held-out Master+ timelines: purchase agreement, target stability and shop legality. Its local
 data and generated cases stay outside Git. The [engine review](docs/notes/engine-review.md)
-records measurement limits and the remaining heuristic terms.
+records measurement limits and the remaining heuristic terms. The
+[stability follow-up](docs/notes/planner-stability.md) removes identical-observation target and
+path changes across the 181,106-frame validation/test comparison.
 
 Offline replay checks every recorded state of a captured game for legality:
 

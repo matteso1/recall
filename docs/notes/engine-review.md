@@ -110,8 +110,8 @@ why these recordings alone cannot decide model quality.
 - Extract component purchase opportunity labels; compare a calibrated role/time/owned-item detour
   model with the current gate, including false positives among players who never buy the answer.
 - Add regularized role-specific answer effects and ablate legacy healer/tank composition tags.
-- Investigate the identical-state repeat flips reported by the full planner; retain recorded
-  poll-cadence evaluation alongside the corpus.
+- Identical-state flips are fixed by separating model memory from display order; see the
+  [follow-up comparison](planner-stability.md). Retain recorded poll-cadence evaluation.
 - Replace remaining provider dependencies for runes, spells and skills with independently sourced
   match data; verify source terms before making distribution or commercial claims.
 - Add an end-to-end raw-data rebuild entry point and shop-patch compatibility guard. The persistent
