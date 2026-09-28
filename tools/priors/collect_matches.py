@@ -37,6 +37,10 @@ class ApiError(RuntimeError):
         self.status = status
 
 
+class RejectedPair(ValueError):
+    """A downloaded timeline fails the corpus contract; other seeds can proceed."""
+
+
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         # The credential is only for the explicitly selected Riot API host.
@@ -230,7 +234,18 @@ def collect_pair(client, root, match_id, patches):
         return {"status": "excluded", "patch": patch}
     cached = timeline_path.exists()
     timeline = read_cached(timeline_path) if cached else client.get(endpoint + "/timeline")
-    summary = validate_pair(match, timeline, match_id)
+    try:
+        summary = validate_pair(match, timeline, match_id)
+    except ValueError as error:
+        if cached:
+            # Changed validation or local corruption needs inspection, not silent skipping.
+            raise
+        write_json(folder / "rejected-timeline.json", timeline)
+        write_json(folder / "rejected.json", {
+            "schema": 1, "patch": patch, "reason": str(error),
+            "rejected_at": datetime.now(timezone.utc).isoformat(),
+        })
+        raise RejectedPair(str(error)) from None
     if not cached:
         write_json(timeline_path, timeline)
     manifest = {
@@ -241,6 +256,18 @@ def collect_pair(client, root, match_id, patches):
     }
     write_json(folder / "complete.json", manifest)
     return {"status": "cached" if cached else "complete", **summary}
+
+
+def collect_batch(client, root, seeds, patches):
+    for match_id in seeds:
+        try:
+            yield collect_pair(client, root, match_id, patches)
+        except RejectedPair as error:
+            yield {"status": "rejected", "reason": str(error)}
+        except ApiError as error:
+            if error.status != 404:
+                raise
+            yield {"status": "unavailable"}
 
 
 def main():
@@ -261,13 +288,7 @@ def main():
         parser.error("Seed file contains an invalid match ID")
     root = private_output(args.output) / args.region
     counts = Counter()
-    for index, match_id in enumerate(seeds[:args.limit], 1):
-        try:
-            result = collect_pair(client, root, match_id, set(args.patches))
-        except ApiError as error:
-            if error.status != 404:
-                raise
-            result = {"status": "unavailable"}
+    for index, result in enumerate(collect_batch(client, root, seeds[:args.limit], set(args.patches)), 1):
         counts[result["status"]] += 1
         print(f"Examined {index}/{min(len(seeds), args.limit)}: {dict(counts)}", flush=True)
     print("Raw responses and validation manifests saved outside the model pack.")

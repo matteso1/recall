@@ -163,8 +163,11 @@ Collection examines a bounded number of seeds, filters queue 420 and explicit in
 patches before fetching timelines, and spaces requests by at least 1.25 seconds. It honors
 `Retry-After`, bounds retries, stops on authentication failures and does not follow redirects.
 Run the same command after an interruption: valid cached match responses are reused; cached
-timelines are validated again. A 404 is counted as unavailable. Other failures preserve progress
-and stop instead of marking an incomplete pair complete.
+timelines are validated again. A 404 is counted as unavailable. A newly downloaded timeline
+that fails the corpus contract is counted as rejected; its raw response and reason are saved
+separately as `rejected-timeline.json` / `rejected.json`, and the batch continues. It never gets
+a `complete.json` marker. A later invocation retries it. Authentication/network failures,
+malformed cached JSON and cached timelines failing validation preserve progress and stop.
 
 Each private match folder holds `match.json`, `timeline.json` and a `complete.json` manifest with
 source hashes and coverage counts. Validation requires matching IDs and identities, ten unique

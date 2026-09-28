@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from urllib.error import HTTPError
 
-from collect_matches import ApiError, RiotClient, collect_pair, validate_pair, private_output
+from collect_matches import ApiError, RiotClient, collect_pair, collect_batch, validate_pair, private_output
 from audit_matches import audit
 
 
@@ -109,6 +109,43 @@ class CollectorContracts(unittest.TestCase):
             self.assertTrue((root / MATCH_ID / "match.json").exists())
             self.assertFalse((root / MATCH_ID / "timeline.json").exists())
             self.assertFalse((root / MATCH_ID / "complete.json").exists())
+
+    def test_bad_timeline_is_quarantined_without_stopping_the_batch(self):
+        match, timeline = responses()
+        del timeline["info"]["frames"][1]
+        good_match, good_timeline = responses()
+        for doc in (good_match, good_timeline):
+            doc["metadata"]["matchId"] = "EUW1_456"
+
+        class TwoMatches:
+            def get(self, path):
+                pair = (match, timeline) if MATCH_ID in path else (good_match, good_timeline)
+                return copy.deepcopy(pair[path.endswith("/timeline")])
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            results = list(collect_batch(TwoMatches(), root, [MATCH_ID, "EUW1_456"], {"16.19"}))
+            self.assertEqual([r["status"] for r in results], ["rejected", "complete"])
+            self.assertIn("gap", results[0]["reason"])
+            self.assertFalse((root / MATCH_ID / "complete.json").exists())
+            self.assertFalse((root / MATCH_ID / "timeline.json").exists())
+            self.assertEqual(json.loads((root / MATCH_ID / "rejected-timeline.json").read_text()), timeline)
+            self.assertTrue((root / "EUW1_456" / "complete.json").exists())
+
+    def test_batch_still_stops_on_authentication_or_cached_corruption(self):
+        class Unauthorized:
+            def get(self, path):
+                raise ApiError("Authentication failed", 403)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaises(ApiError):
+                list(collect_batch(Unauthorized(), root, [MATCH_ID], {"16.19"}))
+            folder = root / MATCH_ID
+            folder.mkdir()
+            (folder / "match.json").write_text("bad json")
+            with self.assertRaisesRegex(ValueError, "malformed"):
+                list(collect_batch(FakeClient(*responses()), root, [MATCH_ID], {"16.19"}))
 
     def test_missing_player_or_swapped_identity_is_rejected(self):
         for change in ["frame", "identity", "chronology", "truncated", "gap", "missing_start"]:
