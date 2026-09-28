@@ -192,12 +192,18 @@ training artifacts; it does **not** change the embedded production pack. Both co
 entirely offline once pairs, seed sidecars and patch catalogs have been collected:
 
 ```bash
+# Freeze pair membership, raw hashes and the seed cohort before a comparison.
+python3 tools/priors/riot_dataset.py \
+  --output ~/data/recall/evaluation/datasets/expanded-20260928.json
+
 # Strict diagnostic: all ten combat inventories must be known at an observation.
 ~/data/recall/.venv/bin/python tools/priors/backtest.py --source riot \
+  --dataset ~/data/recall/evaluation/datasets/expanded-20260928.json \
   --output ~/data/recall/evaluation/riot-validation.json
 
 # Broader diagnostic: own inventory exact, only reconstructable peers supplied.
 ~/data/recall/.venv/bin/python tools/priors/backtest.py --source riot \
+  --dataset ~/data/recall/evaluation/datasets/expanded-20260928.json \
   --inventory-policy known-peers \
   --output ~/data/recall/evaluation/riot-known-peers-validation.json
 
@@ -255,11 +261,19 @@ Additional report metrics:
   still passes the identical snapshot back to the planner and should not change its target/path.
 
 Caches default to `~/data/recall/evaluation/riot-cache` and `riot-known-peers-cache`. Raw response
-hashes are verified on every run. Code, catalogs, seed sidecars, policy, filters and artifact hashes
+hashes are verified on every run. Code, catalogs, the frozen dataset (or live seed sidecars), policy, filters and artifact hashes
 protect comparisons; different fingerprints are rejected. Private caches are rejected inside Git.
+Snapshot files are also private and refuse overwrite: reuse the same file for before/after runs,
+and choose a new name for an expanded corpus. Later collections, seed additions and refreshed
+`complete.json` timestamps cannot change a frozen comparison. Altered raw responses still fail
+their captured hash checks. Without `--dataset`, preparation uses the current completed store.
 Preparation streams matches instead of retaining all raw timelines in memory. `--prepare-only`
 creates the cache/audit; `--split test` is reserved for final checks after choosing changes on
 validation. The first pilot scored validation only.
 
 See the [reconstruction report](../../docs/notes/riot-reconstruction.md) and its aggregate JSON
 for measured coverage, exclusions and the deliberately limited conclusions.
+The [inventory follow-up](../../docs/notes/riot-inventory-recovery.md) recovers consumed skill
+elixirs only after a spent bonus point proves consumption, ignores ability evolution as a rank,
+and preserves observed support ward slots. The [expanded evaluation](../../docs/notes/riot-expanded-evaluation.md)
+records the larger frozen cohort and its remaining gaps.

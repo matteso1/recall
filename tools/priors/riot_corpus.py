@@ -9,6 +9,7 @@ import pandas as pd
 
 from collect_matches import private_output, validate_pair
 from riot_inventory import reconstruct, runes, skill_rank_up
+from riot_dataset import inputs as dataset_inputs
 
 ROLES = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY']
 ROLE = dict(zip(ROLES, ['Top', 'Jungle', 'Mid', 'ADC', 'Support']))
@@ -172,20 +173,15 @@ def prepare(args):
     cache.mkdir(parents=True, exist_ok=True)
     cache.chmod(0o700)
     root = args.data / 'riot'
-    seed_files = sorted((root / 'seeds').glob('current-*.json'))
-    if not seed_files:
-        raise ValueError('Missing private current ladder cohort sidecars')
-    seeds = {p['puuid']: player_split(p['puuid']) for path in seed_files
-             for p in json.loads(path.read_text())['cohort']}
-    manifests = sorted(root.glob('*/*/complete.json'))
-    sources = seed_files + manifests
+    cohort, records, sources = dataset_inputs(root, args.dataset)
+    seeds = {p['puuid']: player_split(p['puuid']) for p in cohort}
     code = [Path(__file__), ROOT/'tools/priors/riot_inventory.py', ROOT/'tools/priors/backtest.py',
-            ROOT/'tools/priors/collect_matches.py', ROOT/'tools/priors/export_next.py',
+            ROOT/'tools/priors/collect_matches.py', ROOT/'tools/priors/riot_dataset.py', ROOT/'tools/priors/export_next.py',
             ROOT/'tools/priors/export_answers.py', ROOT/'tools/priors/export_boots.py',
             ROOT/'data/pack/champion_traits.json']
     catalogs = {}
-    for path in manifests:
-        patch = json.loads(path.read_text())['patch']
+    for _, metadata in records:
+        patch = metadata['patch']
         folder = args.catalog.parent / (patch + '.1')
         catalogs[patch] = folder
     sources += [folder/name for folder in catalogs.values() for name in ('item.json','champion.json')]
@@ -195,8 +191,7 @@ def prepare(args):
                      files={str(p):file_hash(p) for p in sources+code})
     fingerprint = hashlib.sha256(json.dumps(signature,sort_keys=True).encode()).hexdigest()
     # Always verify the raw responses, even on a cache hit.
-    for path in manifests:
-        manifest = json.loads(path.read_text())
+    for path, manifest in records:
         for name in ('match.json','timeline.json'):
             raw = (path.parent/name).read_bytes()
             if hashlib.sha256(raw).hexdigest() != manifest['sha256'][name]:
@@ -219,8 +214,8 @@ def prepare(args):
     audit, split_counts, issues = Counter(), Counter(), Counter()
     training, train_players, train_decisions, evaluations = set(), [], [], []
     ownership = {answer:set() for answer in ANSWERS}
-    for session,path in enumerate(manifests,1):
-        patch, match, timeline = load_pair(path)
+    for session,(path,metadata) in enumerate(records,1):
+        patch, match, timeline = load_pair(path,metadata)
         reconstruction = reconstruct(match,timeline,catalog_data[patch])
         audit['matches'] += 1
         for p in reconstruction['players'].values():
@@ -239,7 +234,7 @@ def prepare(args):
         if split == 'excluded':
             continue
         if split != 'train':
-            evaluations.append((session, split, path))
+            evaluations.append((session, split, path, metadata))
             continue
         for p in players:
             hist = reconstruction['players'][p['participantId']]
@@ -289,10 +284,10 @@ def prepare(args):
     for split in ('validation','test'):
         report = Counter()
         with (cache/(split+'.jsonl')).open('w') as output:
-            for session,s,path in evaluations:
+            for session,s,path,metadata in evaluations:
                 if s != split:
                     continue
-                _, match, timeline = load_pair(path)
+                _, match, timeline = load_pair(path,metadata)
                 reconstruction = reconstruct(match, timeline, items)
                 for target in match['info']['participants']:
                     if seeds.get(target['puuid']) != split or target['teamPosition'] not in args.roles:
@@ -336,8 +331,8 @@ def prepare(args):
     return manifest
 
 
-def load_pair(path):
-    manifest = json.loads(path.read_text())
+def load_pair(path, manifest=None):
+    manifest = manifest if manifest is not None else json.loads(path.read_text())
     pair = {}
     for name in ('match.json', 'timeline.json'):
         raw = (path.parent/name).read_bytes()
@@ -345,5 +340,9 @@ def load_pair(path):
             raise ValueError('Raw pair changed after collection')
         pair[name] = json.loads(raw)
     match, timeline = pair['match.json'], pair['timeline.json']
-    validate_pair(match, timeline, match['metadata']['matchId'])
+    validate_pair(match, timeline, path.parent.name)
+    if match['info'].get('queueId') != 420:
+        raise ValueError('Evaluation pairs must be ranked solo matches')
+    if '.'.join(match['info']['gameVersion'].split('.')[:2]) != manifest['patch']:
+        raise ValueError('Frozen or collected patch disagrees with the response')
     return manifest['patch'], match, timeline

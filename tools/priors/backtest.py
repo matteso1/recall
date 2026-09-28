@@ -294,6 +294,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--data', type=Path, default=Path.home()/'data/recall')
     parser.add_argument('--source', choices=['kaggle', 'riot'], default='kaggle')
+    parser.add_argument('--dataset', type=Path, help='Frozen Riot pairs/cohort from riot_dataset.py')
     parser.add_argument('--inventory-policy', choices=['exact-team','known-peers'], default='exact-team',
                         help='Riot only: require all ten inventories, or exact self plus available peers')
     parser.add_argument('--timeline', type=Path)
@@ -308,8 +309,8 @@ def main():
     parser.add_argument('--limit-games', type=int, default=0, help='Debug only; 0 means all eligible games')
     parser.add_argument('--prepare-only', action='store_true')
     args = parser.parse_args()
-    if args.source != 'riot' and args.inventory_policy != 'exact-team':
-        parser.error('--inventory-policy applies to --source riot only')
+    if args.source != 'riot' and (args.inventory_policy != 'exact-team' or args.dataset):
+        parser.error('--inventory-policy and --dataset apply to --source riot only')
     riot_cache = 'riot-cache' if args.inventory_policy == 'exact-team' else 'riot-known-peers-cache'
     args.cache = args.cache or args.data/'evaluation'/(riot_cache if args.source == 'riot' else 'cache')
     args.patches = args.patches or (['16.19'] if args.source == 'riot' else ['16.17', '16.18'])
