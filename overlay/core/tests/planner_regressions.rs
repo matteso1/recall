@@ -28,6 +28,33 @@ fn aggregate() -> Aggregate {
     aggregate::decode(&raw, 498, Position::Adc, "global", "emerald_plus").unwrap()
 }
 
+#[test]
+fn learned_path_items_remain_buyable_when_the_aggregate_omits_them() {
+    let (cat, traits, mut agg) = (catalog(), pack::load_traits().unwrap(), aggregate());
+    // The provider's older core and late list omit Infinity Edge entirely. The learned
+    // path still selects it after these two legendary items.
+    for line in agg.late.iter_mut().chain(agg.core_lines.iter_mut()) {
+        line.ids.retain(|id| *id != 3031);
+    }
+    agg.core.ids.retain(|id| *id != 3031);
+    agg.core_alternatives.retain(|id| *id != 3031);
+    let snap = live(&[3032, 6675, 3006], 200.0);
+    let plan = engine::plan(&Inputs {
+        champion: "Xayah",
+        pack: None,
+        aggregate: Some(&agg),
+        traits: &traits,
+        catalog: &cat,
+        enemies: &[],
+        live: Some(&snap),
+    });
+    assert_eq!(
+        plan.next.as_ref().map(|item| item.id),
+        Some(3031),
+        "the next learned item must reach the purchase scorer"
+    );
+}
+
 fn live(ids: &[u32], gold: f64) -> LiveSnapshot {
     let mut raw: Value =
         serde_json::from_str(include_str!("../../../m0/tests/fixtures/allgamedata.json")).unwrap();

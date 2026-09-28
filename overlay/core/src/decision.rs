@@ -1716,7 +1716,7 @@ pub(crate) fn select(
         ..Default::default()
     };
     let Some(agg) = inp.aggregate else { return out };
-    let choices = pool(inp);
+    let mut choices = pool(inp);
     let mut path = commitment(inp, me);
     let full_committed = path.len() == 6;
     let committed_ids: Vec<_> = path.iter().map(|p| p.id).collect();
@@ -1766,6 +1766,13 @@ pub(crate) fn select(
         })
         .filter(|chain| !chain.is_empty() || owned_legendaries.len() >= V3_LEGENDARIES);
     let v3 = v3_chain.is_some();
+    // The learned path is itself a candidate source. An older provider response can
+    // omit its next item; that must not make the purchase scorer skip the learned choice.
+    if let Some(chain) = &v3_chain {
+        for &(id, probability) in chain {
+            choices.entry(id).or_insert(probability);
+        }
+    }
     let v3_core: Vec<u32>;
     let (core_ids, base) = match &v3_chain {
         Some(chain) => {
