@@ -52,3 +52,14 @@
   pass. Ten local recorded games replay 1,660 observations without invalid advice.
 - Installed through `overlay-update.sh` while League was in Lobby; the Windows release build and
   headless catalog probe passed, and one canonical Recall process relaunched.
+
+## 2026-09-27 — Richer Kaggle source audit
+
+- Installed the authenticated Kaggle client in the persistent research environment and screened
+  newer timeline/full-match sources. Confirmed the Recall GitHub repository is public.
+- Downloaded and profiled 2,108,090 ten-player snapshots (39,512 matches with frames) and a separate
+  1,087-match full-rune sample. Snapshot age, missing stable identities, coarse cadence and the
+  published collector's undo handling prevent treating it as a drop-in training upgrade.
+- Added a reproducible aggregate-only audit and corrected the scope of the earlier 1.2% coverage
+  statement: raw recent-patch opponent-frame coverage is 14.14% before evaluation exclusions.
+  Findings and next data requirements: `data-source-audit.md`. Production models/app unchanged.

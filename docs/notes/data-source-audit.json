@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "intervals": {
+    "source": "nathansmallcalder/league-of-legends-match-interval-snapshots-2026",
+    "files": {
+      "matches.csv": {
+        "bytes": 5093711,
+        "sha256": "9aa8a13c2f2080cf8135e6116952702e886f954fba1ee0dfb05a8f913a019256"
+      },
+      "processed_summoner_data.csv": {
+        "bytes": 19876114,
+        "sha256": "41982d0306f571a35ebe8b0b5a79722de4222534a838ccbd1f0bd10cb8367b38"
+      },
+      "intervals.csv": {
+        "bytes": 281615923,
+        "sha256": "4c6c2b5244da49f8ec63bae4e32ead8c4c1eb01dcdf10a03503d995aeb57c61a"
+      }
+    },
+    "participant_columns": [
+      "id",
+      "match_id",
+      "participant_id",
+      "team_id",
+      "champion",
+      "role",
+      "individual_position"
+    ],
+    "matches": [
+      {
+        "row_count": 39954,
+        "matches": 39954,
+        "first_game": "2024-02-21 18:52:39",
+        "last_game": "2026-01-30 13:12:01"
+      }
+    ],
+    "patches": [
+      {
+        "patch": "16.2",
+        "matches": 31603
+      },
+      {
+        "patch": "16.1",
+        "matches": 6639
+      },
+      {
+        "patch": "15.24",
+        "matches": 658
+      },
+      {
+        "patch": "15.23",
+        "matches": 143
+      },
+      {
+        "patch": "15.22",
+        "matches": 117
+      },
+      {
+        "patch": "15.21",
+        "matches": 85
+      },
+      {
+        "patch": "15.14",
+        "matches": 66
+      },
+      {
+        "patch": "15.15",
+        "matches": 51
+      },
+      {
+        "patch": "15.16",
+        "matches": 48
+      },
+      {
+        "patch": "15.19",
+        "matches": 48
+      },
+      {
+        "patch": "15.11",
+        "matches": 45
+      },
+      {
+        "patch": "15.20",
+        "matches": 39
+      },
+      {
+        "patch": "15.1",
+        "matches": 30
+      },
+      {
+        "patch": "15.10",
+        "matches": 28
+      },
+      {
+        "patch": "15.12",
+        "matches": 28
+      },
+      {
+        "patch": "15.13",
+        "matches": 28
+      },
+      {
+        "patch": "15.18",
+        "matches": 25
+      },
+      {
+        "patch": "15.3",
+        "matches": 25
+      },
+      {
+        "patch": "15.8",
+        "matches": 25
+      },
+      {
+        "patch": "15.17",
+        "matches": 23
+      },
+      {
+        "patch": "15.2",
+        "matches": 21
+      },
+      {
+        "patch": "15.5",
+        "matches": 20
+      },
+      {
+        "patch": "15.4",
+        "matches": 18
+      },
+      {
+        "patch": "14.15",
+        "matches": 16
+      },
+      {
+        "patch": "15.6",
+        "matches": 16
+      },
+      {
+        "patch": "14.20",
+        "matches": 15
+      },
+      {
+        "patch": "14.23",
+        "matches": 15
+      },
+      {
+        "patch": "15.7",
+        "matches": 13
+      },
+      {
+        "patch": "14.9",
+        "matches": 10
+      },
+      {
+        "patch": "14.10",
+        "matches": 8
+      },
+      {
+        "patch": "14.8",
+        "matches": 8
+      },
+      {
+        "patch": "14.4",
+        "matches": 5
+      },
+      {
+        "patch": "15.9",
+        "matches": 5
+      },
+      {
+        "patch": "14.16",
+        "matches": 4
+      },
+      {
+        "patch": "14.21",
+        "matches": 4
+      },
+      {
+        "patch": "14.22",
+        "matches": 4
+      },
+      {
+        "patch": "14.24",
+        "matches": 4
+      },
+      {
+        "patch": "14.3",
+        "matches": 4
+      },
+      {
+        "patch": "14.7",
+        "matches": 4
+      },
+      {
+        "patch": "14.11",
+        "matches": 2
+      },
+      {
+        "patch": "14.12",
+        "matches": 2
+      },
+      {
+        "patch": "14.19",
+        "matches": 2
+      }
+    ],
+    "queues": [
+      {
+        "queue_id": 420,
+        "game_mode": "CLASSIC",
+        "matches": 39954
+      }
+    ],
+    "participants": [
+      {
+        "row_count": 399540,
+        "unique_row_ids": 399540,
+        "matches": 39954
+      }
+    ],
+    "frames": [
+      {
+        "row_count": 2108090,
+        "matches": 39512,
+        "unique_keys": 2108090,
+        "checkpoints": 210809,
+        "first_minute": 5,
+        "last_minute": 60,
+        "min_level": 1,
+        "max_level": 20
+      }
+    ],
+    "join": [
+      {
+        "matched_frames": 2108090
+      }
+    ],
+    "checkpoint_teams": [
+      {
+        "blue": 5,
+        "red": 5,
+        "checkpoints": 210809
+      }
+    ],
+    "cadence": [
+      {
+        "gap_minutes": 5,
+        "transitions": 1712970
+      }
+    ],
+    "roles": [
+      {
+        "individual_position": "JUNGLE",
+        "participants": 80270
+      },
+      {
+        "individual_position": "BOTTOM",
+        "participants": 80140
+      },
+      {
+        "individual_position": "MIDDLE",
+        "participants": 79877
+      },
+      {
+        "individual_position": "TOP",
+        "participants": 79871
+      },
+      {
+        "individual_position": "UTILITY",
+        "participants": 79316
+      },
+      {
+        "individual_position": "Invalid",
+        "participants": 64
+      },
+      {
+        "individual_position": "TOPJUNGLE",
+        "participants": 1
+      },
+      {
+        "individual_position": null,
+        "participants": 1
+      }
+    ],
+    "master_plus": [
+      {
+        "matches_with_frames": 24705
+      }
+    ],
+    "missing_inventory": [
+      {
+        "frames": 0
+      }
+    ]
+  },
+  "current_raw_corpus": {
+    "files": {
+      "players.parquet": {
+        "bytes": 3272264,
+        "sha256": "0aedc18b97aa86b0614311d9e5637a80f347cee5ae07529816f4d590c0bfcb51"
+      },
+      "MatchTimelineTbl.csv": {
+        "bytes": 522712745,
+        "sha256": "b0ccfa55f15214b752c7e2231d1b44ef0ab18a9f14a873dad0293bae50569c9e"
+      }
+    },
+    "all": {
+      "observed_enemy_frame_pairs": 1297602,
+      "possible_enemy_frame_pairs": 12196710,
+      "match_minutes": 1662309,
+      "player_minutes": 2439342,
+      "coverage": 0.10638950995801327
+    },
+    "recent_16_17_16_18": {
+      "observed_enemy_frame_pairs": 1169168,
+      "possible_enemy_frame_pairs": 8270440,
+      "match_minutes": 979983,
+      "player_minutes": 1654088,
+      "coverage": 0.14136708566896078
+    }
+  }
+}

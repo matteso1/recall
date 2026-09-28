@@ -9,6 +9,11 @@ matches, patches 16.11-16.18, per-minute inventories), downloaded to `~/data/rec
 The derived decision table is kept at `~/data/recall/derived/dec.parquet` so steps 1-4 only need re-running for a
 new dataset.
 
+The [September data-source audit](../../docs/notes/data-source-audit.md) compares richer Kaggle
+candidates and records the limits of the current corpus. `audit_corpus.py --output <report.json>`
+reproduces coverage checks on the downloaded local tables without exporting identifiers. Kaggle
+downloads use the optional `requirements-kaggle.txt`; authentication stays outside the repository.
+
 Run from one work directory (the scripts read and write `rt.duckdb` there; `p01_build.py` expects `rt.duckdb` in the
 parent of its own folder and writes `data/dec.parquet`, so copy it and `lib.py` into a subfolder of the work dir):
 

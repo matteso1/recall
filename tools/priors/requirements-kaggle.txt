@@ -1,0 +1,2 @@
+# Optional authenticated data discovery/downloads; no credentials belong in Git.
+kaggle==2.2.4

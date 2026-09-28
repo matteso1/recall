@@ -71,6 +71,10 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   recorded games (`games/*.jsonl` through `replay`), never on one game.
   `tools/priors/backtest.py` evaluates the full planner on player- and match-disjoint timelines;
   see `tools/priors/README.md` for the persistent Python environment and before/after command.
+  Richer data candidates and verified coverage are in `docs/notes/data-source-audit.md`.
+  The ~1.2% opponent coverage describes held-out cases after exclusions; raw recent-patch coverage
+  is 14.14%. The downloaded ten-player snapshot source is older and has reconstruction concerns;
+  it has not replaced production training data.
 - The bot-lane role quest hides the player's boots from the Live Client item list (16.x). `core/src/roleslot.rs`
   keeps them owned (a vanish without a 70% sale refund or an undo) and follows their upgrade, as a virtual slot 9.
 - Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's

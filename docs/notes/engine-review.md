@@ -87,7 +87,11 @@ The models also contain policy choices: answer odds floors/references (anti-heal
 
 The evaluator trains on 58,211 player-games from 800 players. Its validation cases cover 3,924
 games; final-test cases cover 4,046. Only about 1.2% of possible enemy minute inventories are
-available, so most enemy builds and all kill feeds are absent. Rune pages and ability ranks are
+available **in those evaluation cases after the split exclusions**. This is not the raw corpus's
+coverage: before exclusions, exact-minute opponent coverage from minute 6 is 10.64% overall and
+14.14% on patches 16.17–16.18. Most enemy builds and all kill feeds are absent from the evaluator.
+The [data-source audit](data-source-audit.md) records denominators and richer candidates.
+Rune pages and ability ranks are
 also unavailable. Historical provider inputs are replaced by training-only purchase aggregates.
 These restrictions make it unsuitable for calibrating every live threat/defense term.
 
