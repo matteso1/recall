@@ -123,7 +123,7 @@ function renderSkill(plan, flash) {
   const skill = plan?.skill;
   if (!skill?.next) return '';
   const pulse = flash?.until_ms > Date.now();
-  return `<div class="skill ${skill.point_available ? 'available' : ''}${pulse ? ' flash' : ''}"><span>${skill.point_available ? 'Level up' : 'Next point'}</span><kbd>${esc(skill.next)}</kbd><span class="skill-priority">${esc(skill.label)}</span></div>`;
+  return `<div id="skill-hint" class="skill ${skill.point_available ? 'available' : ''}${pulse ? ' flash' : ''}"><span>${skill.point_available ? 'Level up' : 'Next point'}</span><kbd>${esc(skill.next)}</kbd><span class="skill-priority">${esc(skill.label)}</span></div>`;
 }
 function renderLoadout(plan) {
   const rune = plan.runes?.perks?.[0];
@@ -183,7 +183,12 @@ function renderMain(s) {
   // A same-champion fallback (no data for the assigned role) is said out loud, above the action.
   const fallback = plan.source_position
     ? `<p id="fallback-note" class="message warn" title="${esc(plan.note || '')}">${esc(plan.note || `No ${plan.position} data; using the ${plan.source_position} build as a starting point.`)}</p>` : '';
-  if (s.phase === 'ingame') return fallback + renderNext(plan) + renderWhy(plan) + renderPath(plan) + renderSkill(plan, s.flash);
+  if (s.phase === 'ingame') {
+    // An unspent skill point goes above everything else until it is spent; otherwise the next point sits at the bottom.
+    const skill = renderSkill(plan, s.flash);
+    const now = !!plan.skill?.point_available;
+    return fallback + (now ? skill : '') + renderNext(plan) + renderWhy(plan) + renderPath(plan) + (now ? '' : skill);
+  }
   const enemies = s.lobby?.enemies || [];
   return `${bans}<div class="pregame-heading">Your loadout is ready</div>${fallback}${plan.matchup ? `<p class="matchup">${esc(plan.matchup)}</p>` : ''}
     ${enemies.length ? `<div class="teams" aria-label="Enemy champions">${enemies.map(name => icon(champIcon(name), name)).join('')}</div>` : ''}

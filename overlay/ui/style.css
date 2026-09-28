@@ -66,7 +66,8 @@ p { text-wrap: pretty; }
 .path li { display: flex; }
 .skill { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; min-height: 23px; }
 .skill kbd { display: inline-grid; place-items: center; width: 23px; height: 23px; font: 650 13px/1 var(--body); border: 1px solid var(--line); background: #142032; color: var(--text); }
-.skill.available kbd { color: var(--gold); border-color: var(--gold); }
+.skill.available { color: var(--text); font-size: 14px; font-weight: 600; padding: 5px 8px; border: 1px solid var(--gold); background: rgba(200, 170, 110, 0.1); }
+.skill.available kbd { width: 32px; height: 32px; font-size: 19px; color: var(--gold); border-color: var(--gold); }
 .skill.flash kbd { animation: point-ready 600ms ease-out 3; }
 .skill-priority { margin-left: auto; font-size: 10px; }
 @keyframes point-ready { 50% { background-color: #544726; } }

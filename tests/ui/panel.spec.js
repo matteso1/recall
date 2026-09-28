@@ -390,3 +390,16 @@ test('champ select names bans for the intended champion until the ban is done', 
   await page.evaluate(next => window.emitState(next), { ...state, lobby: { ...lobby, bans: null } });
   await expect(page.locator('#ban-advice')).toHaveCount(0);
 });
+
+test('an unspent skill point is the first thing on the panel until it is spent', async ({ page }) => {
+  const state = fixture();
+  state.plan.skill = { ...state.plan.skill, next: 'Q', label: 'max E', point_available: true };
+  await openPanel(page, state);
+  const first = page.locator('#main-content > *').first();
+  await expect(first).toHaveAttribute('id', 'skill-hint');
+  await expect(first).toContainText('Level up');
+  await expect(first.locator('kbd')).toHaveText('Q');
+  await page.evaluate(next => window.emitState(next), { ...state, plan: { ...state.plan, skill: { ...state.plan.skill, point_available: false } } });
+  await expect(page.locator('#main-content > *').first()).not.toHaveAttribute('id', 'skill-hint');
+  await expect(page.locator('#skill-hint')).toContainText('Next point');
+});
