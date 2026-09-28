@@ -191,7 +191,7 @@ function renderMain(s) {
   }
   const enemies = s.lobby?.enemies || [];
   return `${bans}<div class="pregame-heading">Your loadout is ready</div>${fallback}${plan.matchup ? `<p class="matchup">${esc(plan.matchup)}</p>` : ''}
-    ${enemies.length ? `<div class="teams" aria-label="Enemy champions">${enemies.map(name => icon(champIcon(name), name)).join('')}</div>` : ''}
+    ${enemies.length ? `<div class="teams" aria-label="Enemy champions"><span class="hint">vs</span>${enemies.map(name => icon(champIcon(name), name)).join('')}</div>` : ''}
     ${renderPath(plan)}${renderLoadout(plan)}<div class="row import-row">${importButton('import_runes', 'Runes', s.imports?.runes)}${importButton('import_spells', 'Spells', s.imports?.spells)}${importButton('import_item_set', 'Item set', s.imports?.itemset)}</div>`;
 }
 
