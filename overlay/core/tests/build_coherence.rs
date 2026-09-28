@@ -81,28 +81,28 @@ fn ids(items: &[engine::PlanItem]) -> Vec<u32> {
 
 #[test]
 fn the_tail_and_boots_follow_the_core_lines_damage_family() {
+    // Engine v3 plans a fresh Katarina from what Master+ Katarina players buy (the AP line); op.gg's
+    // most-played line in this fixture is on-hit. Either way a build is one family: never the on-hit
+    // core with AP-only items behind it.
     let p = plan(None);
     let path = ids(&p.path);
-    for core in ON_HIT_CORE {
-        assert!(path.contains(&core), "{path:?}");
-    }
-    for ap in AP_ONLY {
-        assert!(
-            !path.contains(&ap),
-            "AP-only item {ap} behind an on-hit core: {path:?}"
-        );
-    }
+    let on_hit = ON_HIT_CORE.iter().any(|id| path.contains(id));
+    let ap = AP_ONLY.iter().any(|id| path.contains(id));
+    assert!(!(on_hit && ap), "mixed damage families: {path:?}");
+    assert!(on_hit || ap, "{path:?}");
     let boots = p
         .path
         .iter()
         .find(|i| i.role == "boots")
         .expect("boots on the path");
-    assert_ne!(boots.id, SORCERERS_SHOES, "{boots:?}");
-    assert!(
-        !p.options.iter().any(|o| AP_ONLY.contains(&o.id)),
-        "{:?}",
-        ids(&p.options)
-    );
+    if on_hit {
+        assert_ne!(boots.id, SORCERERS_SHOES, "{boots:?}");
+        assert!(
+            !p.options.iter().any(|o| AP_ONLY.contains(&o.id)),
+            "{:?}",
+            ids(&p.options)
+        );
+    }
 }
 
 #[test]

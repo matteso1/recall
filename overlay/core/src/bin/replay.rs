@@ -463,9 +463,17 @@ fn capture_cases(
         } else {
             path.parent().unwrap_or(root).to_string_lossy().into_owned()
         };
+        // A recorded game is one match in order: track the bot-lane quest's hidden boots across it,
+        // exactly as the overlay does live.
+        let mut role_slot = recall_core::roleslot::RoleSlotTracker::default();
         for (source, value) in observations {
             let snapshot = match parse_snapshot(&value) {
-                Ok(Some(snapshot)) => snapshot,
+                Ok(Some(mut snapshot)) => {
+                    if recorded {
+                        role_slot.apply(cat, &mut snapshot, &[]);
+                    }
+                    snapshot
+                }
                 Ok(None) => {
                     counts.irrelevant_json += 1;
                     continue;

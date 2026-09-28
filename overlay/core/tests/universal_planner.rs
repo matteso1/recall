@@ -103,8 +103,11 @@ fn real_champions_and_roles_receive_their_own_build_and_loadout() {
             a.runes.as_ref().map(|r| &r.perks),
             "{name}"
         );
+        // Engine v3 plans champions the Master+ corpus covers from that corpus; the rest keep op.gg's core.
+        let v3 = recall_core::nextprior::coverage(key, role).is_some();
         assert!(
-            a.core
+            v3 || a
+                .core
                 .ids
                 .iter()
                 .filter(|id| cat.item(**id).is_some_and(|i| i.is_finished(&cat)))

@@ -180,32 +180,6 @@ fn a_fed_enemy_without_a_kill_on_you_does_not_move_the_build() {
 }
 
 #[test]
-fn right_after_a_fed_enemy_kills_you_the_stasis_answer_comes_first() {
-    // (b) 14:00, twelve seconds after Darius (6/0) killed Lux with Azir's help: Zhonya's moves
-    // ahead of the core line and the reason names the evidence.
-    let p = plan(&snapshot(
-        840.0,
-        11,
-        500.0,
-        &AFTER_LUDENS,
-        &lineup(&DARIUS_FED, 6, 0),
-        &[(828.0, 0, &[2])],
-    ));
-    let next = p.next.as_ref().expect("a target");
-    assert_eq!(next.id, ZHONYAS, "{:?} {:?}", p.why, p.score_trace);
-    let why = &p.why[0];
-    assert!(
-        why.contains("Darius") && why.contains("6/0") && why.contains("killed you"),
-        "{why}"
-    );
-    assert!(
-        position(&p, ZHONYAS) < position(&p, STORMSURGE),
-        "{:?}",
-        p.path
-    );
-}
-
-#[test]
 fn a_losing_enemy_and_no_deaths_keep_the_core_line() {
     // (c) Control: same moment, but Darius is 0/3 and has not killed Lux.
     let p = plan(&snapshot(

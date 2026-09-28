@@ -5,6 +5,7 @@ use crate::engine::{
     self, Alternative, BuildPreference, Inputs, NextItem, PlanItem, PlannerPreferences,
 };
 use crate::live::{self, Me, Player};
+use crate::nextprior;
 use crate::pack::ControlKind;
 use crate::shop;
 use serde::{Deserialize, Serialize};
@@ -84,6 +85,22 @@ const PROMOTE_KEEP: f64 = 1.2;
 /// a tag appears at its threshold but disappears only this far below it.
 const TAIL_MARGIN: f64 = 0.25;
 const TAG_MARGIN: f64 = 0.15;
+/// Engine v3 (see nextprior.rs): the Master+ distribution already reacts to the enemy composition
+/// (measured lifts: healer, magic-heavy, tanky). The situational needs add what the composition alone
+/// cannot see, the live state (your measured armor/MR against their damage, their visible armor and
+/// healing items), as a nudge of `V3_NUDGE` nats per unit of need capped at `V3_NEED_CAP` (0.6 nats,
+/// under 2x the odds): enough to decide close choices, never to overturn a clear one (Guardian Angel
+/// second on Sivir: 0 of 469 Master+ players, a ~4.7-nat gap).
+const V3_NUDGE: f64 = 0.3;
+/// Chain hysteresis: a choice the previous plan made keeps its step unless another item scores this
+/// many nats more, so level and gold ticks do not reorder the path.
+const V3_TIE_MARGIN: f64 = 0.25;
+const V3_NEED_CAP: f64 = 2.0;
+/// Legendary slots the chain plans (one slot stays for boots).
+const V3_LEGENDARIES: usize = 5;
+/// In v3 the chain already carries the needs, so the target ranking's situational term is capped
+/// below the gap between the first two planned items.
+const V3_SITUATION_CAP: f64 = 1.0;
 /// The kill feed is the confirmation a composition-only detour lacks: a resistance answer against
 /// the damage type of the enemy it blames is promoted at this need instead of `DETOUR_NEED`.
 const TYPED_ANSWER_NEED: f64 = 1.0;
@@ -437,7 +454,7 @@ fn resist_reason(short: &str, n: &Needs, magic: bool) -> String {
 fn equipped_value(cat: &Catalog, p: &Player) -> f64 {
     p.items
         .iter()
-        .filter(|i| i.slot < 6)
+        .filter(|i| i.slot < 6 || i.slot == crate::roleslot::ROLE_SLOT)
         .filter_map(|i| {
             cat.item(i.id)
                 .map(|item| f64::from(item.total) * f64::from(i.count.min(6)))
@@ -448,7 +465,7 @@ fn equipped_value(cat: &Catalog, p: &Player) -> f64 {
 fn item_sum(cat: &Catalog, p: &Player, value: impl Fn(&Item) -> f64) -> f64 {
     p.items
         .iter()
-        .filter(|i| i.slot < 6)
+        .filter(|i| i.slot < 6 || i.slot == crate::roleslot::ROLE_SLOT)
         .filter_map(|i| {
             cat.item(i.id)
                 .map(|item| value(item) * f64::from(i.count.min(6)))
@@ -1432,7 +1449,7 @@ fn note_declined_detour(
 fn owned_ids(me: Option<&Me>) -> Vec<u32> {
     me.into_iter()
         .flat_map(|m| &m.player.items)
-        .filter(|i| i.slot < 6)
+        .filter(|i| i.slot < 6 || i.slot == crate::roleslot::ROLE_SLOT)
         .flat_map(|i| std::iter::repeat_n(i.id, i.count.min(6) as usize))
         .collect()
 }
@@ -1453,7 +1470,7 @@ fn commitment(inp: &Inputs, me: Option<&Me>) -> Vec<PlanItem> {
     items
         .into_iter()
         .filter(|i| {
-            i.slot < 6
+            (i.slot < 6 || i.slot == crate::roleslot::ROLE_SLOT)
                 && inp
                     .catalog
                     .item(i.id)
@@ -1554,6 +1571,80 @@ fn remaining(
 
 /// `pregame_spells` is the planned pair before a game (the live loadout wins once observed);
 /// `swiftplay` switches the shop rules (Doran's disabled, Guardian's sold).
+/// Enemy champions known now: the live scoreboard in game, the lobby before it.
+fn enemy_names(inp: &Inputs) -> Vec<String> {
+    let mut names: Vec<String> = inp.enemies.to_vec();
+    if let Some(live) = inp.live {
+        for p in &live.enemies {
+            if !names.iter().any(|n| normalize(n) == normalize(&p.champion)) {
+                names.push(p.champion.clone());
+            }
+        }
+    }
+    names
+}
+
+/// The v3 backbone: greedily chain the Master+ next-legendary distribution from the owned legendary
+/// items, each step scored as ln P(item | champion, role, owned + planned) plus a bounded need nudge,
+/// among items compatible with what is owned and planned. None when the corpus does not cover the
+/// champion and role. Returns (item, probability) per planned step.
+#[allow(clippy::too_many_arguments)]
+fn prior_chain(
+    inp: &Inputs,
+    key: u32,
+    role: crate::aggregate::Position,
+    owned_legendaries: &[u32],
+    owned: &[u32],
+    needs: &Needs,
+    archetype: Archetype,
+    mode: BuildPreference,
+    compatible: &dyn Fn(u32, &[u32]) -> bool,
+    comp: nextprior::Comp,
+    last_path: &[u32],
+) -> Option<Vec<(u32, f64)>> {
+    let cat = inp.catalog;
+    let mut legendaries = owned_legendaries.to_vec();
+    let mut planned = owned.to_vec();
+    let mut chain = Vec::new();
+    while legendaries.len() < V3_LEGENDARIES {
+        let dist = nextprior::distribution(key, role, &legendaries, Some(comp))?;
+        let scored: Vec<(u32, f64, f64)> = dist
+            .iter()
+            .take(12)
+            .filter(|(id, _)| !planned.contains(id) && compatible(*id, &planned))
+            .filter_map(|&(id, p)| {
+                let item = cat.item(id)?;
+                let need = fit(item, inp, needs, archetype, &planned, mode).score;
+                Some((id, p, p.ln() + V3_NUDGE * need.clamp(0.0, V3_NEED_CAP)))
+            })
+            .collect();
+        let Some(top) = scored.iter().map(|s| s.2).max_by(f64::total_cmp) else {
+            break;
+        };
+        // Among near-ties, the item the previous plan listed first keeps its place.
+        let Some(&(id, p, _)) = scored
+            .iter()
+            .filter(|s| s.2 >= top - V3_TIE_MARGIN)
+            .min_by_key(|s| {
+                (
+                    last_path
+                        .iter()
+                        .position(|x| *x == s.0)
+                        .unwrap_or(usize::MAX),
+                    if s.2 == top { 0 } else { 1 },
+                    s.0,
+                )
+            })
+        else {
+            break;
+        };
+        chain.push((id, p));
+        legendaries.push(id);
+        planned.push(id);
+    }
+    Some(chain)
+}
+
 pub(crate) fn select(
     inp: &Inputs,
     base: Vec<PlanItem>,
@@ -1595,7 +1686,68 @@ pub(crate) fn select(
         swiftplay,
     };
     let compatible = |id, owned: &[u32]| shop::compatible_with_context(cat, id, owned, &context);
-    let core_ids = &agg.core.ids;
+    // Engine v3: what Master+ players on this champion and role buy next with the items owned. Swiftplay
+    // (another shop) and champions the corpus does not cover keep the op.gg build below.
+    let owned_now: Vec<u32> = path.iter().map(|p| p.id).collect();
+    let owned_legendaries: Vec<u32> = owned_now
+        .iter()
+        .copied()
+        .filter(|&id| nextprior::is_legendary(cat, id))
+        .collect();
+    let v3_chain = (!swiftplay)
+        .then(|| cat.champion_key(inp.champion))
+        .flatten()
+        .and_then(|key| {
+            prior_chain(
+                inp,
+                key,
+                engine::actual_position(agg),
+                &owned_legendaries,
+                &owned_now,
+                &needs,
+                archetype,
+                preferences.mode,
+                &compatible,
+                nextprior::Comp::of(inp.traits, &enemy_names(inp)),
+                &preferences.last_path,
+            )
+        })
+        .filter(|chain| !chain.is_empty() || owned_legendaries.len() >= V3_LEGENDARIES);
+    let v3 = v3_chain.is_some();
+    let v3_core: Vec<u32>;
+    let (core_ids, base) = match &v3_chain {
+        Some(chain) => {
+            v3_core = owned_legendaries
+                .iter()
+                .copied()
+                .chain(chain.iter().map(|(id, _)| *id))
+                .collect();
+            let mut planned: Vec<PlanItem> = chain
+                .iter()
+                .filter_map(|&(id, p)| {
+                    let short = engine::short_of(inp.pack, &cat.item(id)?.name);
+                    engine::item_by_id(
+                        cat,
+                        inp.pack,
+                        id,
+                        Some(format!(
+                            "{short}: {:.0}% of Master+ {} players buy it at this point",
+                            100.0 * p,
+                            inp.champion
+                        )),
+                    )
+                })
+                .collect();
+            // Boots right after the first legendary: Master+ players finish tier-2 boots at a
+            // median minute 13, just after their first item.
+            let at = usize::from(owned_legendaries.is_empty()).min(planned.len());
+            for (k, boots) in base.iter().filter(|b| b.role == "boots").enumerate() {
+                planned.insert((at + k).min(planned.len()), boots.clone());
+            }
+            (&v3_core, planned)
+        }
+        None => (&agg.core.ids, base),
+    };
     let first = core_ids.first().copied();
     let alternative_first_owned = agg
         .core_alternatives
@@ -1763,17 +1915,23 @@ pub(crate) fn select(
                     .is_some_and(|i| i.is_finished(cat) && !i.effects.boots)
         })
         .collect();
-    let promoted = promote_answer(
-        &mut path,
-        &pool_answers,
-        core_ids,
-        inp,
-        &needs,
-        archetype,
-        &ids,
-        completed_core,
-        preferences,
-    );
+    // v3: the corpus shows no defensive reaction to deaths (Master+ defensive share -1.1 pp after
+    // recent deaths), so kill-feed promotions are off where the backbone applies.
+    let promoted = if v3 {
+        None
+    } else {
+        promote_answer(
+            &mut path,
+            &pool_answers,
+            core_ids,
+            inp,
+            &needs,
+            archetype,
+            &ids,
+            completed_core,
+            preferences,
+        )
+    };
     out.preferences.promoted = promoted.map(|(id, _)| id);
     out.preferences.promoted_seen = promoted.map(|(_, seen)| seen);
     let pending: Vec<_> = path
@@ -1853,7 +2011,11 @@ pub(crate) fn select(
         } else {
             0.0
         };
-        let situation = f.score * phase;
+        let situation = if v3 {
+            (f.score * phase).min(V3_SITUATION_CAP)
+        } else {
+            f.score * phase
+        };
         let delay = 0.4 * (f64::from(cost) / f64::from(baseline_cost) - 1.0).max(0.0)
             + if blocked { 4.0 } else { 0.0 };
         let total = prior + completion + situation - delay;
@@ -2001,6 +2163,14 @@ pub(crate) fn select(
             {
                 // The promoted answer says why it jumped ahead: who has been killing you.
                 (f.kind, why, Evidence::KillFeed)
+            } else if let Some(why) = (v3 && f.score < 1.0)
+                .then(|| path.iter().find(|p| p.id == target.id && !p.owned))
+                .flatten()
+                .and_then(|p| p.why.clone())
+                .filter(|why| why.contains("Master+"))
+            {
+                // v3: the data is the reason; a strong situational need still speaks for itself below.
+                (DecisionKind::Core, why, Evidence::Aggregate)
             } else if f.score > 0.35 && score.situation > 0.0 {
                 (f.kind, f.reason.clone(), f.evidence)
             } else if target.role == "boots" {

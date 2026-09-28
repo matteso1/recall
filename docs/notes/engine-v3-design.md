@@ -45,3 +45,23 @@ question a strong player actually answers.
 
 Riot policy: this uses only the Match-v5 API and the local client APIs, the same sources public build
 sites use. Recommendations stay recommendations.
+
+## Built (2026-09-27)
+
+Step 2 came first because a ready Master+ corpus existed (Kaggle, 107k player-games with per-minute inventories);
+the Match-v5 key is no longer needed to start. What shipped, and what the research showed on the way
+(`scratchpad` reports are not kept; the numbers are):
+
+- **Backbone:** P(next legendary | champion, role, owned legendary set), smoothed through build step and role,
+  times measured enemy-composition lifts (Mortal Reminder x2.1 against a healer, Lord Dominik's x1.4 against two
+  tanks, Maw x3.0 for top laners against magic-heavy teams), chained greedily with a small hysteresis. Held out by
+  player: next legendary top-1 50.6% / top-3 75.9%, against 47.4% / 71.2% for a static build order.
+- **Fight power stays a nudge.** A stat-level damage x effective-health model ranked Guardian Angel and Shieldbow
+  level with Navori for Sivir, while 0 of 67 Master+ Sivirs bought either second. The existing need terms add at
+  most 0.6 nats on top of the data.
+- **No defensive reaction to deaths** in 187k Master+ completions (-1.1 pp), so kill-feed promotions are off.
+- **Role-slot boots** (`roleslot.rs`): the bot-lane quest hides boots from the Live Client, which is what made the
+  Sivir panel show Greaves as unbought and let Guardian Angel through.
+
+Next: a Match-v5 pilot for per-patch freshness and exact kill/damage events; per-champion lifts where data allows;
+supports' quest items and Swiftplay still use op.gg.

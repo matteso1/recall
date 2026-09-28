@@ -56,6 +56,15 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   whenever the user may be gaming (see the shared-machine rule: no windows/League/screenshots then).
 - Never hold a `std::sync::Mutex` guard across an `.await` (clone out, then await).
 - The data pack (`data/pack/*.json`) is embedded with `include_str!`; a pack change needs a rebuild.
+- Engine v3 (since 2026-09-27): the next legendary items come from what Master+ players on the champion and role
+  bought next with the same owned legendaries (`core/src/nextprior.rs`, `data/pack/next_items.json`, built by
+  `tools/priors/`), scaled by measured enemy-composition lifts (healer, magic-heavy, tanky) and a small live-state
+  nudge from `decision.rs` needs (`V3_NUDGE`). op.gg still supplies runes, spells, skills, starters and boots, and the
+  whole build for Swiftplay and champions the corpus does not cover. Kill-feed "answer" promotions are off where v3
+  applies: Master+ players do not buy defensively after deaths (-1.1 pp). Judge engine changes on the corpus and the
+  recorded games (`games/*.jsonl` through `replay`), never on one game.
+- The bot-lane role quest hides the player's boots from the Live Client item list (16.x). `core/src/roleslot.rs`
+  keeps them owned (a vanish without a 70% sale refund or an undo) and follows their upgrade, as a virtual slot 9.
 - Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's
   champion API per champion + position at champ select (cached 6 h under `%LOCALAPPDATA%\Recall\aggregate`).
   A real response is the fixture `m0/tests/fixtures/opgg_xayah_adc.json`. The pack is rules + offline fallback.

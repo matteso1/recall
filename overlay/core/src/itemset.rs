@@ -433,10 +433,13 @@ mod tests {
             .unwrap()
             .iter()
             .any(|i| i["id"] == "1042" && i["count"] == 2));
-        assert!(blocks
+        // Against Soraka, Mortal Reminder is in the set: on the path, or among the alternatives (Master+
+        // Xayah players finish it in 23% of games against healers; engine v3 keeps their usual order).
+        assert!(blocks.iter().any(|b| b["items"]
+            .as_array()
+            .unwrap()
             .iter()
-            .any(|b| b["type"].as_str().unwrap().contains("Mortal")
-                && b["type"].as_str().unwrap().contains("anti-heal")));
+            .any(|i| i["id"] == "3033")));
         assert!(!blocks.iter().any(|b| b["type"] == "vs lockdown ult"));
         assert_eq!(set["associatedMaps"], json!([11]));
 

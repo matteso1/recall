@@ -689,6 +689,8 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
     let mut last_live_sequence = 0;
     let mut identity_failed = false;
     let mut swiftplay = crate::swiftplay::Runtime::default();
+    // Boots the bot-lane quest hides from the item list (see recall_core::roleslot).
+    let mut role_slot = recall_core::roleslot::RoleSlotTracker::default();
     let mut recorder =
         crate::recorder::GameRecorder::new(crate::settings::data_dir().join("games"));
 
@@ -714,6 +716,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
         }
         if session_tracker.observe_phase(phase, select_id.as_deref()) {
             reset_match(&app, &st, &mut imports, &mut import_jobs, &mut freshness);
+            role_slot = Default::default();
             last_level = None;
             last_summary.clear();
             identity_failed = false;
@@ -1011,7 +1014,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                 last_live_sequence = live_observation.sequence;
                 match live_observation.data.as_ref() {
                     Some(data) => {
-                        let snap = live::summarize(data);
+                        let mut snap = live::summarize(data);
                         let game_time = data["gameData"]["gameTime"]
                             .as_f64()
                             .filter(|time| time.is_finite() && *time > 0.0);
@@ -1028,9 +1031,13 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                                     &mut import_jobs,
                                     &mut freshness,
                                 );
+                                role_slot = Default::default();
                                 last_level = None;
                                 last_summary.clear();
                             }
+                        }
+                        if identity_known {
+                            role_slot.apply(&catalog, &mut snap, &[]);
                         }
                         freshness.observe(
                             game_time.unwrap_or(f64::NAN),

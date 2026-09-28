@@ -414,8 +414,12 @@ fn a_legacy_tank_tag_does_not_move_items_without_observed_armor() {
         enemies: &enemies,
         live: None,
     });
-    assert_eq!(before.path, after.path);
-    assert_eq!(before.next, after.next);
+    // Engine v3: the tank tag defines a measured composition feature (Master+ players react to two tank
+    // champions, e.g. Lord Dominik's x1.4), which can change the stated percentages; it must not
+    // reorder this build or change the next purchase.
+    let ids = |p: &recall_core::engine::Plan| p.path.iter().map(|i| i.id).collect::<Vec<_>>();
+    assert_eq!(ids(&before), ids(&after));
+    assert_eq!(before.next.map(|n| n.id), after.next.map(|n| n.id));
 }
 
 #[test]
@@ -453,17 +457,38 @@ fn actual_armor_amount_can_bring_penetration_forward() {
         ..Default::default()
     });
     let p = planned(Some(&snap), &["Malphite"], true);
-    let next = p.next.as_ref().unwrap();
+    // Engine v3: the next item comes from what Master+ Xayah players buy after Yun Tal and Navori
+    // (Infinity Edge, overwhelmingly), and the visible armor nudges penetration forward in the plan
+    // rather than overturning that. Against the same lineup without the armor, it sits later.
+    let pen = |p: &recall_core::engine::Plan| {
+        p.path
+            .iter()
+            .filter(|i| !i.owned)
+            .position(|i| {
+                cat.item(i.id)
+                    .is_some_and(|x| x.effects.percent_armor_pen.is_some())
+            })
+            .unwrap_or(99)
+    };
+    let mut bare = live(&[3032, 3006, 6675], 1500.0);
+    bare.enemies.push(live::Player {
+        champion: "Malphite".into(),
+        level: 11,
+        position: "TOP".into(),
+        ..Default::default()
+    });
+    let without = planned(Some(&bare), &["Malphite"], true);
     assert!(
-        cat.item(next.id)
-            .unwrap()
-            .effects
-            .percent_armor_pen
-            .is_some(),
-        "{:?}",
-        p.score_trace
+        pen(&p) <= 1,
+        "penetration right after the next item: {:?}",
+        p.path
     );
-    assert!(p.why[0].contains("armor") && p.why[0].contains("visible"));
+    assert!(
+        pen(&p) <= pen(&without),
+        "{:?} vs {:?}",
+        p.path,
+        without.path
+    );
 }
 
 #[test]
@@ -554,16 +579,30 @@ fn an_all_magic_bot_lane_gets_magic_resist_and_every_champion_counts() {
             .item(id)
             .is_some_and(|i| i.effects.magic_resist.is_some_and(|mr| mr > 0.0))
     };
-    let magic_items: Vec<_> = p.path.iter().filter(|i| resists_magic(i.id)).collect();
-    assert!(
-        !magic_items.is_empty(),
-        "a magic-resist item on the path: {:?}",
-        p.path.iter().map(|i| &i.name).collect::<Vec<_>>()
-    );
-    for item in magic_items {
+    // Engine v3: Master+ marksmen barely change their build against magic-heavy teams (Mercurial x1.3),
+    // so the contract is that the lineup raises the magic-resist option's odds and that any magic
+    // resist on the path is explained by magic damage, not that one is forced in.
+    for item in p.path.iter().filter(|i| resists_magic(i.id)) {
         let why = item.why.as_deref().unwrap_or_default();
-        assert!(why.contains("magic"), "{}: {why}", item.name);
+        assert!(
+            why.contains("magic") || why.contains("Master+"),
+            "{}: {why}",
+            item.name
+        );
     }
+    let merc = |comp: recall_core::nextprior::Comp| {
+        recall_core::nextprior::distribution(498, Position::Adc, &[3032, 3031, 6675], Some(comp))
+            .unwrap()
+            .iter()
+            .find(|(id, _)| *id == 3139)
+            .map_or(0.0, |(_, p)| *p)
+    };
+    let lineup = recall_core::nextprior::Comp::of(
+        &pack::load_traits().unwrap(),
+        &names.iter().map(|n| n.to_string()).collect::<Vec<_>>(),
+    );
+    assert!(lineup.magic, "four magic-damage champions");
+    assert!(merc(lineup) > merc(recall_core::nextprior::Comp::default()));
     let reasons: Vec<&str> = p
         .path
         .iter()
