@@ -106,3 +106,15 @@
 - The final recording pass covers 12 games / 1,819 observations with zero shop-legality violations.
   The last completed game's exact post-match record also confirms the known ten-CS quantization
   of the live recap; keep private game reviews and raw IDs outside Git.
+
+## 2026-09-28 — Verified Windows installation
+
+- The previously queued updater was no longer running when the next game ended; it had not
+  installed the changes. Reran the guarded update while League was in Lobby and monitored it
+  through completion. Both stop and relaunch occurred in Lobby.
+- Release code `44d355b` built successfully in 1m38s. The headless probe was refreshed from the
+  new executable; one process runs from the canonical `recall-win` release path. Artifact SHA-256:
+  `5eb55257c645b21dd3666b12da3eede191cd1cb323dba22018b8a819cf4d38b4`.
+- One additional completed-game replay covers 223 observations without invalid recommendations
+  or missing aggregates, bringing reviewed recordings to 13 / 2,042 observations. This is a
+  legality check, not a claim of optimal advice. Individual game reviews remain private.
