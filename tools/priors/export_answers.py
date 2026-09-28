@@ -11,7 +11,6 @@ import json, re, sys
 import duckdb, numpy as np, pandas as pd
 from scipy import sparse
 from sklearn.linear_model import LogisticRegression
-timeline, players, out = sys.argv[1:4]
 # answer -> (Summoner's Rift items on 16.19, odds ratio that maps to weight 0, odds ratio that maps to weight 1).
 # Cleanse items are rare (0.9% of player-games), so 1.5x against Sett is half a percentage point: below 1.5x is
 # noise, not a reason.
@@ -23,30 +22,50 @@ ANSWERS = {
 MIN_SEEN = 500
 ENEMY = ['e_TOP', 'e_JUNGLE', 'e_MIDDLE', 'e_BOTTOM', 'e_UTILITY']
 _norm = lambda s: re.sub(r'[^a-z0-9]', '', str(s).lower())
-con = duckdb.connect()
-con.execute(f"create table tl as select SummonerMatchFk smid, Item0, Item1, Item2, Item3, Item4, Item5, Item6 "
-            f"from read_csv_auto('{timeline}')")
-df = con.execute(f"select * from read_parquet('{players}') where dur >= 900").df()
-champs = sorted({_norm(x) for c in ENEMY for x in df[c]})
-ci = {c: i for i, c in enumerate(champs)}
-roles = sorted(df.role.unique())
-ri = {r: i for i, r in enumerate(roles)}
-rows, cols = [], []
-for k, r in enumerate(df[ENEMY + ['role']].itertuples(index=False)):
-    for name in r[:5]:
-        rows.append(k); cols.append(ci[_norm(name)])
-    rows.append(k); cols.append(len(champs) + ri[r[5]])
-X = sparse.csr_matrix((np.ones(len(rows)), (rows, cols)), shape=(len(df), len(champs) + len(roles)))
-seen = pd.concat([df[c].map(_norm) for c in ENEMY]).value_counts()
-doc = {'source': 'Kaggle ranked-timeline, Master+ 16.13-16.18; tools/priors/export_answers.py'}
-for answer, (items, floor, reference) in ANSWERS.items():
-    owned = ' or '.join(f'Item{i} in {items}' for i in range(7))
-    has = set(con.execute(f"select distinct smid from tl where {owned}").df().smid)
-    model = LogisticRegression(C=1.0, max_iter=3000).fit(X, df.smid.isin(has).values)
-    coef = pd.Series(model.coef_[0][:len(champs)], index=champs)
-    odds = np.exp(coef - coef.median())
-    doc[answer] = {c: {'odds': round(float(odds[c]), 3), 'seen': int(seen[c]),
-                       'weight': round(float(min(1.0, max(0.0, (odds[c] - floor) / (reference - floor)))), 3)}
-                   for c in champs if seen.get(c, 0) >= MIN_SEEN}
-    print(answer, len(doc[answer]), 'champions', file=sys.stderr)
-json.dump(doc, open(out, 'w'), separators=(',', ':'), sort_keys=True)
+
+
+def fit_answers(df, ownership, source):
+    champs = sorted({_norm(x) for c in ENEMY for x in df[c]})
+    ci = {c: i for i, c in enumerate(champs)}
+    roles = sorted(df.role.unique())
+    ri = {r: i for i, r in enumerate(roles)}
+    rows, cols = [], []
+    for k, r in enumerate(df[ENEMY + ['role']].itertuples(index=False)):
+        for name in r[:5]:
+            rows.append(k); cols.append(ci[_norm(name)])
+        rows.append(k); cols.append(len(champs) + ri[r[5]])
+    X = sparse.csr_matrix((np.ones(len(rows)), (rows, cols)), shape=(len(df), len(champs) + len(roles)))
+    seen = pd.concat([df[c].map(_norm) for c in ENEMY]).value_counts()
+    doc = {'source': source}
+    for answer, (items, floor, reference) in ANSWERS.items():
+        has = ownership[answer]
+        if df.smid.isin(has).nunique() < 2:
+            doc[answer] = {}
+            continue
+        model = LogisticRegression(C=1.0, max_iter=3000).fit(X, df.smid.isin(has).values)
+        coef = pd.Series(model.coef_[0][:len(champs)], index=champs)
+        odds = np.exp(coef - coef.median())
+        doc[answer] = {c: {'odds': round(float(odds[c]), 3), 'seen': int(seen[c]),
+                           'weight': round(float(min(1.0, max(0.0, (odds[c] - floor) / (reference - floor)))), 3)}
+                       for c in champs if seen.get(c, 0) >= MIN_SEEN}
+        print(answer, len(doc[answer]), 'champions', file=sys.stderr)
+    return doc
+
+
+def main():
+    timeline, players, out = sys.argv[1:4]
+    con = duckdb.connect()
+    df = con.execute("select * from read_parquet(?) where dur >= 900", [players]).df()
+    con.execute("create table tl as select SummonerMatchFk smid, Item0, Item1, Item2, Item3, Item4, Item5, Item6 from read_csv_auto(?)", [timeline])
+    ownership = {}
+    for answer, (items, _, _) in ANSWERS.items():
+        owned = " or ".join(f"Item{i} in {items}" for i in range(7))
+        ownership[answer] = set(con.execute(f"select distinct smid from tl where {owned}").df().smid)
+    con.close()
+    doc = fit_answers(df, ownership, "Kaggle ranked-timeline, Master+ 16.13-16.18; tools/priors/export_answers.py")
+    with open(out, "w") as stream:
+        json.dump(doc, stream, separators=(",", ":"), sort_keys=True)
+
+
+if __name__ == "__main__":
+    main()

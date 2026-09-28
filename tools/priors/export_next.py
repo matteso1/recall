@@ -19,7 +19,7 @@ d = pd.read_parquet(src)
 d = d[(d.type == 'leg') & d.kind.isin(['complete', 'complete_virtual', 'buy'])].copy()
 ROLE = {'TOP': 'Top', 'JUNGLE': 'Jungle', 'MIDDLE': 'Mid', 'BOTTOM': 'ADC', 'UTILITY': 'Support'}
 d['role'] = d.role.map(ROLE)
-d['pw'] = d.patch.map(lambda p: 1.0 if p in ('16.17', '16.18') else 0.5)
+d['pw'] = d.patch.map(lambda p: 1.0 if p in ('16.17', '16.18', '16.19') else 0.5)
 games = d.groupby(['sfk', 'champ', 'role']).smid.nunique().rename('ng')
 d = d.join(games, on=['sfk', 'champ', 'role'])
 d['w'] = d.pw * (10.0 / d.ng).clip(upper=1.0)
