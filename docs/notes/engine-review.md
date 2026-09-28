@@ -109,6 +109,8 @@ why these recordings alone cannot decide model quality.
 
 - Extract component purchase opportunity labels; compare a calibrated role/time/owned-item detour
   model with the current gate, including false positives among players who never buy the answer.
+  The [official timeline pilot](riot-collection.md) now preserves exact events and full-team frames;
+  validated inventory reconstruction is the next prerequisite, not a new heuristic timing gate.
 - Add regularized role-specific answer effects and ablate legacy healer/tank composition tags.
 - Identical-state flips are fixed by separating model memory from display order; see the
   [follow-up comparison](planner-stability.md). Retain recorded poll-cadence evaluation.

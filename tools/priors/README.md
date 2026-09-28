@@ -130,3 +130,54 @@ a rebuild. Swiftplay and incomplete enemy drafts retain their existing provider/
 The model uses draft damage tags, not inferred enemy builds or lane-specific damage. Its smoothing
 and sample floors remain policy parameters; further changes require validation against the full
 planner. The export does not prove that its most common boots are optimal in every matchup.
+
+## Complete Match-v5 collection
+
+`discover_matches.py`, `collect_matches.py` and `audit_matches.py` are stdlib-only. They collect
+paired official match/timeline responses for research outside the model pack. Full rune pages,
+summoner spells, skill-up events and ten-player minute frames are retained. Production models
+still use the earlier corpus until event reconstruction and a new held-out evaluation are verified.
+
+The local development credential is read from `~/.config/recall/riot-api-key` or `RIOT_API_KEY`.
+Keep the file private (mode 600). It is sent only in a header to the selected Riot API host,
+never included in a command-line key, raw response, model export or app build. Development keys
+expire; renewal replaces the local file and the same collection command resumes its cache.
+
+```bash
+python3 tools/priors/discover_matches.py --platform na1 --players 24 \
+  --matches-per-player 20 --days 7 --output ~/data/recall/riot/seeds/current-na1.txt
+python3 tools/priors/collect_matches.py \
+  --match-ids ~/data/recall/riot/seeds/current-na1.txt --region americas \
+  --patches 16.19 --limit 500
+python3 tools/priors/audit_matches.py --output ~/data/recall/riot/coverage.json
+```
+
+For EUW use `--platform euw1`, `--region europe` and a separate seed file. Use one collector per
+regional route; the development rate budget is shared on that route. Discovery samples the current
+Master, Grandmaster and Challenger ladders evenly, fetches ranked-solo histories within the time
+window, deduplicates and shuffles match IDs, and saves the cohort/rank provenance in a private
+sidecar. This verifies the **seed player's rank at collection**, not all ten participants' ranks
+or their historical ranks. A seed cohort is not a uniform sample of all ranked matches.
+
+Collection examines a bounded number of seeds, filters queue 420 and explicit internal gameVersion
+patches before fetching timelines, and spaces requests by at least 1.25 seconds. It honors
+`Retry-After`, bounds retries, stops on authentication failures and does not follow redirects.
+Run the same command after an interruption: valid cached match responses are reused; cached
+timelines are validated again. A 404 is counted as unavailable. Other failures preserve progress
+and stop instead of marking an incomplete pair complete.
+
+Each private match folder holds `match.json`, `timeline.json` and a `complete.json` manifest with
+source hashes and coverage counts. Validation requires matching IDs and identities, ten unique
+player slots, five players per team, all ten numeric player frames, chronological minute cadence,
+an initial frame and a final `GAME_END` event. Exact purchase/sale/undo event payloads are kept;
+the collector does not reconstruct inventories by guessing from final builds. Files are written
+atomically with private permissions, and the commands reject raw output inside Git checkouts.
+The audit checks hashes and emits counts only, so its report may be committed without raw IDs.
+
+Tests: `~/data/recall/.venv/bin/python -m unittest discover -s tools/priors -p 'test_*.py' -v`.
+Collector tests use fictional responses and injected HTTP; no network or real key is required.
+The [collection report](../../docs/notes/riot-collection.md) records the real pilot and limitations.
+
+API contracts: [Match-v5](https://developer.riotgames.com/apis#match-v5),
+[League-v4](https://developer.riotgames.com/apis#league-v4), and
+[Riot portal documentation](https://developer.riotgames.com/docs/portal).

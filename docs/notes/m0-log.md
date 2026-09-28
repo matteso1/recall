@@ -92,3 +92,17 @@
 - The reproduction failed before the fix. 311 core tests and 40 runtime tests pass, including
   sparse-observation restoration and recording a hidden upgrade without a visible bag change.
   Core/runtime Clippy and Windows release type-check pass.
+
+## 2026-09-28 — Official match/timeline pilot
+
+- Added bounded ladder discovery, paired Match-v5 collection and a reproducible aggregate audit.
+  Credentials, player identities and raw responses stay outside Git; source manifests carry hashes.
+- Collected 308 NA and 254 EUW patch-16.19 matches from a 48-player current Master+ seed cohort,
+  plus 100 historical patch-16.18 pairs. All pairs validated ten-player minute coverage; all 6,620
+  player records include complete runes, spells and roles. Rank is only verified for seed players.
+- Full offline resumption reused all 562 current-patch pairs without network requests; 130
+  out-of-patch exclusions were reproduced. 18 priors/collector tests pass. The fresh data is
+  preserved for reconstruction/evaluation and has not replaced production weights.
+- The final recording pass covers 12 games / 1,819 observations with zero shop-legality violations.
+  The last completed game's exact post-match record also confirms the known ten-CS quantization
+  of the live recap; keep private game reviews and raw IDs outside Git.

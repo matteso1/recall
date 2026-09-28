@@ -124,8 +124,8 @@ stdlib-only Python probes for the local APIs, still used for capturing fixtures.
 [docs/design.md](docs/design.md); decisions and findings are in [docs/notes](docs/notes).
 
 ```bash
-cargo test --manifest-path overlay/Cargo.toml --locked -p recall-core
-cargo clippy --manifest-path overlay/Cargo.toml --locked -p recall-core --all-targets -- -D warnings
+cargo test --manifest-path overlay/Cargo.toml --locked -p recall-core --features evaluation
+cargo clippy --manifest-path overlay/Cargo.toml --locked -p recall-core --all-targets --features evaluation -- -D warnings
 cargo test --manifest-path tests/runtime/Cargo.toml --target-dir overlay/target --locked
 cargo clippy --manifest-path tests/runtime/Cargo.toml --target-dir overlay/target --locked --all-targets -- -D warnings
 python3 -m unittest discover -s m0/tests -v
@@ -142,6 +142,8 @@ data and generated cases stay outside Git. The [engine review](docs/notes/engine
 records measurement limits and the remaining heuristic terms. The
 [stability follow-up](docs/notes/planner-stability.md) removes identical-observation target and
 path changes across the 181,106-frame validation/test comparison.
+The [Match-v5 collector](tools/priors/README.md#complete-match-v5-collection) gathers complete
+historical timelines privately; new data is evaluated before entering production models.
 
 Offline replay checks every recorded state of a captured game for legality:
 

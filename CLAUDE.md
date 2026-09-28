@@ -82,6 +82,11 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   The ~1.2% opponent coverage describes held-out cases after exclusions; raw recent-patch coverage
   is 14.14%. The downloaded ten-player snapshot source is older and has reconstruction concerns;
   it has not replaced production training data.
+  `tools/priors/{discover_matches,collect_matches,audit_matches}.py` collect and validate full
+  official Match-v5 pairs outside Git; instructions and limits are in the priors README and
+  `docs/notes/riot-collection.md`. The local development key is at
+  `~/.config/recall/riot-api-key`; never print, commit or embed it. The fresh pilot is not yet
+  production training data. Use stable player/match exclusions before fitting its models.
 - The bot-lane role quest hides the player's boots from the Live Client item list (16.x). `core/src/roleslot.rs`
   keeps them owned (a vanish without a 70% sale refund or an undo) and follows their upgrade, as a virtual slot 9.
 - Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's
@@ -107,8 +112,9 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   Capture real payloads with `watch_champselect.py --dump DIR` / `watch_live.py --dump DIR`
   and prefer them over hand-written fixtures.
 - Data files name items/champions by Data Dragon *name*; never hardcode numeric ids.
-- Riot compliance (design doc section 8): only the LCU and Live Client Data APIs, only
-  information visible to the player, recommend-don't-dictate wording. No memory reading,
-  no packet capture, no enemy cooldown/ult timers.
+- Live runtime (design doc section 8): only the LCU and Live Client Data APIs, only
+  information visible to the player, recommend-don't-dictate wording. Offline research may use
+  official historical Match-v5 data; filter trained inputs to what the runtime can observe.
+  No memory reading, no packet capture, no enemy cooldown/ult timers.
 - Never print the lockfile password; use `Lockfile.masked()`.
 - Item-set pushes modify the user's account item sets. `push_itemset.py --remove` undoes them.
