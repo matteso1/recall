@@ -45,6 +45,12 @@ changes, rebuild with the new patch data and re-check the item diff first.
 
 ## Full planner evaluation
 
+The product priority is standard Summoner's Rift (normal Draft Pick and ranked).
+Current offline corpora and benchmark scores describe ranked matches. Normal draft
+recordings supply separate checks of live loadouts, purchases and explanations; do not
+label ranked benchmark results as measured normal-draft performance. Swiftplay remains
+a separate compatibility/replay check and does not set standard-mode timing thresholds.
+
 Keep the environment and generated cases outside the repository (they contain corpus identifiers):
 
 ```bash

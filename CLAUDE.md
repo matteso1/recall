@@ -10,6 +10,15 @@ Smart build overlay for League of Legends. The design doc at `docs/design.md` is
 source of truth for scope; `docs/notes/` holds decisions and API findings. Update the
 status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
 
+## Owner priorities
+- Standard Summoner's Rift is the main quality target: normal Draft Pick for everyday play
+  and ranked as the longer-term goal. Keep the engine universal across champions/roles.
+- Swiftplay is secondary compatibility support. Its recordings can reveal shared bugs, but
+  do not tune standard-mode build timing or defenses around an isolated Swiftplay loss.
+- Keep mode evidence separate: current offline corpora/benchmarks are ranked, not normal
+  draft validation. Check real normal-draft loadouts and recommendations through recordings.
+  Focus on coherent core/boots progression, justified detours and dependable draft preparation.
+
 ## Environment
 - Repo lives in WSL (Ubuntu 24.04) on a Windows 11 machine. League, its local APIs and
   the Rust MSVC toolchain are on the Windows side; Python 3.12 and Node 24 are in WSL.
@@ -67,7 +76,7 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
 - Engine v3 (since 2026-09-27): the next legendary items come from what Master+ players on the champion and role
   bought next with the same owned legendaries (`core/src/nextprior.rs`, `data/pack/next_items.json`, built by
   `tools/priors/`), scaled by measured enemy-composition lifts (healer, magic-heavy, tanky) and a small live-state
-  nudge from `decision.rs` needs (`V3_NUDGE`). With a complete enemy draft, covered ranked champions now use
+  nudge from `decision.rs` needs (`V3_NUDGE`). With a complete enemy draft, covered standard-mode champions use
   `bootsprior.rs` / `data/pack/boots.json` for corpus boots conditioned on enemy magic count.
   op.gg still supplies runes, spells, skills, starters and fallback boots, and the
   whole build for Swiftplay and champions the corpus does not cover. Kill-feed "answer" promotions are off where v3

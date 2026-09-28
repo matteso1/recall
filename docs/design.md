@@ -27,6 +27,23 @@ self-reflection exercise, or a replacement for practicing mechanics.
 6. Keep explanations optional, state honest, local computations inexpensive,
    and gameplay decisions under the player's control.
 
+### 2.1 Mode priorities
+
+Standard Summoner's Rift is the primary quality target: normal Draft Pick for the
+owner's everyday play, with ranked as the longer-term goal. Prioritize coherent core
+builds and boots, well-timed defensive purchases, and reliable draft loadouts across
+champions and roles. Purchase imitation is evidence, not proof of winning more games.
+
+Swiftplay remains supported for preparation, inventory accounting and legal purchases,
+but its special pacing does not drive standard-mode scoring or timing rules. A Swiftplay
+recording can expose a shared implementation bug; changing standard-mode advice still
+requires evidence in the standard-mode planner and broader evaluation.
+
+High-ranked match data remains the reference for learned purchase patterns. Keep normal
+draft, ranked and Swiftplay evaluation results distinct. Ranked benchmark scores do not
+establish normal-draft performance; use normal draft recordings to check the actual
+loadouts, recommendations and explanations the owner sees.
+
 ## 3. Non-goals for this implementation
 
 No hidden-state inference, enemy cooldown/ult tracking, positioning/combat orders,
@@ -162,11 +179,11 @@ situational preference. No binary AD/AP majority vote, “two tank tags means mo
 slot,” or KDA-based Navori rule remains. Final-decision explanations cannot describe
 an earlier rule that another rule later undid.
 
-The observed most-picked core remains the baseline. Wilson intervals and a
-Newcombe difference interval describe uncertainty; neither identifies causation.
-The Xayah fixture's alternate-minus-popular interval includes zero. No automatic
-winner search across many lines, undocumented previous-patch shrinkage, or fitted
-model is claimed.
+The observed most-picked core remains the provider baseline. Wilson intervals and a
+Newcombe difference interval describe aggregate outcome uncertainty; neither identifies
+causation. The Xayah fixture's alternate-minus-popular interval includes zero. Learned
+purchase models described in section 6.4 do not turn those outcomes into causal item
+values or automatically identify a winning build.
 
 ### 6.3 Purchase planning and live input
 
@@ -188,11 +205,17 @@ available here.
 
 ### 6.4 Local models
 
-No model runtime is shipped. Current templates are faster, deterministic, and
-faithful to decision evidence. A future statistical model would need timestamped
-match decisions, legal candidate actions, calibration, patch/time-separated
-evaluation, and safeguards against selection/survivorship bias. An LLM may
-eventually phrase a verified reason, never select the item or invent gameplay facts.
+Offline training exports next-item purchase counts, composition-conditioned boots and
+defensive-answer weights into embedded JSON tables. Rust evaluates them deterministically;
+the app does not need Python or a model service. Covered standard-mode champions use the
+learned item sequence, while Swiftplay and missing coverage retain provider fallbacks.
+
+Candidate models need timestamped decisions, legal candidate actions, calibration,
+player/match separation, patch compatibility and safeguards against selection bias.
+Evaluate the assembled planner as well as the fitted model. The
+[defensive-model experiment](notes/answer-model-evaluation.md) improved ownership prediction
+but barely changed planner agreement, so its candidate weights were not promoted. An LLM
+may eventually phrase a verified reason, never select an item or invent gameplay facts.
 
 ## 7. Architecture and storage
 

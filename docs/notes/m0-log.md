@@ -157,3 +157,15 @@
 - 48 priors Python tests, 313 core tests with evaluation enabled and core Clippy pass. All work is
   offline; no installed executable change or overlay restart. Reports: `riot-inventory-recovery.md`,
   `riot-expanded-evaluation.md`, `answer-model-evaluation.md` and their aggregate JSON files.
+
+## 2026-09-28 — Standard-mode product priority
+
+- Owner clarified that normal Draft Pick should take priority over casual Swiftplay tuning.
+  Standard Summoner's Rift is the primary quality target, with ranked as the longer-term goal.
+  Swiftplay retains compatibility support and can still expose shared implementation bugs.
+- Verified the current separation: Swiftplay bypasses the learned item-sequence branch;
+  official corpus collection/evaluation requires ranked-solo queue 420. Keep normal draft,
+  ranked and Swiftplay evidence distinct rather than relabelling ranked scores as draft results.
+- Priorities: coherent core/boots progression, justified defensive detours, reliable draft
+  imports, and useful explanations. Updated the design and session guidance; corrected the
+  design's stale statement that no fitted models existed. Documentation only, no app restart.

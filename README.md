@@ -8,6 +8,9 @@ recommendation as the enemy team's items become visible.
 Recall reads only what the League client and the in-game Live Client Data API already
 show you. It never touches memory, packets, or anything hidden, and it never plays for you.
 
+Development focuses on standard Summoner's Rift: normal Draft Pick and ranked. Swiftplay
+remains supported, with its separate shop rules and build fallback.
+
 *Recall was called Featherstorm until September 2026.*
 
 <p>
