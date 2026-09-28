@@ -42,6 +42,25 @@ class CorpusContracts(unittest.TestCase):
         self.assertNotIn('championStats',result)
         self.assertEqual(set(result),{'name','champion','team','position','level','items','kills','deaths','assists','cs'})
 
+    def test_observed_support_ward_slot_keeps_six_bag_slots_available(self):
+        from riot_inventory import reconstruct
+        from test_riot_inventory import CATALOG, event, fixture, item
+        catalog = CATALOG | {'2055':item('Control Ward',75,stacks=2,consumed=True),
+                             '1203':dict(tags=['Lane'],gold=dict(total=0,purchasable=False))}
+        events = [event('ITEM_PURCHASED',t,itemId=100) for t in range(1,7)]
+        events += [event('ITEM_DESTROYED',65000,itemId=2055),
+                   event('ITEM_DESTROYED',65000,itemId=1203),
+                   event('ITEM_PURCHASED',65000,itemId=2055)]
+        match,timeline = fixture(events,[100]*6,role='UTILITY',role_item=2055)
+        inventory = reconstruct(match,timeline,catalog)['players'][1]
+        self.assertTrue(inventory['valid'],inventory['issues'])
+        self.assertEqual(inventory['frames'][-1].get('role_slot_wards'),2055)
+        result = snapshot_player(dict(participantId=1,teamId=100,teamPosition='UTILITY',championName='Fixture'),
+                                 dict(level=7,minionsKilled=10,jungleMinionsKilled=0),
+                                 inventory['frames'][-1],[0,0,0],catalog,{})
+        self.assertEqual(next(i['slot'] for i in result['items'] if i['id']==2055),9)
+        self.assertEqual(len([i for i in result['items'] if i['slot']<6]),6)
+
     def test_future_kills_skills_and_final_stats_do_not_fill_earlier_frames(self):
         players = [dict(participantId=p,teamId=100 if p<=5 else 200,teamPosition='TOP',
                         championName=f'Champion{p}',summoner1Id=4,summoner2Id=12,kills=99)
@@ -52,7 +71,8 @@ class CorpusContracts(unittest.TestCase):
                   for t in (360000,420000)]
         frames[1]['events'] = [dict(type='CHAMPION_KILL',timestamp=400000,killerId=6,victimId=1,
                                    assistingParticipantIds=[7]),
-                               dict(type='SKILL_LEVEL_UP',timestamp=400001,participantId=1,skillSlot=1)]
+                               dict(type='SKILL_LEVEL_UP',timestamp=400001,participantId=1,skillSlot=1),
+                               dict(type='SKILL_LEVEL_UP',timestamp=400002,participantId=1,skillSlot=1,levelUpType='EVOLVE')]
         history = {p:dict(issues=[],reconciled=True,purchases=[],
                           frames=[dict(items=[],role_slot_boots=None,exact=True) for _ in frames])
                    for p in range(1,11)}

@@ -8,7 +8,7 @@ import sys
 import pandas as pd
 
 from collect_matches import private_output, validate_pair
-from riot_inventory import reconstruct, runes
+from riot_inventory import reconstruct, runes, skill_rank_up
 
 ROLES = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY']
 ROLE = dict(zip(ROLES, ['Top', 'Jungle', 'Mid', 'ADC', 'Support']))
@@ -41,7 +41,7 @@ def snapshot_player(player, frame, inventory, kda, items, names):
     bag, slot = [], 0
     for item, count in sorted(Counter(inventory['items']).items()):
         data = items[str(item)]
-        bound = item == inventory.get('role_slot_boots')
+        bound = item in (inventory.get('role_slot_boots'), inventory.get('role_slot_wards'))
         stackable = data.get('stacks', 1) > 1
         for _ in range(1 if stackable else count):
             if slot >= 6 and not bound:
@@ -118,7 +118,7 @@ def make_cases(match, timeline, reconstruction, target, items, names, kinds, rep
                     deaths.append(dict(time=event['timestamp']/1000,
                                        killer=names.get(players[killer]['championName'], players[killer]['championName']) if opponent(killer) else '',
                                        assisters=[names.get(players[p]['championName'], players[p]['championName']) for p in assists if opponent(p)]))
-            elif event['type'] == 'SKILL_LEVEL_UP' and event['participantId'] == pid and event['skillSlot'] in (1,2,3,4):
+            elif skill_rank_up(event) and event['participantId'] == pid:
                 abilities['qwer'[event['skillSlot']-1]] += 1
         if timestamp < 360000:
             continue

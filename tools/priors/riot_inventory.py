@@ -23,6 +23,12 @@ def runes(player):
             for s in style.get("selections", [])}
 
 
+def skill_rank_up(event):
+    """Evolution improves an ability but does not spend an ordinary skill rank."""
+    return (event["type"] == "SKILL_LEVEL_UP" and event.get("levelUpType", "NORMAL") == "NORMAL"
+            and event.get("skillSlot") in (1, 2, 3, 4))
+
+
 class Ledger:
     def __init__(self, items, player):
         self.catalog = items
@@ -37,9 +43,14 @@ class Ledger:
         self.frames = []
         self.adc_quest = False
         self.mid_quest = False
+        self.ward_slot = False
         self.boot_time = 720000 if 8304 in self.runes else None
         self.biscuit_times = [120000, 240000, 360000] if 8345 in self.runes else []
         self.tonics = set()
+        self.level = 1
+        self.skill_points_spent = 0
+        self.nonstandard_skill_budget = player.get("championName") in {"Aphelios", "Viego"}
+        self.inferred_tonic_at = None
         if player.get("teamPosition") == "UTILITY" and "3865" in items:
             # The purchase is absent in these timelines. Its start time is unknown.
             self.uncertain[3865] = {0, 3865}
@@ -71,6 +82,11 @@ class Ledger:
 
     def public_event(self, event):
         timestamp = event["timestamp"]
+        if event.get("participantId") == self.player["participantId"]:
+            if event["type"] == "LEVEL_UP":
+                self.level = event["level"]
+            elif skill_rank_up(event):
+                self.skill_points_spent += 1
         if event["type"] == "CHAMPION_KILL" and self.boot_time is not None:
             pid = self.player["participantId"]
             if pid in [event.get("killerId"), *event.get("assistingParticipantIds", [])]:
@@ -85,6 +101,18 @@ class Ledger:
                     # Automatic consumption is not consistently an ITEM_DESTROYED event.
                     self.bag[2150] -= 1
                     self.uncertain[2150] = {0, 2150}
+
+    def observe_skill_budget(self, timestamp):
+        # Check after the whole timestamp batch so simultaneous level/skill events
+        # do not create a temporary point surplus because of their wire order.
+        if self.level < 9 and self.skill_points_spent > self.level:
+            self.nonstandard_skill_budget = True
+        if (not self.nonstandard_skill_budget and 2150 in self.uncertain
+                and self.skill_points_spent > self.level):
+            del self.uncertain[2150]
+            self.inferred_tonic_at = timestamp
+            self.inferences.append(dict(timestamp=timestamp, item=2150,
+                                        reason="spent_bonus_skill_point"))
 
     def remove(self, item, timestamp):
         if item in self.uncertain:
@@ -135,6 +163,10 @@ class Ledger:
                 if not self.tracked(item):
                     continue
             if kind == "ITEM_DESTROYED":
+                if item == 2150 and self.inferred_tonic_at == timestamp:
+                    # The same consumption can be explicitly logged after its proof.
+                    self.inferred_tonic_at = None
+                    continue
                 data = self.catalog.get(str(item), {})
                 if "Boots" in data.get("tags", []):
                     if destroyed[1202] and not buys:
@@ -150,6 +182,7 @@ class Ledger:
                         continue
                 # Support role slot refresh destroys a placeholder immediately before purchase.
                 if item == 2055 and buys[item] and (destroyed[1203] or destroyed[1208]):
+                    self.ward_slot = True
                     self.inferences.append(dict(timestamp=timestamp, item=item, reason="support_ward_slot_refresh"))
                     continue
                 if self.bag[item] <= 0 and buys[item] > consumed[item] and data.get("consumed"):
@@ -217,7 +250,8 @@ class Ledger:
         boots = next((i for i in self.inventory() if "Boots" in self.catalog[str(i)].get("tags", [])), None)
         return dict(timestamp=timestamp, items=self.inventory(), exact=not self.uncertain and not self.issues,
                     uncertain={str(k): sorted(v) for k, v in self.uncertain.items()},
-                    role_slot_boots=boots if self.adc_quest else None)
+                    role_slot_boots=boots if self.adc_quest else None,
+                    role_slot_wards=2055 if self.ward_slot and self.bag[2055] > 0 else None)
 
     def final_check(self, player, timestamp):
         expected = [player.get(f"item{i}", 0) for i in range(7)] + [player.get("roleBoundItem", 0)]
@@ -244,7 +278,7 @@ def reconstruct(match, timeline, items):
     participants = {p["participantId"]: p for p in match["info"]["participants"]}
     ledgers = {pid: Ledger(items, player) for pid, player in participants.items()}
     events = [e for f in timeline["info"]["frames"] for e in f.get("events", [])
-              if e["type"] in ITEM_EVENTS | {"CHAMPION_KILL", "LEVEL_UP"}]
+              if e["type"] in ITEM_EVENTS | {"CHAMPION_KILL", "LEVEL_UP", "SKILL_LEVEL_UP"}]
     events.sort(key=lambda e: e["timestamp"])
     batches = [(timestamp, list(group)) for timestamp, group in groupby(events, key=lambda e: e["timestamp"])]
     index = 0
@@ -260,6 +294,8 @@ def reconstruct(match, timeline, items):
                 else:
                     for ledger in ledgers.values():
                         ledger.public_event(event)
+            for ledger in ledgers.values():
+                ledger.observe_skill_budget(timestamp)
             for pid, player_batch in by_player.items():
                 if pid in ledgers:
                     ledgers[pid].apply(player_batch)

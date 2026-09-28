@@ -104,6 +104,34 @@ class InventoryContracts(unittest.TestCase):
         self.assertEqual(result["frames"][2]["items"], [2010])
         self.assertEqual(result["frames"][3]["items"], [])
 
+    def test_spent_bonus_point_resolves_elixir_only_from_that_moment(self):
+        events = [event("LEVEL_UP", 1, level=8)]
+        events += [event("SKILL_LEVEL_UP", t, skillSlot=slot, levelUpType="NORMAL")
+                   for t,slot in enumerate([1,2,1,3,1,4,1,3],2)]
+        events += [event("LEVEL_UP", 65000, level=9),
+                   event("SKILL_LEVEL_UP", 65001, skillSlot=1, levelUpType="NORMAL"),
+                   event("SKILL_LEVEL_UP", 65002, skillSlot=1, levelUpType="EVOLVE"),
+                   event("SKILL_LEVEL_UP", 90000, skillSlot=3, levelUpType="NORMAL")]
+        match, timeline = fixture(events, [], times=(0,60000,70000,120000))
+        match["info"]["participants"][0]["perks"] = {"styles":[{"selections":[{"perk":8313}]}]}
+        catalog = CATALOG | {"2150":item("Elixir of Skill",0,consumed=True)}
+        result = reconstruct(match,timeline,catalog)["players"][1]
+        self.assertFalse(result["frames"][2]["exact"], "A ninth point or evolution cannot prove consumption")
+        self.assertTrue(result["frames"][3]["exact"], "The tenth spent point proves the elixir is gone")
+        self.assertTrue(result["valid"],result["issues"])
+
+        # The item event can follow the skill event within the same timestamp.
+        timeline["info"]["frames"][-1]["events"].append(event("ITEM_DESTROYED",90000,itemId=2150))
+        result = reconstruct(match,timeline,catalog)["players"][1]
+        self.assertTrue(result["valid"],result["issues"])
+
+        match["info"]["participants"][0]["championName"] = "Aphelios"
+        result = reconstruct(match,timeline,catalog)["players"][1]
+        self.assertFalse(result["frames"][2]["exact"])
+        timeline["info"]["frames"][-1]["events"].pop()
+        result = reconstruct(match,timeline,catalog)["players"][1]
+        self.assertFalse(result["frames"][3]["exact"], "Nonstandard skill points are not evidence")
+
     def test_adc_quest_moves_boots_without_consuming_them(self):
         catalog = CATALOG | {"1001": item("Boots", 300, tags=["Boots"]),
                              "1202": dict(tags=["Lane"], gold=dict(total=0, purchasable=False))}
