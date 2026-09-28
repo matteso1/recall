@@ -22,12 +22,16 @@ struct Label {
     horizon: String,
     item: u32,
     kind: String,
+    #[serde(default)]
+    component: bool,
 }
 
 #[derive(Deserialize)]
 struct Frame {
     snapshot: LiveSnapshot,
     labels: Vec<Label>,
+    #[serde(default)]
+    shop_items: Vec<u32>,
 }
 
 #[derive(Deserialize)]
@@ -50,6 +54,40 @@ struct Previous {
 
 fn add(counts: &mut Counts, key: &str, value: bool) {
     *counts.entry(key.to_string()).or_default() += u64::from(value);
+}
+
+fn consecutive_minute(elapsed: f64) -> bool {
+    (59.0..=61.0).contains(&elapsed)
+}
+
+// These are observed shopping windows, including negative examples. They do not
+// assert that the player was in the shop, or had the same gold, at frame time.
+fn score_answer(
+    counts: &mut Counts,
+    name: &str,
+    predicted: Option<u32>,
+    purchased: &[u32],
+    is_answer: impl Fn(u32) -> bool,
+) {
+    if purchased.is_empty() {
+        return;
+    }
+    let observed = purchased.iter().copied().any(&is_answer);
+    let suggested = predicted.is_some_and(is_answer);
+    add(counts, &format!("{name}_windows"), true);
+    add(counts, &format!("{name}_positive"), observed);
+    add(counts, &format!("{name}_negative"), !observed);
+    add(counts, &format!("{name}_suggested"), suggested);
+    add(
+        counts,
+        &format!("{name}_true_positive"),
+        observed && suggested,
+    );
+    add(
+        counts,
+        &format!("{name}_false_positive"),
+        !observed && suggested,
+    );
 }
 
 fn read(path: &Path) -> Result<Value> {
@@ -130,6 +168,12 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
             };
             let plan = engine::plan_with_preferences(&input, &preferences);
             let target = plan.next.as_ref().map(|n| nextprior::normalize(n.id));
+            let buy_now = plan
+                .next
+                .as_ref()
+                .filter(|n| n.buy_now_affordable)
+                .and_then(|n| n.buy_now.as_ref())
+                .map(|item| nextprior::normalize(item.id));
             let repeat = engine::plan_with_preferences(&input, &plan.preferences);
             let repeat_target = repeat.next.as_ref().map(|n| nextprior::normalize(n.id));
             if (target != repeat_target && repeat_target_examples < 20)
@@ -171,7 +215,7 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
             let changed = previous.as_ref().is_some_and(|p| p.target != target);
             let consecutive = previous
                 .as_ref()
-                .is_some_and(|p| snap.game_time - p.time == 60.0);
+                .is_some_and(|p| consecutive_minute(snap.game_time - p.time));
             let mut frame_counts = Counts::new();
             add(&mut frame_counts, "frames", true);
             add(&mut frame_counts, "no_target", target.is_none());
@@ -192,6 +236,23 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
                 plan.preferences.last_path != repeat.preferences.last_path,
             );
             add(&mut frame_counts, "invalid_frames", is_invalid);
+            score_answer(
+                &mut frame_counts,
+                "antiheal",
+                buy_now,
+                &frame.shop_items,
+                |id| {
+                    cat.item(id)
+                        .is_some_and(|i| i.effects.grievous_wounds.is_some())
+                },
+            );
+            score_answer(
+                &mut frame_counts,
+                "cleanse",
+                buy_now,
+                &frame.shop_items,
+                |id| cat.item(id).is_some_and(|i| i.effects.cleanse.is_some()),
+            );
             let missing_candidates = plan.path.iter().any(|p| {
                 !p.owned
                     && nextprior::is_legendary(&cat, p.id)
@@ -254,7 +315,16 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
                         .or_default();
                     add(counts, "ambiguous_labels", ambiguous);
                     add(counts, "already_owned_labels", already_owned);
-                    if ambiguous || already_owned {
+                    if ambiguous || (already_owned && label.kind != "buy") {
+                        continue;
+                    }
+                    if label.kind == "buy" {
+                        add(counts, "buy_decisions", true);
+                        add(counts, "buy_hits", buy_now == Some(label.item));
+                        if label.component {
+                            add(counts, "component_decisions", true);
+                            add(counts, "component_hits", buy_now == Some(label.item));
+                        }
                         continue;
                     }
                     add(counts, "decisions", true);
@@ -313,5 +383,31 @@ fn main() {
             eprintln!("{e:#}");
             std::process::exit(2);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn minute_jitter_counts_but_missing_frames_do_not() {
+        assert!(consecutive_minute(60.034));
+        assert!(!consecutive_minute(120.034));
+        assert!(!consecutive_minute(0.5));
+    }
+
+    #[test]
+    fn answer_windows_include_negative_purchases_and_ignore_no_shop() {
+        let mut counts = Counts::new();
+        score_answer(&mut counts, "answer", Some(100), &[], |id| id == 100);
+        assert!(counts.is_empty());
+        score_answer(&mut counts, "answer", Some(100), &[200], |id| id == 100);
+        score_answer(&mut counts, "answer", None, &[100, 200], |id| id == 100);
+        assert_eq!(counts["answer_windows"], 2);
+        assert_eq!(counts["answer_positive"], 1);
+        assert_eq!(counts["answer_negative"], 1);
+        assert_eq!(counts["answer_false_positive"], 1);
+        assert_eq!(counts["answer_true_positive"], 0);
     }
 }

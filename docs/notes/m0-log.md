@@ -118,3 +118,20 @@
 - One additional completed-game replay covers 223 observations without invalid recommendations
   or missing aggregates, bringing reviewed recordings to 13 / 2,042 observations. This is a
   legality check, not a claim of optimal advice. Individual game reviews remain private.
+
+## 2026-09-28 — Reconstructed Riot evaluation foundation
+
+- Added causal purchase/sale/undo reconstruction, supported rune/quest transitions, explicit
+  uncertainties and final combat-inventory reconciliation. Audited all 662 pairs / 6,620 players:
+  6,544 final inventories compatible, 6,427 histories without unexplained events/mismatches.
+- Added `backtest.py --source riot`, isolated train/validation/test seed and match handling,
+  training-only prior exports, causal runes/skills/kill-feed inputs, chronological purchase labels,
+  component agreement and positive/negative answer shopping windows. No final-item backfill.
+- Strict full-team validation: 29 games / 106 observations. Optional `known-peers`: 33 / 566,
+  80.5% observed opponent coverage. Both report zero invalid recommendations and zero changes
+  on repeated identical states; repeated runs reproduce the same metrics. Test split unscored.
+- Sparse coverage (20 next-item champion-roles; no answer table reaches its sample floor) and only
+  one observed anti-heal/cleanse purchase each prohibit tuning conclusions. Full details and
+  aggregate results: `docs/notes/riot-reconstruction.md`.
+- 37 priors Python tests, 313 core tests and Clippy pass; legacy answer export reproduced exactly.
+  Offline tooling only: no production models changed and no overlay restart performed.

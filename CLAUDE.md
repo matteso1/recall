@@ -87,6 +87,11 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   `docs/notes/riot-collection.md`. The local development key is at
   `~/.config/recall/riot-api-key`; never print, commit or embed it. The fresh pilot is not yet
   production training data. Use stable player/match exclusions before fitting its models.
+  `backtest.py --source riot` now audits/reconstructs pairs and runs the planner with training-only
+  artifacts. Default `exact-team` requires all ten combat inventories; `--inventory-policy known-peers`
+  requires exact self and counts omitted peers. Never backfill history from final items. See
+  `docs/notes/riot-reconstruction.md`: the pilot is too sparse to promote new answer weights.
+  Validation targets and matches are held out; contextual non-seed peers can recur across splits.
 - The bot-lane role quest hides the player's boots from the Live Client item list (16.x). `core/src/roleslot.rs`
   keeps them owned (a vanish without a 70% sale refund or an undo) and follows their upgrade, as a virtual slot 9.
 - Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's

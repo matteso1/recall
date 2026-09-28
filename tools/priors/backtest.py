@@ -274,6 +274,12 @@ def compare_reports(before, after):
     for group, metrics in sorted(after['groups'].items()):
         prior = before['groups'].get(group, {})
         for numerator, denominator in [('target_hits', 'decisions'), ('path_hits', 'legendary_decisions'),
+                                       ('buy_hits', 'buy_decisions'),
+                                       ('component_hits', 'component_decisions'),
+                                       ('antiheal_true_positive', 'antiheal_positive'),
+                                       ('antiheal_false_positive', 'antiheal_negative'),
+                                       ('cleanse_true_positive', 'cleanse_positive'),
+                                       ('cleanse_false_positive', 'cleanse_negative'),
                                        ('path_top3_hits', 'legendary_decisions'), ('boots_hits', 'boots_decisions'),
                                        ('flips', 'transitions'), ('repeat_flips', 'frames'),
                                        ('repeat_path_flips', 'frames'),
@@ -287,20 +293,32 @@ def compare_reports(before, after):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--data', type=Path, default=Path.home()/'data/recall')
+    parser.add_argument('--source', choices=['kaggle', 'riot'], default='kaggle')
+    parser.add_argument('--inventory-policy', choices=['exact-team','known-peers'], default='exact-team',
+                        help='Riot only: require all ten inventories, or exact self plus available peers')
     parser.add_argument('--timeline', type=Path)
     parser.add_argument('--catalog', type=Path, default=Path('/mnt/c/Users/nilsm/AppData/Local/Recall/ddragon/16.19.1'))
-    parser.add_argument('--cache', type=Path, default=Path.home()/'data/recall/evaluation/cache')
+    parser.add_argument('--cache', type=Path)
     parser.add_argument('--output', type=Path, default=Path.home()/'data/recall/evaluation/latest.json')
     parser.add_argument('--baseline', type=Path)
     parser.add_argument('--baseline-bin', type=Path, help='Run an archived evaluator on the identical prepared cases')
     parser.add_argument('--split', choices=['validation','test'], default='validation')
-    parser.add_argument('--patches', nargs='+', default=['16.17','16.18'])
+    parser.add_argument('--patches', nargs='+')
     parser.add_argument('--roles', nargs='+', choices=ROLES, default=ROLES)
     parser.add_argument('--limit-games', type=int, default=0, help='Debug only; 0 means all eligible games')
     parser.add_argument('--prepare-only', action='store_true')
     args = parser.parse_args()
+    if args.source != 'riot' and args.inventory_policy != 'exact-team':
+        parser.error('--inventory-policy applies to --source riot only')
+    riot_cache = 'riot-cache' if args.inventory_policy == 'exact-team' else 'riot-known-peers-cache'
+    args.cache = args.cache or args.data/'evaluation'/(riot_cache if args.source == 'riot' else 'cache')
+    args.patches = args.patches or (['16.19'] if args.source == 'riot' else ['16.17', '16.18'])
     args.timeline = args.timeline or args.data/'kaggle/ranked-timeline/MatchTimelineTbl.csv'
-    manifest = prepare(args)
+    if args.source == 'riot':
+        from riot_corpus import prepare as prepare_riot
+        manifest = prepare_riot(args)
+    else:
+        manifest = prepare(args)
     if args.prepare_only:
         return
     execute([Path.home()/'.cargo/bin/cargo', 'build', '--manifest-path', ROOT/'overlay/Cargo.toml',

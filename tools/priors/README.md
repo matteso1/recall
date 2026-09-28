@@ -181,3 +181,82 @@ The [collection report](../../docs/notes/riot-collection.md) records the real pi
 API contracts: [Match-v5](https://developer.riotgames.com/apis#match-v5),
 [League-v4](https://developer.riotgames.com/apis#league-v4), and
 [Riot portal documentation](https://developer.riotgames.com/docs/portal).
+
+## Reconstructed Riot timeline evaluation
+
+The paired pilot now has a separate evaluator. It runs the actual Rust planner with isolated
+training artifacts; it does **not** change the embedded production pack. Both commands work
+entirely offline once pairs, seed sidecars and patch catalogs have been collected:
+
+```bash
+# Strict diagnostic: all ten combat inventories must be known at an observation.
+~/data/recall/.venv/bin/python tools/priors/backtest.py --source riot \
+  --output ~/data/recall/evaluation/riot-validation.json
+
+# Broader diagnostic: own inventory exact, only reconstructable peers supplied.
+~/data/recall/.venv/bin/python tools/priors/backtest.py --source riot \
+  --inventory-policy known-peers \
+  --output ~/data/recall/evaluation/riot-known-peers-validation.json
+
+# After an engine change, compare the same cases and training artifacts.
+~/data/recall/.venv/bin/python tools/priors/backtest.py --source riot \
+  --inventory-policy known-peers \
+  --baseline ~/data/recall/evaluation/riot-known-peers-validation.json \
+  --output ~/data/recall/evaluation/riot-known-peers-after.json
+```
+
+`riot_inventory.py` applies timestamped purchases, component destruction, sales and undo. Undo
+restores only the components actually consumed by that purchase; unrelated same-time consumption
+is not reversed. Supported free rune grants and role-quest boots transitions are explicit.
+Final `item0`–`item6` and equipment in `roleBoundItem` validate the result, never fill past frames.
+Final slots expose stack presence, not stack quantities. Trinkets and recall/quest tokens are
+outside the combat-inventory contract. Unknown item events and unexplained final differences
+exclude the entire affected history. Viego possession histories are currently unsupported.
+
+Some support grants/choices, tear transformations and automatic skill-elixir consumption lack
+reliable event times. Their possible identities remain explicit uncertainties. A compatible final
+inventory does not make those earlier frames exact. `exact-team` excludes any such observation;
+`known-peers` excludes it when it affects the active player, otherwise omits that peer's entire
+inventory/player observation. The five draft champion names remain available. Missing peers are
+counted, never represented as champions with empty inventories. Overfull bags are excluded.
+
+`riot_corpus.py` uses the saved `riot/seeds/current-*.json` cohort and a fixed PUUID hash. A held-out
+seed's presence excludes the **whole match** from training, even if that seed is only contextual.
+Mixed validation/test seed matches are excluded. Only the held-out seeds are evaluation targets.
+Non-seed contextual players can recur across partitions; this is target-player and match isolation,
+not a claim that every contextual participant is disjoint. Only seed ranks at collection are verified.
+
+The first protocol trains/evaluates patch 16.19; the additional 16.18 pairs are audited with their
+own catalog. All priors and provider-shaped aggregates train on eligible training histories.
+Champion/role and answer sample floors remain unchanged, so sparse tables use the existing fallback.
+No old-corpus learned artifact is injected into this evaluation: its pseudonymous player IDs have
+no PUUID bridge proving disjointness. Next-item exports weight 16.19 at 1.0, as for 16.17–16.18.
+
+Frames contain own observed gold, runes, spells, learned skill ranks and public kill/death/assist
+history. Enemy positions, exact gold, combat stats and damage totals are not exposed to the planner.
+Own combat stats are currently omitted as well. Physical inventory slots are compacted except for
+known ADC role-slot boots. A future purchase label must be strictly after the observation and no
+later than the following frame; undone purchases are excluded. Multiple completions of the same
+kind, or tied first purchases, are counted as ambiguous rather than scored individually.
+
+Additional report metrics:
+
+- `all/shop/buy_hits / buy_decisions`: affordable buy-now item matches the next retained purchase.
+  Includes consumables; duplicate component buys may match even when a copy is already owned.
+- `component_hits / component_decisions`: the same comparison for purchases classified as unfinished
+  equipment. Boots and legendary completion agreement keep their separate denominators.
+- `antiheal_*` and `cleanse_*`: observed following-minute shopping windows, with positive purchases,
+  negative purchases, suggested answers, true positives and false positives. A window is not proof
+  of shop access or equal gold at observation time. An unobserved purchase does not prove bad advice.
+- Minute stability accepts 59–61 second spacing for Riot timestamp jitter. Repeated-state stability
+  still passes the identical snapshot back to the planner and should not change its target/path.
+
+Caches default to `~/data/recall/evaluation/riot-cache` and `riot-known-peers-cache`. Raw response
+hashes are verified on every run. Code, catalogs, seed sidecars, policy, filters and artifact hashes
+protect comparisons; different fingerprints are rejected. Private caches are rejected inside Git.
+Preparation streams matches instead of retaining all raw timelines in memory. `--prepare-only`
+creates the cache/audit; `--split test` is reserved for final checks after choosing changes on
+validation. The first pilot scored validation only.
+
+See the [reconstruction report](../../docs/notes/riot-reconstruction.md) and its aggregate JSON
+for measured coverage, exclusions and the deliberately limited conclusions.
