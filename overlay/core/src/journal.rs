@@ -67,6 +67,14 @@ pub struct Recap {
     pub end_game_time: Option<f64>,
     pub decisions: Vec<DecisionRecord>,
     pub purchases: Vec<ObservedPurchase>,
+    /// Creep score at the first observation in 10:00-11:00 (the Live Client reports it in steps of 10).
+    #[serde(default)]
+    pub cs_at_10: Option<u32>,
+    /// Creep score at the last observation.
+    #[serde(default)]
+    pub cs: Option<u32>,
+    #[serde(default)]
+    pub cs_benchmark: Option<crate::csbench::CsBenchmark>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -134,6 +142,9 @@ impl Journal {
             return;
         }
         self.finish();
+        let cs_benchmark = role
+            .as_deref()
+            .and_then(|role| crate::csbench::lookup(&champion, role));
         self.active = Some(ActiveSession {
             recap: Recap {
                 session_id,
@@ -142,6 +153,7 @@ impl Journal {
                 patch: bounded(&patch, 32),
                 source: source.map(|source| bounded(&source, 256)),
                 engine_version: crate::engine::ENGINE_VERSION.into(),
+                cs_benchmark,
                 ..Default::default()
             },
             ..Default::default()
@@ -168,6 +180,10 @@ impl Journal {
             return false;
         }
         active.recap.end_game_time = Some(snapshot.game_time);
+        active.recap.cs = Some(me.player.cs);
+        if active.recap.cs_at_10.is_none() && (600.0..660.0).contains(&snapshot.game_time) {
+            active.recap.cs_at_10 = Some(me.player.cs);
+        }
         let mut inventory: BTreeMap<u32, InventoryEntry> = BTreeMap::new();
         for item in me
             .player
@@ -606,6 +622,26 @@ mod tests {
         fn drop(&mut self) {
             let _ = std::fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn creep_score_at_ten_minutes_and_the_end_with_its_benchmark() {
+        let mut journal = started();
+        let at = |time: f64, cs: u32| {
+            let mut s = snapshot(time, &[]);
+            s.me.as_mut().unwrap().player.cs = cs;
+            s
+        };
+        let plan = Plan::default();
+        for (time, cs) in [(590.0, 60), (602.0, 70), (640.0, 80), (1200.0, 150)] {
+            journal.observe(&at(time, cs), &plan);
+        }
+        let recap = journal.finish().unwrap();
+        assert_eq!((recap.cs_at_10, recap.cs), (Some(70), Some(150)));
+        assert_eq!(
+            recap.cs_benchmark.map(|b| b.label),
+            Some("Master+ Ahri Mid".into())
+        );
     }
 
     #[test]

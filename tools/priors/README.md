@@ -24,6 +24,9 @@ parent of its own folder and writes `data/dec.parquet`, so copy it and `lib.py` 
 6. `export_bans.py <players.parquet> <champion.json> <out.json>`: champ select ban suggestions per champion and
    role (`data/pack/bans.json`, read by `core/src/bans.rs`): enemy presence x (base win rate - win rate with that
    enemy in the game, shrunk 30 games toward the base). Champion-roles under 200 games use the role's table.
+7. `export_cs.py <MatchTimelineTbl.csv> <players.parquet> <champion.json> <out.json>`: median CS at 10 minutes and
+   CS per minute per champion and role (`data/pack/cs_bench.json`, read by `core/src/csbench.rs` for the post-game
+   recap). Master+ ADCs: 78 CS at 10, 8.0 per minute; Xayah 80 and 8.7.
 
 Re-run per patch: patches 16.17-16.18 count double (their shop equals 16.19's), 16.13-16.16 half. When the shop
 changes, rebuild with the new patch data and re-check the item diff first.

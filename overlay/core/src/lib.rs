@@ -17,6 +17,7 @@ pub mod bans;
 pub mod brand;
 pub mod champselect;
 pub mod coaching;
+pub mod csbench;
 pub mod ddragon;
 pub mod decision;
 pub mod engine;

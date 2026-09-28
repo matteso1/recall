@@ -126,6 +126,7 @@ select:disabled { opacity: .6; }
 .swiftplay-slot .swiftplay-message { margin-top: 4px; }
 #recap { border-top: 1px solid var(--line); padding-top: 10px; }
 #recap > .hint { padding-top: 5px; }
+.recap-cs { margin: 3px 0 0; font-size: 11px; color: var(--text); }
 .recap-list { list-style: none; }
 .recap-list > li { display: grid; gap: 6px; padding: 11px 0; border-bottom: 1px solid var(--line); }
 .recap-heading { display: flex; gap: 9px; }

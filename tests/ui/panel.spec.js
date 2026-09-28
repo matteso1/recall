@@ -278,7 +278,9 @@ test('post-game recap records feedback without grading the player', async ({ pag
   await page.evaluate(next => window.emitState(next), {
     ...state, phase: 'idle', plan: null, live: null, message: 'Ready for the next game',
     recap: { session_id: 'test-session', champion: 'Xayah', role: 'ADC', patch: '16.17', engine_version: '2.0',
-      source: 'op.gg', end_game_time: 1800, purchases: [], decisions: [{ id: 'decision-1', game_time: 740,
+      source: 'op.gg', end_game_time: 1800, purchases: [], cs_at_10: 70, cs: 210,
+      cs_benchmark: { label: 'Master+ Xayah ADC', games: 498, cs_at_10: 80, per_minute: 8.72 },
+      decisions: [{ id: 'decision-1', game_time: 740,
         target_id: 3031, target_name: 'Infinity Edge', buy_name: 'Infinity Edge', buy_id: 3031,
         buy_affordable: true, reason: 'IE: only 725g left with your components',
         lesson: 'Finish an affordable upgrade before starting a different item.', kind: 'completion',
@@ -286,6 +288,7 @@ test('post-game recap records feedback without grading the player', async ({ pag
   });
   await expect(page.locator('#recap')).toContainText('Last game');
   await expect(page.locator('#recap')).toContainText('Infinity Edge');
+  await expect(page.locator('#recap-cs')).toHaveText('70 CS at 10:00 (Master+ Xayah ADC: 80) · 7.0 CS/min (8.7)');
   await page.getByRole('button', { name: 'Useful', exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.calls.at(-1))).toEqual({ command: 'rate_decision', args: { decisionId: 'decision-1', feedback: 'useful' } });
   await expect(page.locator('#recap')).not.toContainText('win probability');

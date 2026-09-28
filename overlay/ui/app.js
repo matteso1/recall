@@ -238,11 +238,20 @@ function renderControls() {
   $('auto-target').disabled = !available || pending;
   $('preference-label').textContent = plan?.preferences?.pinned_item ? 'Pinned' : plan?.preferences?.mode === 'survival' ? 'Protection' : 'Auto';
 }
+// Farming against Master+ players of the same champion and role; the Live Client counts CS in steps of 10.
+function recapCs(recap) {
+  const bench = recap?.cs_benchmark;
+  const end = recap?.end_game_time;
+  if (!finite(recap?.cs) || !finite(end) || end < 300) return '';
+  const perMinute = recap.cs / (end / 60);
+  const atTen = finite(recap.cs_at_10) ? `${recap.cs_at_10} CS at 10:00${bench ? ` (${esc(bench.label)}: ${Math.round(bench.cs_at_10)})` : ''} · ` : '';
+  return `<p id="recap-cs" class="recap-cs">${atTen}${perMinute.toFixed(1)} CS/min${bench ? ` (${bench.per_minute.toFixed(1)})` : ''}</p>`;
+}
 function renderRecap(recap) {
   const show = !!recap?.decisions?.length && ['idle', 'noclient'].includes(state.phase);
   $('recap').hidden = !show;
   if (!show) return;
-  html('recap', `<h2>Last game · ${esc(recap.champion)}</h2><p class="hint">Your recent recommendations. Purchases are observations, not a performance grade.</p><ol class="recap-list">${recap.decisions.slice(-8).reverse().map(decision => `<li><div class="recap-heading"><time>${fmtTime(decision.game_time)}</time><strong>${esc(decision.buy_name || decision.target_name)}</strong></div><p>${esc(decision.reason)}</p><div class="feedback" aria-label="Was this recommendation useful?"><button data-feedback="useful" data-decision="${esc(decision.id)}" aria-pressed="${decision.feedback === 'useful'}">Useful</button><button data-feedback="not_useful" data-decision="${esc(decision.id)}" aria-pressed="${decision.feedback === 'not_useful'}">Not useful</button></div></li>`).join('')}</ol>`);
+  html('recap', `<h2>Last game · ${esc(recap.champion)}</h2>${recapCs(recap)}<p class="hint">Your recent recommendations. Purchases are observations, not a performance grade.</p><ol class="recap-list">${recap.decisions.slice(-8).reverse().map(decision => `<li><div class="recap-heading"><time>${fmtTime(decision.game_time)}</time><strong>${esc(decision.buy_name || decision.target_name)}</strong></div><p>${esc(decision.reason)}</p><div class="feedback" aria-label="Was this recommendation useful?"><button data-feedback="useful" data-decision="${esc(decision.id)}" aria-pressed="${decision.feedback === 'useful'}">Useful</button><button data-feedback="not_useful" data-decision="${esc(decision.id)}" aria-pressed="${decision.feedback === 'not_useful'}">Not useful</button></div></li>`).join('')}</ol>`);
 }
 
 function render(s) {
