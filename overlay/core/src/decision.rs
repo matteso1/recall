@@ -59,6 +59,10 @@ const ORDER_MARGIN: f64 = 0.15;
 /// pick-rate prior, and only boots a real share of players buy (5%) are considered.
 const BOOTS_FIT_WEIGHT: f64 = 3.0;
 const MIN_BOOTS_PICK: f64 = 0.05;
+/// Score the boots already on the path keep over a challenger: the defensive fit moves with every
+/// fight, and without a hold the Xayah game of 2026-09-28 switched between Berserker's and
+/// Gluttonous Greaves four times in three minutes.
+const BOOTS_HOLD: f64 = 0.5;
 /// Before a game (champion select planning) there are no measured stats; the first finished items
 /// land around this level, so base resistances and health are taken there.
 const PLANNING_LEVEL: u32 = 9;
@@ -720,7 +724,7 @@ fn choose_boots(
     archetype: Archetype,
     base: &PlanItem,
     planned: &[u32],
-    pref: BuildPreference,
+    preferences: &PlannerPreferences,
 ) -> PlanItem {
     let cat = inp.catalog;
     let mut best: Option<(f64, u32, String)> = None;
@@ -735,8 +739,13 @@ fn choose_boots(
         {
             continue;
         }
-        let f = fit(item, inp, n, archetype, planned, pref);
-        let score = 2.0 * line.pick_rate.max(0.0).sqrt() + BOOTS_FIT_WEIGHT * f.score;
+        let f = fit(item, inp, n, archetype, planned, preferences.mode);
+        let held = if preferences.last_path.contains(&id) {
+            BOOTS_HOLD
+        } else {
+            0.0
+        };
+        let score = 2.0 * line.pick_rate.max(0.0).sqrt() + BOOTS_FIT_WEIGHT * f.score + held;
         if best.as_ref().is_none_or(|(top, _, _)| score > *top) {
             best = Some((score, id, f.reason));
         }
@@ -1771,15 +1780,7 @@ pub(crate) fn select(
         }
         let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
         let item = if item.role == "boots" {
-            choose_boots(
-                inp,
-                agg,
-                &needs,
-                archetype,
-                item,
-                &planned,
-                preferences.mode,
-            )
+            choose_boots(inp, agg, &needs, archetype, item, &planned, preferences)
         } else {
             item.clone()
         };
