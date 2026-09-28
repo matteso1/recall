@@ -619,22 +619,30 @@ impl Needs {
                     n.healing_observed = true;
                 }
             }
-            if let Some(t) = t {
-                if t.healing {
-                    let in_lane = player
-                        .and_then(|p| crate::aggregate::Position::parse(&p.position))
-                        .is_some_and(|r| {
-                            Some(r) == own_role
-                                || (own_role == Some(crate::aggregate::Position::Adc)
-                                    && r == crate::aggregate::Position::Support)
-                        });
-                    let contribution = if in_lane { 0.8 } else { 0.55 };
-                    n.healing = (n.healing + contribution).min(1.0);
-                    if contribution > strongest_healing {
-                        strongest_healing = contribution;
-                        n.healing_name = name.clone();
-                    }
+            // How much Master+ players answer this champion with anti-heal (the healing trait only
+            // for champions the corpus lacks).
+            let heal_weight =
+                crate::antiheal::weight(&name).unwrap_or(if t.is_some_and(|t| t.healing) {
+                    1.0
+                } else {
+                    0.0
+                });
+            if heal_weight > 0.0 {
+                let in_lane = player
+                    .and_then(|p| crate::aggregate::Position::parse(&p.position))
+                    .is_some_and(|r| {
+                        Some(r) == own_role
+                            || (own_role == Some(crate::aggregate::Position::Adc)
+                                && r == crate::aggregate::Position::Support)
+                    });
+                let contribution = heal_weight * if in_lane { 0.8 } else { 0.55 };
+                n.healing = (n.healing + contribution).min(1.0);
+                if contribution > strongest_healing {
+                    strongest_healing = contribution;
+                    n.healing_name = name.clone();
                 }
+            }
+            if let Some(t) = t {
                 if t.assassin || t.burst {
                     n.dive = (n.dive + 0.25 * threat).min(1.0);
                 }

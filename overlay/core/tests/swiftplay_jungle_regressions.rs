@@ -137,9 +137,24 @@ fn after_the_companion_the_core_path_resumes() {
 #[test]
 fn a_detour_the_player_answered_with_another_purchase_is_not_offered_again() {
     // 11:00: Trinity Force, Steelcaps, Kindlegem and a Long Sword owned, 500 gold. Executioner's
-    // Calling is affordable (Long Sword + 450) and Sylas heals, so it is offered once.
-    let fixture = include_str!("../../../m0/tests/fixtures/swiftplay_wukong_jungle_1100.json");
+    // Calling is affordable (Long Sword + 450). The recorded enemy mid was Sylas, whom Master+ players
+    // barely answer with anti-heal (odds 1.6x), so nothing is offered for him; as Aatrox (3.3x) the
+    // detour is offered once.
+    let recorded = include_str!("../../../m0/tests/fixtures/swiftplay_wukong_jungle_1100.json");
     let owned = [1101, 3078, 3047, 3067, 1036, 3340];
+    let sylas = plan(
+        &snapshot(recorded, Some(500.0), Some(&owned)),
+        &PlannerPreferences::default(),
+    );
+    assert_ne!(
+        sylas.next.map(|n| n.id),
+        Some(3123),
+        "no anti-heal for Sylas alone"
+    );
+    let fixture = &recorded.replace(
+        "\"championName\": \"Sylas\"",
+        "\"championName\": \"Aatrox\"",
+    );
     let first = plan(
         &snapshot(fixture, Some(500.0), Some(&owned)),
         &PlannerPreferences::default(),

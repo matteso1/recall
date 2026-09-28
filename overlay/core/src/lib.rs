@@ -13,6 +13,7 @@
 //! * `brand`       - the product name on the account (rune pages, item sets) and its legacy form
 //! * `state`       - what the panel renders
 pub mod aggregate;
+pub mod antiheal;
 pub mod bans;
 pub mod brand;
 pub mod champselect;
