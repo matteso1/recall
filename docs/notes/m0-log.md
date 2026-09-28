@@ -37,3 +37,18 @@
   Dangling `Run` entry and leftover AppData folders removed. Backup of the Run key was not
   taken (the entries pointed at now-deleted executables). The account's "OP.GG Xayah" item
   set is untouched; `push_itemset.py --remove-title 'OP.GG Xayah'` removes it if wanted.
+
+## 2026-09-27 — Full planner evaluation and sparse-champion bans
+
+- Added one-command, player- and match-disjoint full-planner evaluation with training-only inputs,
+  before/after tables, stability diagnostics and shared replay legality checks. Python dependencies
+  now have a persistent, pinned environment. Raw cases stay outside Git.
+- Added corpus boot selection, repaired missing learned purchase candidates, and connected cached
+  champion matchup data to ban advice when the Master+ champion sample is too small (including Nilah).
+- Compared 7,970 held-out games / 181,106 observations: zero invalid recommendations. Separate test
+  boot agreement improved 54.13% → 65.34%, next-buy agreement 50.80% → 51.88%; first-legendary path
+  agreement fell 0.66 points. Full findings, remaining constants and limits: `engine-review.md`.
+- 309 core tests, 39 runtime tests, 23 UI tests, five evaluator contracts, Clippy and Windows checks
+  pass. Ten local recorded games replay 1,660 observations without invalid advice.
+- Installed through `overlay-update.sh` while League was in Lobby; the Windows release build and
+  headless catalog probe passed, and one canonical Recall process relaunched.

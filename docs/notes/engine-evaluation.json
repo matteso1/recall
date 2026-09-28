@@ -1,0 +1,1016 @@
+{
+  "baseline_binary_sha256": "859004bbb1ac9be69a11f92dbf77bb9fb5eefb086f7c0b342f0292b5e2651db1",
+  "baseline_engine": "64ad7a8",
+  "binary_sha256": "7f1422d8870774a0ffeb6eab1992dc10a2728b2ddd45d3418ce0c0ca10361722",
+  "comparisons": {
+    "test": {
+      "after": {
+        "frames": 92147,
+        "games": 4046,
+        "groups": {
+          "ADC": {
+            "affordable_detours": 213,
+            "flips": 236,
+            "frames": 18741,
+            "invalid_frames": 0,
+            "missing_target_candidates": 9416,
+            "no_target": 350,
+            "repeat_flips": 0,
+            "repeat_path_flips": 11,
+            "transitions": 9522
+          },
+          "ADC/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 8,
+            "boots_decisions": 705,
+            "boots_hits": 497,
+            "decisions": 3318,
+            "legendary_decisions": 2613,
+            "path_hits": 1769,
+            "path_top3_hits": 1901,
+            "target_hits": 1973
+          },
+          "ADC/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 706,
+            "boots_hits": 497,
+            "decisions": 3333,
+            "legendary_decisions": 2627,
+            "path_hits": 1619,
+            "path_top3_hits": 1843,
+            "target_hits": 1753
+          },
+          "Jungle": {
+            "affordable_detours": 184,
+            "flips": 179,
+            "frames": 17361,
+            "invalid_frames": 0,
+            "missing_target_candidates": 6885,
+            "no_target": 278,
+            "repeat_flips": 0,
+            "repeat_path_flips": 23,
+            "transitions": 8619
+          },
+          "Jungle/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 640,
+            "boots_hits": 404,
+            "decisions": 2987,
+            "legendary_decisions": 2347,
+            "path_hits": 1379,
+            "path_top3_hits": 1523,
+            "target_hits": 1456
+          },
+          "Jungle/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 641,
+            "boots_hits": 404,
+            "decisions": 2989,
+            "legendary_decisions": 2348,
+            "path_hits": 1219,
+            "path_top3_hits": 1446,
+            "target_hits": 1270
+          },
+          "Mid": {
+            "affordable_detours": 53,
+            "flips": 147,
+            "frames": 16673,
+            "invalid_frames": 0,
+            "missing_target_candidates": 12360,
+            "no_target": 90,
+            "repeat_flips": 0,
+            "repeat_path_flips": 17,
+            "transitions": 8499
+          },
+          "Mid/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 2,
+            "boots_decisions": 635,
+            "boots_hits": 401,
+            "decisions": 2621,
+            "legendary_decisions": 1986,
+            "path_hits": 1182,
+            "path_top3_hits": 1372,
+            "target_hits": 1249
+          },
+          "Mid/start": {
+            "already_owned_labels": 1,
+            "ambiguous_labels": 0,
+            "boots_decisions": 635,
+            "boots_hits": 401,
+            "decisions": 2591,
+            "legendary_decisions": 1956,
+            "path_hits": 1061,
+            "path_top3_hits": 1316,
+            "target_hits": 1125
+          },
+          "Support": {
+            "affordable_detours": 46,
+            "flips": 107,
+            "frames": 18379,
+            "invalid_frames": 0,
+            "missing_target_candidates": 12563,
+            "no_target": 0,
+            "repeat_flips": 5,
+            "repeat_path_flips": 70,
+            "transitions": 7613
+          },
+          "Support/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 685,
+            "boots_hits": 464,
+            "decisions": 2352,
+            "legendary_decisions": 1667,
+            "path_hits": 923,
+            "path_top3_hits": 1085,
+            "target_hits": 1128
+          },
+          "Support/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 685,
+            "boots_hits": 464,
+            "decisions": 2312,
+            "legendary_decisions": 1627,
+            "path_hits": 726,
+            "path_top3_hits": 985,
+            "target_hits": 933
+          },
+          "Top": {
+            "affordable_detours": 112,
+            "flips": 201,
+            "frames": 20993,
+            "invalid_frames": 0,
+            "missing_target_candidates": 11059,
+            "no_target": 168,
+            "repeat_flips": 2,
+            "repeat_path_flips": 85,
+            "transitions": 11181
+          },
+          "Top/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 777,
+            "boots_hits": 483,
+            "decisions": 3199,
+            "legendary_decisions": 2422,
+            "path_hits": 1504,
+            "path_top3_hits": 1649,
+            "target_hits": 1704
+          },
+          "Top/start": {
+            "already_owned_labels": 2,
+            "ambiguous_labels": 0,
+            "boots_decisions": 776,
+            "boots_hits": 484,
+            "decisions": 3164,
+            "legendary_decisions": 2388,
+            "path_hits": 1225,
+            "path_top3_hits": 1479,
+            "target_hits": 1429
+          },
+          "Xayah": {
+            "affordable_detours": 2,
+            "flips": 5,
+            "frames": 302,
+            "invalid_frames": 0,
+            "missing_target_candidates": 183,
+            "no_target": 0,
+            "repeat_flips": 0,
+            "repeat_path_flips": 0,
+            "transitions": 150
+          },
+          "Xayah/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 12,
+            "boots_hits": 6,
+            "decisions": 50,
+            "legendary_decisions": 38,
+            "path_hits": 28,
+            "path_top3_hits": 34,
+            "target_hits": 31
+          },
+          "Xayah/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 12,
+            "boots_hits": 6,
+            "decisions": 50,
+            "legendary_decisions": 38,
+            "path_hits": 25,
+            "path_top3_hits": 34,
+            "target_hits": 27
+          },
+          "all": {
+            "affordable_detours": 608,
+            "flips": 870,
+            "frames": 92147,
+            "invalid_frames": 0,
+            "missing_target_candidates": 52283,
+            "no_target": 886,
+            "repeat_flips": 7,
+            "repeat_path_flips": 206,
+            "transitions": 45434
+          },
+          "all/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 18,
+            "boots_decisions": 3442,
+            "boots_hits": 2249,
+            "decisions": 14477,
+            "legendary_decisions": 11035,
+            "path_hits": 6757,
+            "path_top3_hits": 7530,
+            "target_hits": 7510
+          },
+          "all/start": {
+            "already_owned_labels": 3,
+            "ambiguous_labels": 0,
+            "boots_decisions": 3443,
+            "boots_hits": 2250,
+            "decisions": 14389,
+            "legendary_decisions": 10946,
+            "path_hits": 5850,
+            "path_top3_hits": 7069,
+            "target_hits": 6510
+          }
+        },
+        "invalid_frames": 0
+      },
+      "before": {
+        "frames": 92147,
+        "games": 4046,
+        "groups": {
+          "ADC": {
+            "affordable_detours": 217,
+            "flips": 231,
+            "frames": 18741,
+            "invalid_frames": 0,
+            "missing_target_candidates": 10731,
+            "no_target": 350,
+            "repeat_flips": 0,
+            "repeat_path_flips": 11,
+            "transitions": 9522
+          },
+          "ADC/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 8,
+            "boots_decisions": 705,
+            "boots_hits": 391,
+            "decisions": 3318,
+            "legendary_decisions": 2613,
+            "path_hits": 1774,
+            "path_top3_hits": 1911,
+            "target_hits": 1912
+          },
+          "ADC/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 706,
+            "boots_hits": 391,
+            "decisions": 3333,
+            "legendary_decisions": 2627,
+            "path_hits": 1626,
+            "path_top3_hits": 1850,
+            "target_hits": 1690
+          },
+          "Jungle": {
+            "affordable_detours": 210,
+            "flips": 192,
+            "frames": 17361,
+            "invalid_frames": 0,
+            "missing_target_candidates": 10446,
+            "no_target": 278,
+            "repeat_flips": 3,
+            "repeat_path_flips": 27,
+            "transitions": 8619
+          },
+          "Jungle/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 640,
+            "boots_hits": 338,
+            "decisions": 2987,
+            "legendary_decisions": 2347,
+            "path_hits": 1406,
+            "path_top3_hits": 1552,
+            "target_hits": 1445
+          },
+          "Jungle/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 641,
+            "boots_hits": 338,
+            "decisions": 2989,
+            "legendary_decisions": 2348,
+            "path_hits": 1229,
+            "path_top3_hits": 1458,
+            "target_hits": 1233
+          },
+          "Mid": {
+            "affordable_detours": 70,
+            "flips": 131,
+            "frames": 16673,
+            "invalid_frames": 0,
+            "missing_target_candidates": 13357,
+            "no_target": 90,
+            "repeat_flips": 0,
+            "repeat_path_flips": 17,
+            "transitions": 8499
+          },
+          "Mid/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 2,
+            "boots_decisions": 635,
+            "boots_hits": 295,
+            "decisions": 2621,
+            "legendary_decisions": 1986,
+            "path_hits": 1186,
+            "path_top3_hits": 1376,
+            "target_hits": 1175
+          },
+          "Mid/start": {
+            "already_owned_labels": 1,
+            "ambiguous_labels": 0,
+            "boots_decisions": 635,
+            "boots_hits": 295,
+            "decisions": 2591,
+            "legendary_decisions": 1956,
+            "path_hits": 1064,
+            "path_top3_hits": 1319,
+            "target_hits": 1047
+          },
+          "Support": {
+            "affordable_detours": 62,
+            "flips": 102,
+            "frames": 18379,
+            "invalid_frames": 0,
+            "missing_target_candidates": 17822,
+            "no_target": 0,
+            "repeat_flips": 3,
+            "repeat_path_flips": 78,
+            "transitions": 7613
+          },
+          "Support/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 685,
+            "boots_hits": 397,
+            "decisions": 2352,
+            "legendary_decisions": 1667,
+            "path_hits": 944,
+            "path_top3_hits": 1105,
+            "target_hits": 1124
+          },
+          "Support/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 685,
+            "boots_hits": 397,
+            "decisions": 2312,
+            "legendary_decisions": 1627,
+            "path_hits": 750,
+            "path_top3_hits": 991,
+            "target_hits": 932
+          },
+          "Top": {
+            "affordable_detours": 137,
+            "flips": 199,
+            "frames": 20993,
+            "invalid_frames": 0,
+            "missing_target_candidates": 16838,
+            "no_target": 168,
+            "repeat_flips": 2,
+            "repeat_path_flips": 115,
+            "transitions": 11181
+          },
+          "Top/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 777,
+            "boots_hits": 442,
+            "decisions": 3199,
+            "legendary_decisions": 2422,
+            "path_hits": 1520,
+            "path_top3_hits": 1662,
+            "target_hits": 1699
+          },
+          "Top/start": {
+            "already_owned_labels": 2,
+            "ambiguous_labels": 0,
+            "boots_decisions": 776,
+            "boots_hits": 441,
+            "decisions": 3164,
+            "legendary_decisions": 2388,
+            "path_hits": 1239,
+            "path_top3_hits": 1489,
+            "target_hits": 1417
+          },
+          "Xayah": {
+            "affordable_detours": 2,
+            "flips": 5,
+            "frames": 302,
+            "invalid_frames": 0,
+            "missing_target_candidates": 183,
+            "no_target": 0,
+            "repeat_flips": 0,
+            "repeat_path_flips": 0,
+            "transitions": 150
+          },
+          "Xayah/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 12,
+            "boots_hits": 6,
+            "decisions": 50,
+            "legendary_decisions": 38,
+            "path_hits": 28,
+            "path_top3_hits": 34,
+            "target_hits": 31
+          },
+          "Xayah/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 12,
+            "boots_hits": 6,
+            "decisions": 50,
+            "legendary_decisions": 38,
+            "path_hits": 25,
+            "path_top3_hits": 34,
+            "target_hits": 27
+          },
+          "all": {
+            "affordable_detours": 696,
+            "flips": 855,
+            "frames": 92147,
+            "invalid_frames": 0,
+            "missing_target_candidates": 69194,
+            "no_target": 886,
+            "repeat_flips": 8,
+            "repeat_path_flips": 248,
+            "transitions": 45434
+          },
+          "all/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 18,
+            "boots_decisions": 3442,
+            "boots_hits": 1863,
+            "decisions": 14477,
+            "legendary_decisions": 11035,
+            "path_hits": 6830,
+            "path_top3_hits": 7606,
+            "target_hits": 7355
+          },
+          "all/start": {
+            "already_owned_labels": 3,
+            "ambiguous_labels": 0,
+            "boots_decisions": 3443,
+            "boots_hits": 1862,
+            "decisions": 14389,
+            "legendary_decisions": 10946,
+            "path_hits": 5908,
+            "path_top3_hits": 7107,
+            "target_hits": 6319
+          }
+        },
+        "invalid_frames": 0
+      }
+    },
+    "validation": {
+      "after": {
+        "frames": 88959,
+        "games": 3924,
+        "groups": {
+          "ADC": {
+            "affordable_detours": 191,
+            "flips": 216,
+            "frames": 15697,
+            "invalid_frames": 0,
+            "missing_target_candidates": 8165,
+            "no_target": 354,
+            "repeat_flips": 3,
+            "repeat_path_flips": 17,
+            "transitions": 7983
+          },
+          "ADC/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 10,
+            "boots_decisions": 571,
+            "boots_hits": 422,
+            "decisions": 2734,
+            "legendary_decisions": 2163,
+            "path_hits": 1453,
+            "path_top3_hits": 1558,
+            "target_hits": 1613
+          },
+          "ADC/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 574,
+            "boots_hits": 424,
+            "decisions": 2739,
+            "legendary_decisions": 2165,
+            "path_hits": 1289,
+            "path_top3_hits": 1485,
+            "target_hits": 1396
+          },
+          "Jungle": {
+            "affordable_detours": 147,
+            "flips": 186,
+            "frames": 18933,
+            "invalid_frames": 0,
+            "missing_target_candidates": 7993,
+            "no_target": 242,
+            "repeat_flips": 0,
+            "repeat_path_flips": 17,
+            "transitions": 9414
+          },
+          "Jungle/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 675,
+            "boots_hits": 402,
+            "decisions": 3263,
+            "legendary_decisions": 2588,
+            "path_hits": 1437,
+            "path_top3_hits": 1591,
+            "target_hits": 1557
+          },
+          "Jungle/start": {
+            "already_owned_labels": 1,
+            "ambiguous_labels": 0,
+            "boots_decisions": 675,
+            "boots_hits": 402,
+            "decisions": 3231,
+            "legendary_decisions": 2556,
+            "path_hits": 1252,
+            "path_top3_hits": 1482,
+            "target_hits": 1332
+          },
+          "Mid": {
+            "affordable_detours": 41,
+            "flips": 97,
+            "frames": 14531,
+            "invalid_frames": 0,
+            "missing_target_candidates": 11073,
+            "no_target": 41,
+            "repeat_flips": 2,
+            "repeat_path_flips": 7,
+            "transitions": 7386
+          },
+          "Mid/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 6,
+            "boots_decisions": 589,
+            "boots_hits": 381,
+            "decisions": 2280,
+            "legendary_decisions": 1691,
+            "path_hits": 1062,
+            "path_top3_hits": 1192,
+            "target_hits": 1103
+          },
+          "Mid/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 588,
+            "boots_hits": 380,
+            "decisions": 2272,
+            "legendary_decisions": 1684,
+            "path_hits": 995,
+            "path_top3_hits": 1147,
+            "target_hits": 1068
+          },
+          "Support": {
+            "affordable_detours": 61,
+            "flips": 135,
+            "frames": 24087,
+            "invalid_frames": 0,
+            "missing_target_candidates": 16742,
+            "no_target": 5,
+            "repeat_flips": 6,
+            "repeat_path_flips": 72,
+            "transitions": 9963
+          },
+          "Support/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 920,
+            "boots_hits": 655,
+            "decisions": 3064,
+            "legendary_decisions": 2144,
+            "path_hits": 1187,
+            "path_top3_hits": 1425,
+            "target_hits": 1505
+          },
+          "Support/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 920,
+            "boots_hits": 655,
+            "decisions": 3034,
+            "legendary_decisions": 2114,
+            "path_hits": 916,
+            "path_top3_hits": 1298,
+            "target_hits": 1239
+          },
+          "Top": {
+            "affordable_detours": 78,
+            "flips": 152,
+            "frames": 15711,
+            "invalid_frames": 0,
+            "missing_target_candidates": 9246,
+            "no_target": 81,
+            "repeat_flips": 0,
+            "repeat_path_flips": 59,
+            "transitions": 8227
+          },
+          "Top/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 8,
+            "boots_decisions": 587,
+            "boots_hits": 393,
+            "decisions": 2353,
+            "legendary_decisions": 1766,
+            "path_hits": 948,
+            "path_top3_hits": 1047,
+            "target_hits": 1129
+          },
+          "Top/start": {
+            "already_owned_labels": 1,
+            "ambiguous_labels": 0,
+            "boots_decisions": 586,
+            "boots_hits": 392,
+            "decisions": 2338,
+            "legendary_decisions": 1752,
+            "path_hits": 748,
+            "path_top3_hits": 928,
+            "target_hits": 918
+          },
+          "Xayah": {
+            "affordable_detours": 5,
+            "flips": 5,
+            "frames": 331,
+            "invalid_frames": 0,
+            "missing_target_candidates": 175,
+            "no_target": 3,
+            "repeat_flips": 0,
+            "repeat_path_flips": 0,
+            "transitions": 159
+          },
+          "Xayah/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 13,
+            "boots_hits": 11,
+            "decisions": 61,
+            "legendary_decisions": 48,
+            "path_hits": 37,
+            "path_top3_hits": 42,
+            "target_hits": 40
+          },
+          "Xayah/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 13,
+            "boots_hits": 11,
+            "decisions": 61,
+            "legendary_decisions": 48,
+            "path_hits": 34,
+            "path_top3_hits": 42,
+            "target_hits": 36
+          },
+          "all": {
+            "affordable_detours": 518,
+            "flips": 786,
+            "frames": 88959,
+            "invalid_frames": 0,
+            "missing_target_candidates": 53219,
+            "no_target": 723,
+            "repeat_flips": 11,
+            "repeat_path_flips": 172,
+            "transitions": 42973
+          },
+          "all/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 32,
+            "boots_decisions": 3342,
+            "boots_hits": 2253,
+            "decisions": 13694,
+            "legendary_decisions": 10352,
+            "path_hits": 6087,
+            "path_top3_hits": 6813,
+            "target_hits": 6907
+          },
+          "all/start": {
+            "already_owned_labels": 2,
+            "ambiguous_labels": 0,
+            "boots_decisions": 3343,
+            "boots_hits": 2253,
+            "decisions": 13614,
+            "legendary_decisions": 10271,
+            "path_hits": 5200,
+            "path_top3_hits": 6340,
+            "target_hits": 5953
+          }
+        },
+        "invalid_frames": 0
+      },
+      "before": {
+        "frames": 88959,
+        "games": 3924,
+        "groups": {
+          "ADC": {
+            "affordable_detours": 198,
+            "flips": 211,
+            "frames": 15697,
+            "invalid_frames": 0,
+            "missing_target_candidates": 9370,
+            "no_target": 354,
+            "repeat_flips": 3,
+            "repeat_path_flips": 17,
+            "transitions": 7983
+          },
+          "ADC/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 10,
+            "boots_decisions": 571,
+            "boots_hits": 366,
+            "decisions": 2734,
+            "legendary_decisions": 2163,
+            "path_hits": 1462,
+            "path_top3_hits": 1562,
+            "target_hits": 1589
+          },
+          "ADC/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 574,
+            "boots_hits": 368,
+            "decisions": 2739,
+            "legendary_decisions": 2165,
+            "path_hits": 1298,
+            "path_top3_hits": 1490,
+            "target_hits": 1368
+          },
+          "Jungle": {
+            "affordable_detours": 173,
+            "flips": 194,
+            "frames": 18933,
+            "invalid_frames": 0,
+            "missing_target_candidates": 12128,
+            "no_target": 242,
+            "repeat_flips": 1,
+            "repeat_path_flips": 23,
+            "transitions": 9414
+          },
+          "Jungle/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 675,
+            "boots_hits": 376,
+            "decisions": 3263,
+            "legendary_decisions": 2588,
+            "path_hits": 1461,
+            "path_top3_hits": 1625,
+            "target_hits": 1572
+          },
+          "Jungle/start": {
+            "already_owned_labels": 1,
+            "ambiguous_labels": 0,
+            "boots_decisions": 675,
+            "boots_hits": 377,
+            "decisions": 3231,
+            "legendary_decisions": 2556,
+            "path_hits": 1274,
+            "path_top3_hits": 1507,
+            "target_hits": 1342
+          },
+          "Mid": {
+            "affordable_detours": 45,
+            "flips": 93,
+            "frames": 14531,
+            "invalid_frames": 0,
+            "missing_target_candidates": 11613,
+            "no_target": 41,
+            "repeat_flips": 2,
+            "repeat_path_flips": 7,
+            "transitions": 7386
+          },
+          "Mid/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 6,
+            "boots_decisions": 589,
+            "boots_hits": 301,
+            "decisions": 2280,
+            "legendary_decisions": 1691,
+            "path_hits": 1068,
+            "path_top3_hits": 1197,
+            "target_hits": 1066
+          },
+          "Mid/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 588,
+            "boots_hits": 301,
+            "decisions": 2272,
+            "legendary_decisions": 1684,
+            "path_hits": 998,
+            "path_top3_hits": 1150,
+            "target_hits": 1021
+          },
+          "Support": {
+            "affordable_detours": 105,
+            "flips": 133,
+            "frames": 24087,
+            "invalid_frames": 0,
+            "missing_target_candidates": 23339,
+            "no_target": 5,
+            "repeat_flips": 2,
+            "repeat_path_flips": 71,
+            "transitions": 9963
+          },
+          "Support/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 4,
+            "boots_decisions": 920,
+            "boots_hits": 565,
+            "decisions": 3064,
+            "legendary_decisions": 2144,
+            "path_hits": 1195,
+            "path_top3_hits": 1440,
+            "target_hits": 1478
+          },
+          "Support/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 920,
+            "boots_hits": 566,
+            "decisions": 3034,
+            "legendary_decisions": 2114,
+            "path_hits": 947,
+            "path_top3_hits": 1304,
+            "target_hits": 1234
+          },
+          "Top": {
+            "affordable_detours": 126,
+            "flips": 143,
+            "frames": 15711,
+            "invalid_frames": 0,
+            "missing_target_candidates": 14086,
+            "no_target": 81,
+            "repeat_flips": 0,
+            "repeat_path_flips": 101,
+            "transitions": 8227
+          },
+          "Top/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 8,
+            "boots_decisions": 587,
+            "boots_hits": 332,
+            "decisions": 2353,
+            "legendary_decisions": 1766,
+            "path_hits": 975,
+            "path_top3_hits": 1071,
+            "target_hits": 1130
+          },
+          "Top/start": {
+            "already_owned_labels": 1,
+            "ambiguous_labels": 0,
+            "boots_decisions": 586,
+            "boots_hits": 332,
+            "decisions": 2338,
+            "legendary_decisions": 1752,
+            "path_hits": 769,
+            "path_top3_hits": 942,
+            "target_hits": 913
+          },
+          "Xayah": {
+            "affordable_detours": 5,
+            "flips": 5,
+            "frames": 331,
+            "invalid_frames": 0,
+            "missing_target_candidates": 175,
+            "no_target": 3,
+            "repeat_flips": 0,
+            "repeat_path_flips": 0,
+            "transitions": 159
+          },
+          "Xayah/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 13,
+            "boots_hits": 11,
+            "decisions": 61,
+            "legendary_decisions": 48,
+            "path_hits": 37,
+            "path_top3_hits": 42,
+            "target_hits": 40
+          },
+          "Xayah/start": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 0,
+            "boots_decisions": 13,
+            "boots_hits": 11,
+            "decisions": 61,
+            "legendary_decisions": 48,
+            "path_hits": 34,
+            "path_top3_hits": 42,
+            "target_hits": 36
+          },
+          "all": {
+            "affordable_detours": 647,
+            "flips": 774,
+            "frames": 88959,
+            "invalid_frames": 0,
+            "missing_target_candidates": 70536,
+            "no_target": 723,
+            "repeat_flips": 8,
+            "repeat_path_flips": 219,
+            "transitions": 42973
+          },
+          "all/purchase": {
+            "already_owned_labels": 0,
+            "ambiguous_labels": 32,
+            "boots_decisions": 3342,
+            "boots_hits": 1940,
+            "decisions": 13694,
+            "legendary_decisions": 10352,
+            "path_hits": 6161,
+            "path_top3_hits": 6895,
+            "target_hits": 6835
+          },
+          "all/start": {
+            "already_owned_labels": 2,
+            "ambiguous_labels": 0,
+            "boots_decisions": 3343,
+            "boots_hits": 1944,
+            "decisions": 13614,
+            "legendary_decisions": 10271,
+            "path_hits": 5286,
+            "path_top3_hits": 6393,
+            "target_hits": 5878
+          }
+        },
+        "invalid_frames": 0
+      }
+    }
+  },
+  "data": {
+    "artifacts": {
+      "aggregates.json": "15e0e76ac01c4c27c7813d620328cafefefeac62d8d50961423ce44ecff04886",
+      "answers.json": "66ad957e4625b96a4937a8255e5c06ca5d4cf7013c97ca44c2c618748392e921",
+      "boots.json": "9665920a9639b0c51e1442f3b888bbf555347b37b7124db07ed521890daeae08",
+      "next_items.json": "17ebdf38c9ddb4b482d8536578c1a4de6bb3b7b45570641a9f1c269f106f4ccc",
+      "test.jsonl": "25c0b266c698e2bea5ec41e10474818ecaf247370a5710153fce4eb91c56b2fc",
+      "validation.jsonl": "6701548babafed377f4bd8a38ce9a91b56fa3f2b239a938e9e97950dd186db39"
+    },
+    "cases": {
+      "test": {
+        "boots_restored_frames": 4745,
+        "frames": 92147,
+        "games": 4046,
+        "known_enemy_frames": 5660,
+        "missing_timeline_games": 4,
+        "overfull_inventory_frames": 700,
+        "overfull_peer_frames": 68,
+        "possible_enemy_frames": 460735,
+        "unsupported_games": 236
+      },
+      "validation": {
+        "boots_restored_frames": 4488,
+        "frames": 88959,
+        "games": 3924,
+        "known_enemy_frames": 5202,
+        "missing_timeline_games": 5,
+        "overfull_inventory_frames": 507,
+        "overfull_peer_frames": 39,
+        "possible_enemy_frames": 444795,
+        "unsupported_games": 328
+      }
+    },
+    "excluded_shared_match_games": 32525,
+    "splits": {
+      "test": {
+        "games": 8720,
+        "players": 174
+      },
+      "train": {
+        "games": 58211,
+        "players": 800
+      },
+      "validation": {
+        "games": 7856,
+        "players": 158
+      }
+    },
+    "train_games": 58211,
+    "train_players": 800
+  },
+  "engine_revision": "16ecdb308dfeae92bd71b459dfbf50c8c56841a2",
+  "fingerprint": "cabe2d53d053e9fc2494fe2e594dad0b15ed136a0a870d7f213d6b9d1d5cf61b"
+}

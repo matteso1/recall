@@ -19,9 +19,9 @@ show you. It never touches memory, packets, or anything hidden, and it never pla
 
 - **One recommendation at a time.** The next item, the component to buy right now, the
   remaining price, and a one-line reason. "Why & options" is there if you want it.
-- **Builds from real data, not hand-written defaults.** Starting items, core path, boots,
-  runes, spells and skill order come from what players of your champion and role run on
-  the current patch (op.gg's champion API, cached locally). If your champion has no data
+- **Builds from real data, not hand-written defaults.** Covered champions use Master+ purchase
+  sequences for legendary items and enemy-composition boot choices. Starting items, runes,
+  spells, skill order and fallback builds use op.gg's champion API, cached locally. If your champion has no data
   for your assigned role, the same champion's most-played role is used and clearly labelled.
 - **Shop-legal purchasing.** Component credit, exact combine prices, six-slot capacity,
   item families that exclude each other, Magical Footwear, support and jungle requirements,
@@ -31,6 +31,8 @@ show you. It never touches memory, packets, or anything hidden, and it never pla
   changes for reasons the panel cannot state.
 - **Champion-select and Swiftplay preparation.** Rune page, summoner spells and an in-shop
   item set are imported for you; in Swiftplay both of your choices are prepared before you queue.
+  Ban suggestions use your champion's matchups, with labelled op.gg coverage when the Master+
+  sample is too small, before falling back to generic role advice.
 - **Honest states.** Stale data, unknown modes, or a missing build pauses the advice instead
   of guessing. A short post-game recap shows the decisions; it never grades you.
 
@@ -133,6 +135,11 @@ cd tests/ui && npm ci && npx playwright install --with-deps chromium && npm test
 
 Browser tests render real serialized plans from the Rust core and mock only the window bridge.
 Nothing in the test suites contacts League or the network.
+
+The [full planner backtest](tools/priors/README.md#full-planner-evaluation) compares changes on
+held-out Master+ timelines: purchase agreement, target stability and shop legality. Its local
+data and generated cases stay outside Git. The [engine review](docs/notes/engine-review.md)
+records measurement limits and the remaining heuristic terms.
 
 Offline replay checks every recorded state of a captured game for legality:
 

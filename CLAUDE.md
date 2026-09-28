@@ -58,13 +58,19 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
 - The data pack (`data/pack/*.json`) is embedded with `include_str!`; a pack change needs a rebuild.
 - Champ select ban suggestions (`core/src/bans.rs`, `data/pack/bans.json` from `tools/priors/export_bans.py`) show
   while the player's own ban action is pending, for the hovered/declared champion (role table without one).
+  Champion-roles missing from the corpus table first use the matching cached op.gg matchup outcomes
+  (labelled, minimum 200 champion-role games / 50 matchup games), then the generic role table.
 - Engine v3 (since 2026-09-27): the next legendary items come from what Master+ players on the champion and role
   bought next with the same owned legendaries (`core/src/nextprior.rs`, `data/pack/next_items.json`, built by
   `tools/priors/`), scaled by measured enemy-composition lifts (healer, magic-heavy, tanky) and a small live-state
-  nudge from `decision.rs` needs (`V3_NUDGE`). op.gg still supplies runes, spells, skills, starters and boots, and the
+  nudge from `decision.rs` needs (`V3_NUDGE`). With a complete enemy draft, covered ranked champions now use
+  `bootsprior.rs` / `data/pack/boots.json` for corpus boots conditioned on enemy magic count.
+  op.gg still supplies runes, spells, skills, starters and fallback boots, and the
   whole build for Swiftplay and champions the corpus does not cover. Kill-feed "answer" promotions are off where v3
   applies: Master+ players do not buy defensively after deaths (-1.1 pp). Judge engine changes on the corpus and the
   recorded games (`games/*.jsonl` through `replay`), never on one game.
+  `tools/priors/backtest.py` evaluates the full planner on player- and match-disjoint timelines;
+  see `tools/priors/README.md` for the persistent Python environment and before/after command.
 - The bot-lane role quest hides the player's boots from the Live Client item list (16.x). `core/src/roleslot.rs`
   keeps them owned (a vanish without a 70% sale refund or an undo) and follows their upgrade, as a virtual slot 9.
 - Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's
