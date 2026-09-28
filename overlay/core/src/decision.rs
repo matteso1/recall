@@ -794,6 +794,48 @@ fn choose_boots(
     }
 }
 
+/// Static draft features choose boots without introducing another live score or hold threshold.
+fn corpus_boots(
+    inp: &Inputs,
+    agg: &crate::aggregate::Aggregate,
+    archetype: Archetype,
+) -> Option<PlanItem> {
+    let enemies = enemy_names(inp);
+    // The zero-magic bucket means a complete physical draft, not an unrevealed lobby.
+    if enemies.len() != 5 {
+        return None;
+    }
+    let magic_enemies = enemies
+        .iter()
+        .filter(|name| inp.traits.get(name).is_some_and(|t| t.damage == "ap"))
+        .count();
+    let choices = crate::bootsprior::distribution(
+        inp.catalog.champion_key(inp.champion)?,
+        engine::actual_position(agg),
+        magic_enemies,
+    )?;
+    for (id, _) in choices {
+        let Some(item) = inp.catalog.item(id) else {
+            continue;
+        };
+        if !item.effects.boots
+            || !item.purchasable
+            || !item.in_store
+            || !item.on_sr
+            || !coherent_with(archetype, inp.catalog, id)
+        {
+            continue;
+        }
+        return engine::item_by_id(
+            inp.catalog,
+            inp.pack,
+            id,
+            Some("Common Master+ boots for this champion and enemy damage mix".into()),
+        );
+    }
+    None
+}
+
 /// Planned defensive items in the order they add the most effective health per remaining gold
 /// against the enemy mix, greedily (each pick's stats count for the next). Only positions held by
 /// unowned defensive items are permuted: damage items, boots and the first core item (op.gg's
@@ -1830,7 +1872,11 @@ pub(crate) fn select(
         }
         let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
         let item = if item.role == "boots" {
-            choose_boots(inp, agg, &needs, archetype, item, &planned, preferences)
+            v3.then(|| corpus_boots(inp, agg, archetype))
+                .flatten()
+                .unwrap_or_else(|| {
+                    choose_boots(inp, agg, &needs, archetype, item, &planned, preferences)
+                })
         } else {
             item.clone()
         };
@@ -1841,6 +1887,7 @@ pub(crate) fn select(
         {
             continue;
         }
+        choices.entry(item.id).or_insert(0.0);
         path.push(item);
     }
     // An answer promoted because an enemy has been killing you keeps its place on the path while

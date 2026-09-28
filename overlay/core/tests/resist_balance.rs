@@ -38,7 +38,6 @@ const SUNFIRE: u32 = 3068;
 const THORNMAIL: u32 = 3075;
 const FROZEN_HEART: u32 = 3110;
 const STEELCAPS: u32 = 3047;
-const MERCURYS: u32 = 3111;
 const BRAMBLE_VEST: u32 = 3076;
 const RUBY_CRYSTAL: u32 = 1028;
 const DORANS_RING: u32 = 1056;
@@ -235,9 +234,10 @@ fn before_the_game_magic_resist_follows_the_first_item_instead_of_two_more_armor
 }
 
 #[test]
-fn in_lane_against_teemo_the_boots_are_mercurys_treads() {
+fn in_lane_against_teemo_the_path_still_supplies_magic_resist() {
     let p = plan(TONIGHT, Some(&at_0800(TONIGHT)));
-    assert_eq!(boots(&p), MERCURYS, "{:?}", ids(&p));
+    // Boots now follow held-out corpus evidence. Keep the resistance contract without
+    // locking in the boot choice from a single recorded match.
     let mr = first_mr(&p).expect("a magic-resist item on the path");
     assert!(
         mr < position(&p, THORNMAIL).unwrap_or(usize::MAX),
