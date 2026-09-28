@@ -38,8 +38,17 @@ struct Doc {
     anti_burst: HashMap<String, Entry>,
 }
 
+static DOC: OnceLock<Doc> = OnceLock::new();
+
+/// Install training-only weights before any planner call in an offline evaluator.
+#[cfg(feature = "evaluation")]
+pub fn load_for_evaluation(json: &str) -> anyhow::Result<()> {
+    let data = serde_json::from_str(json)?;
+    DOC.set(data)
+        .map_err(|_| anyhow::anyhow!("answer data already initialized"))
+}
+
 fn doc() -> &'static Doc {
-    static DOC: OnceLock<Doc> = OnceLock::new();
     DOC.get_or_init(|| serde_json::from_str(JSON).expect("data/pack/answers.json"))
 }
 

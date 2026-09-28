@@ -15,6 +15,7 @@
 pub mod aggregate;
 pub mod answers;
 pub mod bans;
+pub mod bootsprior;
 pub mod brand;
 pub mod champselect;
 pub mod coaching;
