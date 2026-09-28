@@ -73,3 +73,11 @@
   remains effectively unchanged. Full denominators and limits: `planner-stability.md`.
 - 310 core tests with evaluation enabled, 39 runtime tests, Clippy and Windows type-check pass.
   Recorded-game replay is legal but sparse legacy captures can miss hidden-boot transitions.
+
+## 2026-09-28 — Update guard
+
+- Fixed the updater treating any failed client API request as `NoClient`. It now requires a known
+  idle phase and a successful process check, or verified absence of both client and game. Unknown
+  states wait; a running game overrides a stale Lobby response. Process command lines are not read.
+- All 39 Python probe tests pass, including five guard contracts; shell syntax check passes. The
+  live read-only check correctly holds in champion select. No forced in-game restart was performed.

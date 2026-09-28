@@ -45,6 +45,8 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   `decisions.json`. They carry Riot IDs: never commit or upload them; scrub into fixtures instead.
 - `scripts/overlay-update.sh` is the one-command update: waits while League is in queue, champ select or a
   game, stops the overlay, builds, probes, relaunches (the old exe is relaunched if the build fails).
+  `m0/updateguard.py` also checks Windows process names; an API/process-query failure or an unknown
+  phase means wait. Never treat a failed LCU call as proof that League is closed.
 - `scripts/autostart-install.sh` (optional, currently removed) puts `recall.exe --autostart` in the Startup
   folder. In that mode (`src-tauri/src/autostart.rs`) the window is created hidden, shows while the panel
   phase is not `noclient`, hides 20 s after the client goes away, and the x button hides instead of quitting.
