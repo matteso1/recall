@@ -1,0 +1,513 @@
+{
+  "protocol": "same-cases-answer-artifact-comparison-v1",
+  "baseline": {
+    "fingerprint": "3299541853ee44ae380577dc3db69a82ad342ffe00facc4815d06c3076057934",
+    "frames": 88959,
+    "games": 3924,
+    "groups": {
+      "ADC": {
+        "affordable_detours": 190,
+        "flips": 214,
+        "frames": 15697,
+        "invalid_frames": 0,
+        "missing_target_candidates": 8147,
+        "no_target": 354,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 7983
+      },
+      "ADC/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 10,
+        "boots_decisions": 571,
+        "boots_hits": 422,
+        "decisions": 2734,
+        "legendary_decisions": 2163,
+        "path_hits": 1452,
+        "path_top3_hits": 1555,
+        "target_hits": 1612
+      },
+      "ADC/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 574,
+        "boots_hits": 424,
+        "decisions": 2739,
+        "legendary_decisions": 2165,
+        "path_hits": 1290,
+        "path_top3_hits": 1486,
+        "target_hits": 1397
+      },
+      "Jungle": {
+        "affordable_detours": 147,
+        "flips": 188,
+        "frames": 18933,
+        "invalid_frames": 0,
+        "missing_target_candidates": 8036,
+        "no_target": 242,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 9414
+      },
+      "Jungle/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 4,
+        "boots_decisions": 675,
+        "boots_hits": 402,
+        "decisions": 3263,
+        "legendary_decisions": 2588,
+        "path_hits": 1438,
+        "path_top3_hits": 1592,
+        "target_hits": 1558
+      },
+      "Jungle/start": {
+        "already_owned_labels": 1,
+        "ambiguous_labels": 0,
+        "boots_decisions": 675,
+        "boots_hits": 402,
+        "decisions": 3231,
+        "legendary_decisions": 2556,
+        "path_hits": 1253,
+        "path_top3_hits": 1483,
+        "target_hits": 1333
+      },
+      "Mid": {
+        "affordable_detours": 41,
+        "flips": 96,
+        "frames": 14531,
+        "invalid_frames": 0,
+        "missing_target_candidates": 11049,
+        "no_target": 41,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 7386
+      },
+      "Mid/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 6,
+        "boots_decisions": 589,
+        "boots_hits": 381,
+        "decisions": 2280,
+        "legendary_decisions": 1691,
+        "path_hits": 1063,
+        "path_top3_hits": 1191,
+        "target_hits": 1103
+      },
+      "Mid/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 588,
+        "boots_hits": 380,
+        "decisions": 2272,
+        "legendary_decisions": 1684,
+        "path_hits": 995,
+        "path_top3_hits": 1147,
+        "target_hits": 1068
+      },
+      "Support": {
+        "affordable_detours": 61,
+        "flips": 134,
+        "frames": 24087,
+        "invalid_frames": 0,
+        "missing_target_candidates": 16705,
+        "no_target": 5,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 9963
+      },
+      "Support/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 4,
+        "boots_decisions": 920,
+        "boots_hits": 655,
+        "decisions": 3064,
+        "legendary_decisions": 2144,
+        "path_hits": 1184,
+        "path_top3_hits": 1423,
+        "target_hits": 1504
+      },
+      "Support/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 920,
+        "boots_hits": 655,
+        "decisions": 3034,
+        "legendary_decisions": 2114,
+        "path_hits": 916,
+        "path_top3_hits": 1297,
+        "target_hits": 1240
+      },
+      "Top": {
+        "affordable_detours": 78,
+        "flips": 150,
+        "frames": 15711,
+        "invalid_frames": 0,
+        "missing_target_candidates": 9185,
+        "no_target": 81,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 8227
+      },
+      "Top/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 8,
+        "boots_decisions": 587,
+        "boots_hits": 393,
+        "decisions": 2353,
+        "legendary_decisions": 1766,
+        "path_hits": 957,
+        "path_top3_hits": 1051,
+        "target_hits": 1138
+      },
+      "Top/start": {
+        "already_owned_labels": 1,
+        "ambiguous_labels": 0,
+        "boots_decisions": 586,
+        "boots_hits": 392,
+        "decisions": 2338,
+        "legendary_decisions": 1752,
+        "path_hits": 750,
+        "path_top3_hits": 933,
+        "target_hits": 920
+      },
+      "Xayah": {
+        "affordable_detours": 5,
+        "flips": 5,
+        "frames": 331,
+        "invalid_frames": 0,
+        "missing_target_candidates": 175,
+        "no_target": 3,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 159
+      },
+      "Xayah/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 13,
+        "boots_hits": 11,
+        "decisions": 61,
+        "legendary_decisions": 48,
+        "path_hits": 37,
+        "path_top3_hits": 42,
+        "target_hits": 40
+      },
+      "Xayah/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 13,
+        "boots_hits": 11,
+        "decisions": 61,
+        "legendary_decisions": 48,
+        "path_hits": 34,
+        "path_top3_hits": 42,
+        "target_hits": 36
+      },
+      "all": {
+        "affordable_detours": 517,
+        "flips": 782,
+        "frames": 88959,
+        "invalid_frames": 0,
+        "missing_target_candidates": 53122,
+        "no_target": 723,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 42973
+      },
+      "all/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 32,
+        "boots_decisions": 3342,
+        "boots_hits": 2253,
+        "decisions": 13694,
+        "legendary_decisions": 10352,
+        "path_hits": 6094,
+        "path_top3_hits": 6812,
+        "target_hits": 6915
+      },
+      "all/start": {
+        "already_owned_labels": 2,
+        "ambiguous_labels": 0,
+        "boots_decisions": 3343,
+        "boots_hits": 2253,
+        "decisions": 13614,
+        "legendary_decisions": 10271,
+        "path_hits": 5204,
+        "path_top3_hits": 6346,
+        "target_hits": 5958
+      }
+    },
+    "invalid_frames": 0,
+    "repeat_examples": [],
+    "schema": 1,
+    "split": "validation",
+    "violation_counts": {},
+    "violation_examples": []
+  },
+  "candidate": {
+    "fingerprint": "d3f36fb353ffe62aa040523f3ac03daad633f9ae6474e34a39fb5d5d23cf9c39",
+    "frames": 88959,
+    "games": 3924,
+    "groups": {
+      "ADC": {
+        "affordable_detours": 162,
+        "flips": 201,
+        "frames": 15697,
+        "invalid_frames": 0,
+        "missing_target_candidates": 8153,
+        "no_target": 354,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 7983
+      },
+      "ADC/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 10,
+        "boots_decisions": 571,
+        "boots_hits": 422,
+        "decisions": 2734,
+        "legendary_decisions": 2163,
+        "path_hits": 1453,
+        "path_top3_hits": 1557,
+        "target_hits": 1614
+      },
+      "ADC/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 574,
+        "boots_hits": 424,
+        "decisions": 2739,
+        "legendary_decisions": 2165,
+        "path_hits": 1294,
+        "path_top3_hits": 1487,
+        "target_hits": 1402
+      },
+      "Jungle": {
+        "affordable_detours": 139,
+        "flips": 183,
+        "frames": 18933,
+        "invalid_frames": 0,
+        "missing_target_candidates": 8028,
+        "no_target": 242,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 9414
+      },
+      "Jungle/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 4,
+        "boots_decisions": 675,
+        "boots_hits": 402,
+        "decisions": 3263,
+        "legendary_decisions": 2588,
+        "path_hits": 1439,
+        "path_top3_hits": 1593,
+        "target_hits": 1559
+      },
+      "Jungle/start": {
+        "already_owned_labels": 1,
+        "ambiguous_labels": 0,
+        "boots_decisions": 675,
+        "boots_hits": 402,
+        "decisions": 3231,
+        "legendary_decisions": 2556,
+        "path_hits": 1253,
+        "path_top3_hits": 1484,
+        "target_hits": 1333
+      },
+      "Mid": {
+        "affordable_detours": 39,
+        "flips": 94,
+        "frames": 14531,
+        "invalid_frames": 0,
+        "missing_target_candidates": 11063,
+        "no_target": 41,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 7386
+      },
+      "Mid/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 6,
+        "boots_decisions": 589,
+        "boots_hits": 381,
+        "decisions": 2280,
+        "legendary_decisions": 1691,
+        "path_hits": 1062,
+        "path_top3_hits": 1190,
+        "target_hits": 1104
+      },
+      "Mid/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 588,
+        "boots_hits": 380,
+        "decisions": 2272,
+        "legendary_decisions": 1684,
+        "path_hits": 994,
+        "path_top3_hits": 1146,
+        "target_hits": 1068
+      },
+      "Support": {
+        "affordable_detours": 56,
+        "flips": 129,
+        "frames": 24087,
+        "invalid_frames": 0,
+        "missing_target_candidates": 16721,
+        "no_target": 5,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 9963
+      },
+      "Support/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 4,
+        "boots_decisions": 920,
+        "boots_hits": 655,
+        "decisions": 3064,
+        "legendary_decisions": 2144,
+        "path_hits": 1184,
+        "path_top3_hits": 1423,
+        "target_hits": 1504
+      },
+      "Support/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 920,
+        "boots_hits": 655,
+        "decisions": 3034,
+        "legendary_decisions": 2114,
+        "path_hits": 916,
+        "path_top3_hits": 1297,
+        "target_hits": 1240
+      },
+      "Top": {
+        "affordable_detours": 69,
+        "flips": 143,
+        "frames": 15711,
+        "invalid_frames": 0,
+        "missing_target_candidates": 9177,
+        "no_target": 81,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 8227
+      },
+      "Top/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 8,
+        "boots_decisions": 587,
+        "boots_hits": 393,
+        "decisions": 2353,
+        "legendary_decisions": 1766,
+        "path_hits": 957,
+        "path_top3_hits": 1051,
+        "target_hits": 1138
+      },
+      "Top/start": {
+        "already_owned_labels": 1,
+        "ambiguous_labels": 0,
+        "boots_decisions": 586,
+        "boots_hits": 392,
+        "decisions": 2338,
+        "legendary_decisions": 1752,
+        "path_hits": 750,
+        "path_top3_hits": 933,
+        "target_hits": 920
+      },
+      "Xayah": {
+        "affordable_detours": 5,
+        "flips": 5,
+        "frames": 331,
+        "invalid_frames": 0,
+        "missing_target_candidates": 178,
+        "no_target": 3,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 159
+      },
+      "Xayah/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 13,
+        "boots_hits": 11,
+        "decisions": 61,
+        "legendary_decisions": 48,
+        "path_hits": 38,
+        "path_top3_hits": 43,
+        "target_hits": 41
+      },
+      "Xayah/start": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 0,
+        "boots_decisions": 13,
+        "boots_hits": 11,
+        "decisions": 61,
+        "legendary_decisions": 48,
+        "path_hits": 35,
+        "path_top3_hits": 43,
+        "target_hits": 37
+      },
+      "all": {
+        "affordable_detours": 465,
+        "flips": 750,
+        "frames": 88959,
+        "invalid_frames": 0,
+        "missing_target_candidates": 53142,
+        "no_target": 723,
+        "repeat_flips": 0,
+        "repeat_path_flips": 0,
+        "transitions": 42973
+      },
+      "all/purchase": {
+        "already_owned_labels": 0,
+        "ambiguous_labels": 32,
+        "boots_decisions": 3342,
+        "boots_hits": 2253,
+        "decisions": 13694,
+        "legendary_decisions": 10352,
+        "path_hits": 6095,
+        "path_top3_hits": 6814,
+        "target_hits": 6919
+      },
+      "all/start": {
+        "already_owned_labels": 2,
+        "ambiguous_labels": 0,
+        "boots_decisions": 3343,
+        "boots_hits": 2253,
+        "decisions": 13614,
+        "legendary_decisions": 10271,
+        "path_hits": 5207,
+        "path_top3_hits": 6347,
+        "target_hits": 5963
+      }
+    },
+    "invalid_frames": 0,
+    "repeat_examples": [],
+    "schema": 1,
+    "split": "validation",
+    "violation_counts": {},
+    "violation_examples": []
+  },
+  "provenance": {
+    "parent_fingerprint": "3299541853ee44ae380577dc3db69a82ad342ffe00facc4815d06c3076057934",
+    "candidate_fingerprint": "d3f36fb353ffe62aa040523f3ac03daad633f9ae6474e34a39fb5d5d23cf9c39",
+    "artifacts": {
+      "aggregates.json": "15e0e76ac01c4c27c7813d620328cafefefeac62d8d50961423ce44ecff04886",
+      "answers.json": "fe577124d2f1943cd30a1b7a4ce84abe9a53fa9eaad129164c7f176e5e440ffd",
+      "boots.json": "9665920a9639b0c51e1442f3b888bbf555347b37b7124db07ed521890daeae08",
+      "next_items.json": "17ebdf38c9ddb4b482d8536578c1a4de6bb3b7b45570641a9f1c269f106f4ccc",
+      "test.jsonl": "25c0b266c698e2bea5ec41e10474818ecaf247370a5710153fce4eb91c56b2fc",
+      "validation.jsonl": "6701548babafed377f4bd8a38ce9a91b56fa3f2b239a938e9e97950dd186db39"
+    },
+    "train_games": 58210,
+    "excluded_missing": 1,
+    "selected_strengths": {
+      "antiheal": "champion_control/C=0.1",
+      "cleanse": "champion_control/C=0.1",
+      "anti_burst": "champion_control/C=10.0"
+    },
+    "experiment_sha256": "7b0e00d2cea9a2ab01a14a5e52976c3606ab6879c18fff0ac93740a9c1fea97a"
+  },
+  "exported_candidate_sha256": "c77fd8e32a7a130b821424429bee978c8739e80f0248767327fc0a152140a6e0",
+  "runner_sha256": "e966ca8294ebc851bd70dd31a5d9610231c2763b55a690622a6747fd57d0e7f5"
+}

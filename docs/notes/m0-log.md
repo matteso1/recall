@@ -135,3 +135,25 @@
   aggregate results: `docs/notes/riot-reconstruction.md`.
 - 37 priors Python tests, 313 core tests and Clippy pass; legacy answer export reproduced exactly.
   Offline tooling only: no production models changed and no overlay restart performed.
+
+## 2026-09-28 — Expanded evaluation and defensive-model experiment
+
+- Recovered skill-elixir consumption from spent bonus-point evidence, excluded ability evolution
+  from ordinary ranks, and preserved observed support ward slots. On the fixed original pilot,
+  recovered 3,364 exact player observations with no new unexplained events; known opponent
+  coverage rises from 80.5% to 84.7%. Earlier uncertain frames are not filled from later evidence.
+- Expanded to 1,556 validated pairs / 150 ladder seeds. Rejected one final-frame cadence outlier;
+  the collector now quarantines fresh rejected timelines and continues its bounded batch, while
+  still stopping on API/authentication or cached-corruption failures.
+- Added immutable private dataset snapshots. Expanded validation covers 210 player-games / 3,306
+  observations, with zero illegal recommendations or identical-state changes. Repeated runs give
+  identical metrics and fingerprints. Only seven anti-heal/three cleanse purchase windows remain.
+- Added reproducible defensive-answer model comparison on 4,257 held-out games / 157 players.
+  Own-champion/patch controls improve ownership prediction; role interactions show no clear gain.
+  Tested the controlled weights through the planner on 3,924 games / 88,959 identical observations:
+  four additional next-completion matches, one additional legendary-path match, no legality or
+  repeated-state regressions. Large weight changes are not justified by that tiny benefit; no
+  production model was promoted and no test partition was scored.
+- 48 priors Python tests, 313 core tests with evaluation enabled and core Clippy pass. All work is
+  offline; no installed executable change or overlay restart. Reports: `riot-inventory-recovery.md`,
+  `riot-expanded-evaluation.md`, `answer-model-evaluation.md` and their aggregate JSON files.

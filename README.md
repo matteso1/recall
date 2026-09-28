@@ -144,6 +144,9 @@ records measurement limits and the remaining heuristic terms. The
 path changes across the 181,106-frame validation/test comparison.
 The [Match-v5 collector](tools/priors/README.md#complete-match-v5-collection) gathers complete
 historical timelines privately; new data is evaluated before entering production models.
+Use [frozen datasets](docs/notes/riot-expanded-evaluation.md) to keep comparisons reproducible
+while collection continues. The [answer-model experiment](docs/notes/answer-model-evaluation.md)
+records why a better purchase classifier did not justify changing the planner's live weights.
 
 Offline replay checks every recorded state of a captured game for legality:
 

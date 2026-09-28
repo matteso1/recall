@@ -277,3 +277,24 @@ The [inventory follow-up](../../docs/notes/riot-inventory-recovery.md) recovers 
 elixirs only after a spent bonus point proves consumption, ignores ability evolution as a rank,
 and preserves observed support ward slots. The [expanded evaluation](../../docs/notes/riot-expanded-evaluation.md)
 records the larger frozen cohort and its remaining gaps.
+
+## Answer-model experiments
+
+```bash
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 ~/data/recall/.venv/bin/python \
+  tools/priors/evaluate_answers.py \
+  --output ~/data/recall/evaluation/answer-models.json \
+  --candidate-pack ~/data/recall/evaluation/controlled-answer-pack.json
+```
+
+This separate legacy-corpus experiment compares the current role/enemy model structure,
+own-champion/patch controls, and role-by-enemy interactions. It uses player/match-disjoint
+training and validation, excludes missing timeline labels, fits vocabulary only on training,
+and reports log loss, Brier score, average precision and paired player-bootstrap intervals.
+It records input/code hashes, chooses regularization on validation, leaves test unscored,
+and exports no production model. Ownership prediction is not optimal timing or win benefit;
+any candidate still needs a same-case full-planner comparison. The
+[optional candidate pack](../../docs/notes/answer-model-evaluation.md) retains the existing
+sample floors and odds-to-weight mapping and must be written outside Git. It is a research
+artifact, never automatically installed. The first experiment improved classifier fit but
+barely changed full-planner purchase agreement, so its weights were not promoted.

@@ -92,6 +92,12 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   requires exact self and counts omitted peers. Never backfill history from final items. See
   `docs/notes/riot-reconstruction.md`: the pilot is too sparse to promote new answer weights.
   Validation targets and matches are held out; contextual non-seed peers can recur across splits.
+  Freeze comparisons with `riot_dataset.py` and pass the same `--dataset` to each run; collection
+  can then continue without changing case membership. The expanded private store has 1,556 pairs
+  and 150 ladder seeds; `docs/notes/riot-expanded-evaluation.md` records coverage and limitations.
+  `evaluate_answers.py` compares defensive ownership models and optionally writes a research pack
+  outside Git. Own-champion/patch controls improve classifier fit but barely change planner
+  agreement; do not promote those weights. See `docs/notes/answer-model-evaluation.md`.
 - The bot-lane role quest hides the player's boots from the Live Client item list (16.x). `core/src/roleslot.rs`
   keeps them owned (a vanish without a 70% sale refund or an undo) and follows their upgrade, as a virtual slot 9.
 - Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's

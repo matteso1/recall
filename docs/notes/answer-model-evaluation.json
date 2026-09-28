@@ -1,0 +1,243 @@
+{
+  "models": {
+    "shared/C=1.0": {
+      "antiheal": {
+        "positives": 495,
+        "log_loss": 0.32957133941217287,
+        "brier": 0.09585421340328461,
+        "average_precision": 0.26039710872748406
+      },
+      "cleanse": {
+        "positives": 51,
+        "log_loss": 0.05441064969386226,
+        "brier": 0.011401569780080473,
+        "average_precision": 0.10151115068297396
+      },
+      "anti_burst": {
+        "positives": 686,
+        "log_loss": 0.39225000578634084,
+        "brier": 0.12219185121577637,
+        "average_precision": 0.3230285684597042
+      }
+    },
+    "champion_control/C=0.1": {
+      "antiheal": {
+        "positives": 495,
+        "log_loss": 0.31450225503279167,
+        "brier": 0.09241200712214179,
+        "average_precision": 0.3103569988510166
+      },
+      "cleanse": {
+        "positives": 51,
+        "log_loss": 0.05158892954191032,
+        "brier": 0.01124421944042577,
+        "average_precision": 0.12242246741758193
+      },
+      "anti_burst": {
+        "positives": 686,
+        "log_loss": 0.30907658950753164,
+        "brier": 0.09537708190031037,
+        "average_precision": 0.5801098235835188
+      }
+    },
+    "champion_control/C=1.0": {
+      "antiheal": {
+        "positives": 495,
+        "log_loss": 0.317693240615598,
+        "brier": 0.0930295661633088,
+        "average_precision": 0.31032509657264284
+      },
+      "cleanse": {
+        "positives": 51,
+        "log_loss": 0.05174954739382344,
+        "brier": 0.01113123406741087,
+        "average_precision": 0.14590262112567542
+      },
+      "anti_burst": {
+        "positives": 686,
+        "log_loss": 0.30328165338866303,
+        "brier": 0.09469018179978556,
+        "average_precision": 0.583712796122963
+      }
+    },
+    "champion_control/C=10.0": {
+      "antiheal": {
+        "positives": 495,
+        "log_loss": 0.31893908647394353,
+        "brier": 0.09321191317967592,
+        "average_precision": 0.3101744015165947
+      },
+      "cleanse": {
+        "positives": 51,
+        "log_loss": 0.05210542665171993,
+        "brier": 0.011167313259806409,
+        "average_precision": 0.15074452191522886
+      },
+      "anti_burst": {
+        "positives": 686,
+        "log_loss": 0.30281661184165004,
+        "brier": 0.09476581087725423,
+        "average_precision": 0.5839454291472386
+      }
+    },
+    "role_interaction/C=0.1": {
+      "antiheal": {
+        "positives": 495,
+        "log_loss": 0.3124955557795351,
+        "brier": 0.09151572810506717,
+        "average_precision": 0.32828176335136233
+      },
+      "cleanse": {
+        "positives": 51,
+        "log_loss": 0.051799831538665075,
+        "brier": 0.011199070180737706,
+        "average_precision": 0.12272309658697135
+      },
+      "anti_burst": {
+        "positives": 686,
+        "log_loss": 0.3092956770039578,
+        "brier": 0.09559570458633235,
+        "average_precision": 0.5781478148068335
+      }
+    },
+    "role_interaction/C=1.0": {
+      "antiheal": {
+        "positives": 495,
+        "log_loss": 0.31891427169999875,
+        "brier": 0.09274427660263472,
+        "average_precision": 0.3270537728954774
+      },
+      "cleanse": {
+        "positives": 51,
+        "log_loss": 0.05355469191158656,
+        "brier": 0.011217939755849735,
+        "average_precision": 0.13311690180506427
+      },
+      "anti_burst": {
+        "positives": 686,
+        "log_loss": 0.30558059307610336,
+        "brier": 0.09556314283334712,
+        "average_precision": 0.5796408612146144
+      }
+    },
+    "role_interaction/C=10.0": {
+      "antiheal": {
+        "positives": 495,
+        "log_loss": 0.32048209732250305,
+        "brier": 0.09295783898179846,
+        "average_precision": 0.32793545475746266
+      },
+      "cleanse": {
+        "positives": 51,
+        "log_loss": 0.05852370623585383,
+        "brier": 0.01163261750475262,
+        "average_precision": 0.1180131482475831
+      },
+      "anti_burst": {
+        "positives": 686,
+        "log_loss": 0.3068567827478532,
+        "brier": 0.09603530831587322,
+        "average_precision": 0.5772147996279857
+      }
+    }
+  },
+  "comparisons": {
+    "antiheal": {
+      "champion_control": {
+        "baseline": "shared/C=1.0",
+        "candidate": "champion_control/C=0.1",
+        "loss_delta": -0.015069084379381138,
+        "interval_95": [
+          -0.0282288693953954,
+          -0.004396135262742616
+        ]
+      },
+      "role_interaction": {
+        "baseline": "champion_control/C=0.1",
+        "candidate": "role_interaction/C=0.1",
+        "loss_delta": -0.00200669925325667,
+        "interval_95": [
+          -0.005412611370609586,
+          0.0018276018727467072
+        ]
+      }
+    },
+    "cleanse": {
+      "champion_control": {
+        "baseline": "shared/C=1.0",
+        "candidate": "champion_control/C=0.1",
+        "loss_delta": -0.002821720151951946,
+        "interval_95": [
+          -0.005528771322918145,
+          -0.0005885435358100643
+        ]
+      },
+      "role_interaction": {
+        "baseline": "champion_control/C=0.1",
+        "candidate": "role_interaction/C=0.1",
+        "loss_delta": 0.00021090199675475685,
+        "interval_95": [
+          -0.000577532571710631,
+          0.0015414565918097842
+        ]
+      }
+    },
+    "anti_burst": {
+      "champion_control": {
+        "baseline": "shared/C=1.0",
+        "candidate": "champion_control/C=10.0",
+        "loss_delta": -0.08943339394469085,
+        "interval_95": [
+          -0.12443920500138192,
+          -0.05857641025310888
+        ]
+      },
+      "role_interaction": {
+        "baseline": "champion_control/C=10.0",
+        "candidate": "role_interaction/C=1.0",
+        "loss_delta": 0.00276398123445332,
+        "interval_95": [
+          -0.0005822119169638467,
+          0.0063834648495972104
+        ]
+      }
+    }
+  },
+  "schema": 1,
+  "protocol": "legacy-answer-ownership-validation-v1",
+  "train_games": 58210,
+  "validation_games": 4257,
+  "train_players": 800,
+  "validation_players": 157,
+  "excluded_missing_timeline": {
+    "train": 1,
+    "validation": 0
+  },
+  "source_hashes": {
+    "players.parquet": "0aedc18b97aa86b0614311d9e5637a80f347cee5ae07529816f4d590c0bfcb51",
+    "MatchTimelineTbl.csv": "b0ccfa55f15214b752c7e2231d1b44ef0ab18a9f14a873dad0293bae50569c9e"
+  },
+  "code_hashes": {
+    "evaluate_answers.py": "9d423e506defdbe64a068abe6b86773c79ecaabc5973dea4191bda5783a5bf09",
+    "backtest.py": "8fcf70944e6eabf7a0d5989d6676d7a329e822ddfca3c900e5b7324e0d793c9c",
+    "export_answers.py": "3a10d3e101a9c89807f94ccaf519b8f4ba605287d5a4554e34815147e9e06b2c"
+  },
+  "selection": {
+    "strengths": [
+      0.1,
+      1.0,
+      10.0
+    ],
+    "metric": "validation log loss",
+    "bootstrap_replicates": 500,
+    "bootstrap_unit": "player",
+    "seed": 20260928
+  },
+  "limitations": [
+    "Ever owns an answer, not purchase timing, causality, or win improvement.",
+    "Own-champion and patch controls are added together; their effects are not separated.",
+    "Strength selection and bootstrap comparisons reuse validation: exploratory intervals, not final test evidence.",
+    "No production export or test split scoring. Planner behavior requires a separate same-case comparison."
+  ],
+  "candidate_pack_sha256": "c77fd8e32a7a130b821424429bee978c8739e80f0248767327fc0a152140a6e0"
+}
