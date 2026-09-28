@@ -161,6 +161,14 @@ function renderSwiftplay(s) {
     <p class="hint">Your assigned champion appears when the game starts.</p>
   </section>`;
 }
+// Champ select, before the player's ban: who to ban for the champion they intend to play.
+function renderBans(lobby) {
+  const bans = lobby?.bans;
+  if (!bans?.picks?.length) return '';
+  return `<section id="ban-advice" class="bans" aria-label="Ban suggestions"><div class="pregame-heading">Ban for ${esc(bans.label)}</div>
+    <ol>${bans.picks.map(ban => `<li>${icon(champIcon(ban.name), ban.name)}<div><strong>${esc(ban.name)}</strong><p class="hint">${esc(ban.reason)}</p></div></li>`).join('')}</ol>
+    ${bans.matchup ? '' : '<p class="hint">Hover your champion for bans against it.</p>'}</section>`;
+}
 function renderMain(s) {
   const plan = s.plan;
   if (s.phase === 'swiftplay') return renderSwiftplay(s);
@@ -170,13 +178,14 @@ function renderMain(s) {
     const age = finite(s.live_source?.age_ms) ? ` Last update ${Math.floor(Math.max(s.live_source.age_ms,elapsed) / 1000)}s ago.` : '';
     return `<div id="live-warning" class="message warn">Waiting for fresh game data.${esc(age)}</div><p class="hint">Purchase and skill advice is paused until your live state is confirmed.</p>${renderPath(plan)}`;
   }
-  if (!s.supported || !plan?.path?.length) return `<div class="message warn">${esc(s.message || plan?.note || 'Loading this champion’s build data…')}</div><p class="hint">Only this champion’s own data is used; another champion’s build is never substituted.</p>`;
+  const bans = s.phase === 'champselect' ? renderBans(s.lobby) : '';
+  if (!s.supported || !plan?.path?.length) return bans + `<div class="message warn">${esc(s.message || plan?.note || 'Loading this champion’s build data…')}</div><p class="hint">Only this champion’s own data is used; another champion’s build is never substituted.</p>`;
   // A same-champion fallback (no data for the assigned role) is said out loud, above the action.
   const fallback = plan.source_position
     ? `<p id="fallback-note" class="message warn" title="${esc(plan.note || '')}">${esc(plan.note || `No ${plan.position} data; using the ${plan.source_position} build as a starting point.`)}</p>` : '';
   if (s.phase === 'ingame') return fallback + renderNext(plan) + renderWhy(plan) + renderPath(plan) + renderSkill(plan, s.flash);
   const enemies = s.lobby?.enemies || [];
-  return `<div class="pregame-heading">Your loadout is ready</div>${fallback}${plan.matchup ? `<p class="matchup">${esc(plan.matchup)}</p>` : ''}
+  return `${bans}<div class="pregame-heading">Your loadout is ready</div>${fallback}${plan.matchup ? `<p class="matchup">${esc(plan.matchup)}</p>` : ''}
     ${enemies.length ? `<div class="teams" aria-label="Enemy champions">${enemies.map(name => icon(champIcon(name), name)).join('')}</div>` : ''}
     ${renderPath(plan)}${renderLoadout(plan)}<div class="row import-row">${importButton('import_runes', 'Runes', s.imports?.runes)}${importButton('import_spells', 'Spells', s.imports?.spells)}${importButton('import_item_set', 'Item set', s.imports?.itemset)}</div>`;
 }

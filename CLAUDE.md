@@ -56,6 +56,8 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   whenever the user may be gaming (see the shared-machine rule: no windows/League/screenshots then).
 - Never hold a `std::sync::Mutex` guard across an `.await` (clone out, then await).
 - The data pack (`data/pack/*.json`) is embedded with `include_str!`; a pack change needs a rebuild.
+- Champ select ban suggestions (`core/src/bans.rs`, `data/pack/bans.json` from `tools/priors/export_bans.py`) show
+  while the player's own ban action is pending, for the hovered/declared champion (role table without one).
 - Engine v3 (since 2026-09-27): the next legendary items come from what Master+ players on the champion and role
   bought next with the same owned legendaries (`core/src/nextprior.rs`, `data/pack/next_items.json`, built by
   `tools/priors/`), scaled by measured enemy-composition lifts (healer, magic-heavy, tanky) and a small live-state

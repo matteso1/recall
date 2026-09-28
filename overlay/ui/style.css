@@ -99,6 +99,10 @@ select:disabled { opacity: .6; }
 .pregame-heading { color: var(--gold); font-weight: 600; }
 .matchup { color: var(--text); font-size: 11px; }
 .teams, .loadout { display: flex; align-items: center; gap: 7px; }
+.bans ol { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.bans li { display: flex; align-items: flex-start; gap: 7px; min-width: 0; }
+.bans li .ico { flex: none; width: 23px; height: 23px; }
+.bans li p { margin: 1px 0 0; }
 .teams .ico, .loadout .ico { width: 23px; height: 23px; }
 .round, .round img { border-radius: 50%; }
 .loadout .sep { height: 20px; width: 1px; background: var(--line); margin: 0 3px; }

@@ -49,6 +49,7 @@ pub async fn run(app: AppHandle, st: Arc<App>, phase: String) {
         allies,
         enemies: enemies.clone(),
         my_position: "bottom".into(),
+        bans: None,
     };
 
     st.update(&app, |p| {

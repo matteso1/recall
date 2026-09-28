@@ -28,6 +28,23 @@ pub struct LobbyView {
     pub allies: Vec<String>,
     pub enemies: Vec<String>,
     pub my_position: String,
+    /// Who to ban, while the player's ban is still to come.
+    pub bans: Option<BanAdvice>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, PartialEq)]
+pub struct BanAdvice {
+    /// The champion and role the bans are for ("Xayah ADC"), or only the role without a champion's data.
+    pub label: String,
+    /// Whether the bans are the chosen champion's own (false: the role's).
+    pub matchup: bool,
+    pub picks: Vec<BanView>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, PartialEq)]
+pub struct BanView {
+    pub name: String,
+    pub reason: String,
 }
 
 #[derive(Clone, Debug, Default, Serialize, PartialEq)]

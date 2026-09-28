@@ -371,3 +371,22 @@ test('all real role fixtures render a single action without script errors', asyn
   }
   expect(errors).toEqual([]);
 });
+
+test('champ select names bans for the intended champion until the ban is done', async ({ page }) => {
+  const reason = 'Xayah win 49% with Tristana in the game (57% overall); Tristana is in 12% of their games.';
+  const lobby = { allies: ['Xayah'], enemies: [], my_position: 'bottom',
+    bans: { label: 'Xayah ADC', matchup: true, picks: [{ name: 'Tristana', reason }, { name: 'Camille', reason: 'Camille line' }] } };
+  const state = { ...fixture(), phase: 'champselect', gameflow: 'ChampSelect', lobby };
+  await openPanel(page, fixture());
+  await page.evaluate(next => window.emitState(next), state);
+  await expect(page.locator('#ban-advice')).toContainText('Ban for Xayah ADC');
+  await expect(page.locator('#ban-advice li').first()).toContainText(reason);
+  await expect(page.locator('#ban-advice')).not.toContainText('Hover your champion');
+  // No champion yet: the role's bans, above the pick prompt.
+  await page.evaluate(next => window.emitState(next), { ...state, supported: false, plan: null, message: 'Pick a champion',
+    lobby: { ...lobby, bans: { label: 'ADC', matchup: false, picks: [{ name: 'Hecarim', reason: 'ADC players win 47%' }] } } });
+  await expect(page.locator('#ban-advice')).toContainText('Hover your champion for bans against it.');
+  await expect(page.locator('#main-content')).toContainText('Pick a champion');
+  await page.evaluate(next => window.emitState(next), { ...state, lobby: { ...lobby, bans: null } });
+  await expect(page.locator('#ban-advice')).toHaveCount(0);
+});

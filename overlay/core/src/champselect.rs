@@ -11,6 +11,8 @@ pub struct Lobby {
     /// Locked or hovered champion (0 = none yet)
     pub my_champion: u32,
     pub my_locked: bool,
+    /// The player has a ban action that is not completed yet (draft modes only).
+    pub my_ban_pending: bool,
     /// top | jungle | middle | bottom | utility | "" (custom games, blind pick)
     pub my_position: String,
     /// My current summoner spells (D, F); 0 when unknown
@@ -59,6 +61,7 @@ pub fn extract(session: &Value) -> Lobby {
         .to_string();
 
     let mut completed: HashSet<i64> = HashSet::new();
+    let mut my_ban_pending = false;
     for group in session
         .get("actions")
         .and_then(Value::as_array)
@@ -66,9 +69,14 @@ pub fn extract(session: &Value) -> Lobby {
         .flatten()
     {
         for a in group.as_array().into_iter().flatten() {
-            if a.get("type").and_then(Value::as_str) == Some("pick")
-                && a.get("completed").and_then(Value::as_bool).unwrap_or(false)
+            let done = a.get("completed").and_then(Value::as_bool).unwrap_or(false);
+            if a.get("type").and_then(Value::as_str) == Some("ban")
+                && a.get("actorCellId").and_then(Value::as_i64) == Some(my_cell)
+                && !done
             {
+                my_ban_pending = true;
+            }
+            if a.get("type").and_then(Value::as_str) == Some("pick") && done {
                 completed.insert(a.get("actorCellId").and_then(Value::as_i64).unwrap_or(-1));
             }
         }
@@ -77,6 +85,7 @@ pub fn extract(session: &Value) -> Lobby {
     let mut lobby = Lobby {
         phase,
         my_cell,
+        my_ban_pending,
         ..Default::default()
     };
     for p in session
@@ -154,6 +163,26 @@ mod tests {
             lock.my_spells
         );
         assert!(lock.enemies.is_empty());
+    }
+
+    #[test]
+    fn own_ban_pending_until_completed() {
+        let session = |done: bool| {
+            serde_json::json!({
+                "localPlayerCellId": 2,
+                "actions": [[
+                    {"type": "ban", "actorCellId": 1, "championId": 0, "completed": false},
+                    {"type": "ban", "actorCellId": 2, "championId": 18, "completed": done}
+                ]],
+                "myTeam": [{"cellId": 2, "championPickIntent": 498, "assignedPosition": "bottom"}]
+            })
+        };
+        let lobby = extract(&session(false));
+        assert!(lobby.my_ban_pending);
+        assert_eq!(lobby.my_champion, 498, "the declared intent");
+        assert!(!extract(&session(true)).my_ban_pending);
+        let draft = extract(&serde_json::from_str(DRAFT).unwrap());
+        assert!(!draft.my_ban_pending, "no ban action of the player's own");
     }
 
     #[test]

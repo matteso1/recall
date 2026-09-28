@@ -21,6 +21,9 @@ parent of its own folder and writes `data/dec.parquet`, so copy it and `lib.py` 
    owned legendary set and build step, plus the role's enemy-composition lifts (healer, magic-heavy, tanky, defined
    from `data/pack/champion_traits.json` exactly as `nextprior::Comp` does). With `holdout`, 15% of players are held
    out: owned-set model top-1 0.506 / top-3 0.759 against 0.474 / 0.712 for a static build order.
+6. `export_bans.py <players.parquet> <champion.json> <out.json>`: champ select ban suggestions per champion and
+   role (`data/pack/bans.json`, read by `core/src/bans.rs`): enemy presence x (base win rate - win rate with that
+   enemy in the game, shrunk 30 games toward the base). Champion-roles under 200 games use the role's table.
 
 Re-run per patch: patches 16.17-16.18 count double (their shop equals 16.19's), 16.13-16.16 half. When the shop
 changes, rebuild with the new patch data and re-check the item diff first.

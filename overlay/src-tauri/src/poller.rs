@@ -81,6 +81,7 @@ fn lobby_view(lobby: &Lobby, catalog: &Catalog) -> LobbyView {
             .map(|k| catalog.champion_name(*k))
             .collect(),
         my_position: lobby.my_position.clone(),
+        bans: recall_core::bans::for_lobby(lobby, catalog),
     }
 }
 
@@ -1161,6 +1162,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                                     allies,
                                     enemies: enemies.clone(),
                                     my_position: position,
+                                    bans: None,
                                 });
                                 p.message = if supported {
                                     None
