@@ -68,7 +68,7 @@ fn plan_summary(plan: &Plan) -> String {
     )
 }
 
-fn lobby_view(lobby: &Lobby, catalog: &Catalog) -> LobbyView {
+fn lobby_view(lobby: &Lobby, catalog: &Catalog, aggregate: Option<&Aggregate>) -> LobbyView {
     LobbyView {
         allies: lobby
             .allies
@@ -81,7 +81,7 @@ fn lobby_view(lobby: &Lobby, catalog: &Catalog) -> LobbyView {
             .map(|k| catalog.champion_name(*k))
             .collect(),
         my_position: lobby.my_position.clone(),
-        bans: recall_core::bans::for_lobby(lobby, catalog),
+        bans: recall_core::bans::for_lobby_with_aggregate(lobby, catalog, aggregate),
     }
 }
 
@@ -916,7 +916,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                 log::info!("{summary}");
                 last_summary = summary;
             }
-            let view = lobby_view(&lobby, &catalog);
+            let view = lobby_view(&lobby, &catalog, agg.as_deref());
             let source = aggregate_source(agg.as_deref(), now);
             *st.lobby.lock().unwrap() = Some(lobby.clone());
             *st.lobby_observed_at_ms.lock().unwrap() = own_identity.then_some(client.session_at_ms);
