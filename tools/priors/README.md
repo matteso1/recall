@@ -27,10 +27,12 @@ parent of its own folder and writes `data/dec.parquet`, so copy it and `lib.py` 
 7. `export_cs.py <MatchTimelineTbl.csv> <players.parquet> <champion.json> <out.json>`: median CS at 10 minutes and
    CS per minute per champion and role (`data/pack/cs_bench.json`, read by `core/src/csbench.rs` for the post-game
    recap). Master+ ADCs: 78 CS at 10, 8.0 per minute; Xayah 80 and 8.7.
-8. `export_antiheal.py <MatchTimelineTbl.csv> <players.parquet> <out.json>`: per enemy champion, the odds ratio of
-   owning a Grievous Wounds item (logistic regression on role + the five enemies) and a 0-1 weight
-   (`data/pack/antiheal.json`, read by `core/src/antiheal.rs` in place of the binary healing trait). Soraka 6.8x,
-   Aatrox 3.3x, Zac 2.6x, Sylas 1.6x, Garen 0.8x.
+8. `export_answers.py <MatchTimelineTbl.csv> <players.parquet> <out.json>`: per answer (anti-heal, cleanse,
+   anti-burst) and enemy champion, the odds ratio of owning one of the answer's items (logistic regression on role +
+   the five enemies) and a 0-1 weight (`data/pack/answers.json`, read by `core/src/answers.rs` in place of the
+   healing, suppression and assassin/burst tags). Anti-heal: Soraka 6.8x, Zac 2.6x, Garen 0.8x. Cleanse: Malzahar
+   12x, Lissandra 5.5x (untagged), Warwick 2.1x. Anti-burst: Zed 1.75x, Syndra 1.05x. Tanks (armor pen ~1.0x) and
+   poke (ADC boots unchanged by poke) showed no reaction worth modelling.
 
 Re-run per patch: patches 16.17-16.18 count double (their shop equals 16.19's), 16.13-16.16 half. When the shop
 changes, rebuild with the new patch data and re-check the item diff first.

@@ -1,4 +1,5 @@
 //! Bounded candidate comparison. Scores are explicit policy values, not win probabilities.
+use crate::answers::Answer;
 use crate::coaching::{self, DecisionKind, Evidence, LearningTip};
 use crate::ddragon::{normalize, Catalog, GrievousTrigger, Item, ShieldEffect};
 use crate::engine::{
@@ -222,7 +223,10 @@ struct Needs {
     healing: f64,
     healing_name: String,
     healing_observed: bool,
-    suppression: Option<(String, String)>,
+    /// Strongest cleanse call among enemies (0-1) and who: the champion and, for a verified
+    /// suppression, the ability.
+    cleanse: f64,
+    cleanse_threat: Option<(String, Option<String>)>,
     physical_share: f64,
     magic_share: f64,
     physical_name: String,
@@ -621,12 +625,13 @@ impl Needs {
             }
             // How much Master+ players answer this champion with anti-heal (the healing trait only
             // for champions the corpus lacks).
-            let heal_weight =
-                crate::antiheal::weight(&name).unwrap_or(if t.is_some_and(|t| t.healing) {
+            let heal_weight = crate::answers::weight(Answer::AntiHeal, &name).unwrap_or(
+                if t.is_some_and(|t| t.healing) {
                     1.0
                 } else {
                     0.0
-                });
+                },
+            );
             if heal_weight > 0.0 {
                 let in_lane = player
                     .and_then(|p| crate::aggregate::Position::parse(&p.position))
@@ -642,23 +647,35 @@ impl Needs {
                     n.healing_name = name.clone();
                 }
             }
+            // Dive and cleanse, like anti-heal, by how Master+ players answer the champion.
+            let dive_weight = crate::answers::weight(Answer::AntiBurst, &name).unwrap_or(
+                if t.is_some_and(|t| t.assassin || t.burst) {
+                    1.0
+                } else {
+                    0.0
+                },
+            );
+            n.dive = (n.dive + 0.25 * threat * dive_weight).min(1.0);
+            let suppression = t.and_then(|t| t.control.as_ref()).filter(|control| {
+                control.kind == ControlKind::Suppression
+                    && inp
+                        .catalog
+                        .version
+                        .starts_with(&format!("{}.", control.verified_patch))
+            });
+            let cleanse_weight = crate::answers::weight(Answer::Cleanse, &name)
+                .unwrap_or(if suppression.is_some() { 1.0 } else { 0.0 });
+            // Mostly ultimates: counted from level 6, as the suppression tag always was.
+            if cleanse_weight > n.cleanse && player.is_none_or(|p| p.level >= 6) {
+                n.cleanse = cleanse_weight;
+                n.cleanse_threat = Some((
+                    name.clone(),
+                    suppression.map(|control| control.ability.clone()),
+                ));
+            }
             if let Some(t) = t {
-                if t.assassin || t.burst {
-                    n.dive = (n.dive + 0.25 * threat).min(1.0);
-                }
                 if t.poke {
                     n.poke = (n.poke + 0.3).min(1.0);
-                }
-                if let Some(control) = &t.control {
-                    if control.kind == ControlKind::Suppression
-                        && inp
-                            .catalog
-                            .version
-                            .starts_with(&format!("{}.", control.verified_patch))
-                        && player.is_none_or(|p| p.level >= 6)
-                    {
-                        n.suppression = Some((name.clone(), control.ability.clone()));
-                    }
                 }
             }
         }
@@ -748,12 +765,23 @@ fn choose_boots(
             continue;
         }
         let f = fit(item, inp, n, archetype, planned, preferences.mode);
+        // Only the resistance question moves boots off the prior: Master+ ADCs buy Gluttonous Greaves
+        // in 23% of games whatever the enemy's poke (0 to 3 poke champions), so sustain is not a boots
+        // reason; with dive measured instead of tagged it had started to outscore Berserker's.
+        let fit = if matches!(
+            f.kind,
+            DecisionKind::MagicDefense | DecisionKind::PhysicalDefense
+        ) {
+            f.score
+        } else {
+            0.0
+        };
         let held = if preferences.last_path.contains(&id) {
             BOOTS_HOLD
         } else {
             0.0
         };
-        let score = 2.0 * line.pick_rate.max(0.0).sqrt() + BOOTS_FIT_WEIGHT * f.score + held;
+        let score = 2.0 * line.pick_rate.max(0.0).sqrt() + BOOTS_FIT_WEIGHT * fit + held;
         if best.as_ref().is_none_or(|(top, _, _)| score > *top) {
             best = Some((score, id, f.reason));
         }
@@ -1290,11 +1318,18 @@ fn fit(
         ));
     }
     if e.cleanse.is_some() && !covered(inp.catalog, already, |i| i.effects.cleanse.is_some()) {
-        if let Some((champ, ability)) = &n.suppression {
+        if let Some((champ, ability)) = &n.cleanse_threat {
+            let reason = match ability {
+                Some(ability) => format!("{short}: its active removes {champ}'s {ability} suppression"),
+                None => format!(
+                    "{short}: its active removes {champ}'s crowd control; Master+ players buy one {:.0}x as often against {champ}",
+                    crate::answers::odds(Answer::Cleanse, champ).unwrap_or(1.0)
+                ),
+            };
             terms.push((
-                3.2,
+                3.2 * n.cleanse,
                 DecisionKind::Cleanse,
-                format!("{short}: its active removes {champ}'s {ability} suppression"),
+                reason,
                 Evidence::Composition,
             ));
         }

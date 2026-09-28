@@ -492,6 +492,36 @@ fn actual_armor_amount_can_bring_penetration_forward() {
 }
 
 #[test]
+fn untagged_crowd_control_that_master_players_cleanse_gets_the_same_detour() {
+    // Lissandra has no suppression, but Master+ players own a cleanse 5.5x as often against her.
+    let lineup = ["Darius", "Lee Sin", "Lissandra", "Jinx", "Leona"];
+    let mut snap = live(&[3032, 3006], 1300.0);
+    for (champion, position) in lineup
+        .iter()
+        .zip(["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"])
+    {
+        snap.enemies.push(live::Player {
+            champion: champion.to_string(),
+            level: 10,
+            position: position.into(),
+            ..Default::default()
+        });
+    }
+    let p = planned(Some(&snap), &lineup, true);
+    assert_eq!(
+        p.next.as_ref().map(|n| n.id),
+        Some(3140),
+        "{:?}",
+        p.score_trace
+    );
+    assert!(
+        p.why[0].contains("Lissandra's crowd control"),
+        "{:?}",
+        p.why
+    );
+}
+
+#[test]
 fn verified_suppression_can_get_a_small_detour_then_resume_the_core() {
     // A realistic lineup around the one suppression: with Malzahar alone every point of damage is
     // magic, which (since Mercurial's resistance counts) turns this into a magic-resist question
