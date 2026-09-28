@@ -81,3 +81,14 @@
   states wait; a running game overrides a stale Lobby response. Process command lines are not read.
 - All 39 Python probe tests pass, including five guard contracts; shell syntax check passes. The
   live read-only check correctly holds in champion select. No forced in-game restart was performed.
+
+## 2026-09-28 — Faithful hidden-boot recording
+
+- Reviewing a completed game exposed a replay-only divergence: 77 gold earned between two saved
+  observations obscured a 300-gold hidden-boot upgrade. The live panel had correctly moved to the
+  next legendary, while replay still wanted boots. No live item rule was changed for this game.
+- Record the live role-slot result (including explicit absence) and trigger a line when it changes.
+  Replay restores that result after validating the item; legacy files retain best-effort inference.
+- The reproduction failed before the fix. 311 core tests and 40 runtime tests pass, including
+  sparse-observation restoration and recording a hidden upgrade without a visible bag change.
+  Core/runtime Clippy and Windows release type-check pass.

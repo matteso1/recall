@@ -378,6 +378,9 @@ fn recorded_game(bytes: &[u8]) -> Vec<(usize, Value)> {
         }
         if data.is_object() {
             data["events"] = json!({"Events": feed.clone()});
+            if let Some(boots) = record.get("role_slot_boots") {
+                data["_recall_role_slot_boots"] = boots.clone();
+            }
         }
         out.push((index + 1, data));
     }
@@ -405,6 +408,32 @@ fn restore_static(data: &mut Value, first: &Value) {
             }
         }
     }
+}
+
+/// New recordings retain the live tracker's result: sparse observations cannot
+/// reproduce every gold transaction. Missing metadata keeps the legacy inference.
+fn recorded_role_slot(value: &Value, snap: &mut LiveSnapshot, cat: &Catalog) -> Result<bool> {
+    let Some(boots) = value.get("_recall_role_slot_boots") else {
+        return Ok(false);
+    };
+    if boots.is_null() {
+        return Ok(true);
+    }
+    let item = boots
+        .as_u64()
+        .and_then(|id| u32::try_from(id).ok())
+        .and_then(|id| cat.item(id))
+        .filter(|item| item.effects.boots)
+        .ok_or_else(|| anyhow!("recorded role slot must contain a known boots item"))?;
+    if let Some(me) = snap.me.as_mut() {
+        me.player.items.push(recall_core::live::InvItem {
+            id: item.id,
+            name: item.name.clone(),
+            count: 1,
+            slot: recall_core::roleslot::ROLE_SLOT,
+        });
+    }
+    Ok(true)
 }
 
 fn capture_cases(
@@ -467,14 +496,21 @@ fn capture_cases(
         } else {
             path.parent().unwrap_or(root).to_string_lossy().into_owned()
         };
-        // A recorded game is one match in order: track the bot-lane quest's hidden boots across it,
-        // exactly as the overlay does live.
+        // Legacy captures infer hidden boots from sparse observations. New recordings
+        // retain the actual live tracker's result to avoid losing intervening income.
         let mut role_slot = recall_core::roleslot::RoleSlotTracker::default();
         for (source, value) in observations {
             let snapshot = match parse_snapshot(&value) {
                 Ok(Some(mut snapshot)) => {
                     if recorded {
-                        role_slot.apply(cat, &mut snapshot, &[]);
+                        match recorded_role_slot(&value, &mut snapshot, cat) {
+                            Ok(false) => role_slot.apply(cat, &mut snapshot, &[]),
+                            Ok(true) => {}
+                            Err(_) => {
+                                counts.invalid_capture += 1;
+                                continue;
+                            }
+                        }
                     }
                     snapshot
                 }
@@ -1420,6 +1456,68 @@ mod tests {
             "Flash"
         );
         assert_eq!(restored["gameData"]["gameTime"], 30.0);
+    }
+
+    #[test]
+    fn recorded_boot_state_survives_gold_income_between_saved_observations() {
+        let cat = catalog();
+        let directory =
+            std::env::temp_dir().join(format!("recall-replay-boots-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("game.jsonl");
+        let line = |time: f64, gold: f64, items: &[u32], boots: Value| {
+            json!({"kind": "live", "role_slot_boots": boots, "data": {
+                "activePlayer": {"riotId": "fixture#1", "currentGold": gold},
+                "allPlayers": [{"riotId": "fixture#1", "championName": "Xayah",
+                    "position": "BOTTOM", "team": "ORDER", "level": 8,
+                    "items": items.iter().enumerate().map(|(slot, id)|
+                        json!({"itemID": id, "count": 1, "slot": slot})).collect::<Vec<_>>() }],
+                "gameData": {"gameTime": time, "gameMode": "CLASSIC"}}})
+        };
+        let file = [
+            line(852.0, 445.0, &[3032, 1042, 1042], json!(2422)),
+            // The live two-second poll saw the 300g combine. A sparse capture
+            // also includes 77g income, so gold-difference inference misses it.
+            line(870.0, 222.0, &[3032], json!(3006)),
+            line(900.0, 1000.0, &[3032], Value::Null),
+            line(920.0, 1000.0, &[3032], json!(3031)), // reject non-boots metadata
+        ]
+        .iter()
+        .map(Value::to_string)
+        .collect::<Vec<_>>()
+        .join("\n");
+        std::fs::write(&path, file).unwrap();
+        let mut counts = LoadCounts::default();
+        let cases = capture_cases(
+            &Options {
+                session: Some(path),
+                ..Default::default()
+            },
+            &cat,
+            None,
+            &mut counts,
+        )
+        .unwrap();
+        let boots = |index: usize| -> Vec<u32> {
+            cases[index]
+                .live
+                .as_ref()
+                .unwrap()
+                .me
+                .as_ref()
+                .unwrap()
+                .player
+                .items
+                .iter()
+                .filter(|i| i.slot == recall_core::roleslot::ROLE_SLOT)
+                .map(|i| i.id)
+                .collect()
+        };
+        assert_eq!(boots(0), [2422]);
+        assert_eq!(boots(1), [3006]);
+        assert!(boots(2).is_empty());
+        assert_eq!(counts.invalid_capture, 1);
+        let _ = std::fs::remove_dir_all(directory);
     }
 
     #[test]

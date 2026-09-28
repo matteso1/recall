@@ -43,6 +43,8 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   observations with the panel's plan summary, written on any item/level/recommendation change and at least
   every 20 s of game time; the newest 40 are kept. Analyse games from there together with `recall.log` and
   `decisions.json`. They carry Riot IDs: never commit or upload them; scrub into fixtures instead.
+  New live lines include `role_slot_boots` (null means none), retaining the live tracker's inference.
+  Replay uses this directly; older files infer boots from sparse gold deltas and can miss upgrades.
 - `scripts/overlay-update.sh` is the one-command update: waits while League is in queue, champ select or a
   game, stops the overlay, builds, probes, relaunches (the old exe is relaunched if the build fails).
   `m0/updateguard.py` also checks Windows process names; an API/process-query failure or an unknown

@@ -56,14 +56,31 @@ impl GameRecorder {
     }
 
     /// One live observation; writes only when something worth analysing changed.
-    pub fn observe_live(&mut self, data: &Value, panel: Option<&str>, received_at_ms: u64) {
-        if let Err(error) = self.record(data, panel.unwrap_or_default(), received_at_ms) {
+    pub fn observe_live(
+        &mut self,
+        data: &Value,
+        panel: Option<&str>,
+        received_at_ms: u64,
+        role_slot_boots: Option<u32>,
+    ) {
+        if let Err(error) = self.record(
+            data,
+            panel.unwrap_or_default(),
+            received_at_ms,
+            role_slot_boots,
+        ) {
             log::warn!("game recording paused for this game: {error}");
             self.file = None;
         }
     }
 
-    fn record(&mut self, data: &Value, panel: &str, received_at_ms: u64) -> std::io::Result<()> {
+    fn record(
+        &mut self,
+        data: &Value,
+        panel: &str,
+        received_at_ms: u64,
+        role_slot_boots: Option<u32>,
+    ) -> std::io::Result<()> {
         let Some(game_time) = data["gameData"]["gameTime"]
             .as_f64()
             .filter(|time| time.is_finite() && *time >= 0.0)
@@ -73,7 +90,7 @@ impl GameRecorder {
         let Some(champion) = champion_of(data) else {
             return Ok(());
         };
-        let signature = signature(data);
+        let signature = format!("{}|{role_slot_boots:?}", signature(data));
         let new_game = self.file.is_none()
             || champion != self.champion
             || game_time + 5.0 < self.last_game_time
@@ -93,6 +110,9 @@ impl GameRecorder {
             "received_at_ms": received_at_ms,
             "game_time": game_time,
             "panel": panel,
+            // The live tracker observes every poll; sparse saved gold deltas can
+            // miss a hidden-boot upgrade. Preserve its result, including absence.
+            "role_slot_boots": role_slot_boots,
             "data": data,
         });
         if let Some(file) = self.file.as_mut() {
@@ -344,31 +364,37 @@ mod tests {
             &snapshot(60.0, &[1056], &[0, 1]),
             Some("next Sunfire"),
             2_000,
+            None,
         );
         recorder.observe_live(
             &snapshot(62.0, &[1056], &[0, 1]),
             Some("next Sunfire"),
             4_000,
+            None,
         );
         recorder.observe_live(
             &snapshot(64.0, &[1056, 1029], &[0, 1, 2]),
             Some("next Sunfire"),
             6_000,
+            None,
         );
         recorder.observe_live(
             &snapshot(66.0, &[1056, 1029], &[0, 1, 2]),
             Some("next Thornmail"),
             8_000,
+            None,
         );
         recorder.observe_live(
             &snapshot(80.0, &[1056, 1029], &[0, 1, 2]),
             Some("next Thornmail"),
             22_000,
+            None,
         );
         recorder.observe_live(
             &snapshot(86.5, &[1056, 1029], &[0, 1, 2]),
             Some("next Thornmail"),
             28_500,
+            None,
         );
         let games = lines(&dir);
         assert_eq!(games.len(), 1);
@@ -389,6 +415,37 @@ mod tests {
         assert_eq!(game[2]["data"]["events"]["Events"], json!([{"EventID": 2}]));
         assert_eq!(game[3]["data"]["events"]["Events"], json!([]));
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn hidden_boot_changes_are_saved_without_a_visible_inventory_change() {
+        let dir = scratch("role-slot");
+        let mut recorder = GameRecorder::new(dir.clone());
+        for (time, boots) in [
+            (800.0, None),
+            (802.0, Some(2422)),
+            (804.0, Some(3006)),
+            (806.0, Some(3006)),
+            (808.0, None),
+        ] {
+            recorder.observe_live(
+                &snapshot(time, &[3032], &[]),
+                Some("same panel"),
+                (time * 1000.0) as u64,
+                boots,
+            );
+        }
+        let games = lines(&dir);
+        let observations = &games[0][1..];
+        assert_eq!(observations.len(), 4);
+        assert_eq!(
+            observations
+                .iter()
+                .map(|r| r["role_slot_boots"].clone())
+                .collect::<Vec<_>>(),
+            [Value::Null, json!(2422), json!(3006), Value::Null]
+        );
+        let _ = fs::remove_dir_all(dir);
     }
 
     #[test]
@@ -416,9 +473,14 @@ mod tests {
     fn a_restarted_clock_or_a_long_gap_starts_a_new_file_and_old_games_are_pruned() {
         let dir = scratch("split");
         let mut recorder = GameRecorder::new(dir.clone());
-        recorder.observe_live(&snapshot(900.0, &[1056], &[]), None, 1_000_000_000_000);
-        recorder.observe_live(&snapshot(30.0, &[1056], &[]), None, 1_000_000_600_000);
-        recorder.observe_live(&snapshot(40.0, &[1056], &[]), None, 1_000_001_000_000);
+        recorder.observe_live(
+            &snapshot(900.0, &[1056], &[]),
+            None,
+            1_000_000_000_000,
+            None,
+        );
+        recorder.observe_live(&snapshot(30.0, &[1056], &[]), None, 1_000_000_600_000, None);
+        recorder.observe_live(&snapshot(40.0, &[1056], &[]), None, 1_000_001_000_000, None);
         assert_eq!(lines(&dir).len(), 3);
         for n in 0..5 {
             fs::write(dir.join(format!("1999010{n}-000000Z-Old.jsonl")), "{}\n").unwrap();

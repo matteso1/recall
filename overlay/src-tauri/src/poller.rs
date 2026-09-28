@@ -1181,6 +1181,7 @@ pub async fn run(app: AppHandle, st: Arc<App>) {
                                 data,
                                 shown.as_deref(),
                                 live_observation.received_at_ms,
+                                role_slot.slotted(),
                             );
                         }
                     }
