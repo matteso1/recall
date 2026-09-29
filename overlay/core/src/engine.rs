@@ -140,6 +140,10 @@ pub struct Plan {
     pub source_position: Option<String>,
     pub source: Option<String>,
     pub note: Option<String>,
+    /// A visible setup reminder from current inventory, independent of build availability.
+    /// This does not expose or infer ally bonds, positions, or ability readiness.
+    #[serde(default)]
+    pub champion_hint: Option<String>,
     pub start: Vec<PlanItem>,
     pub path: Vec<PlanItem>,
     pub options: Vec<PlanItem>,
@@ -724,6 +728,25 @@ pub fn plan_in_mode(inp: &Inputs, preferences: &PlannerPreferences, mode: GameMo
         }
     }
     let swiftplay = mode == GameMode::Swiftplay;
+    if normalize(inp.champion) == "kalista"
+        && inp
+            .live
+            .and_then(|live| live.me.as_ref())
+            .is_some_and(|me| {
+                normalize(&me.player.champion) == "kalista"
+                    && me.player.items.iter().any(|owned| {
+                        owned.count > 0
+                            && cat
+                                .item(owned.id)
+                                .is_some_and(|item| item.name == "Kalista's Black Spear")
+                    })
+            })
+    {
+        p.champion_hint = Some(
+            "Black Spear is in your inventory. Use it on your chosen ally to form the bond required for R."
+                .into(),
+        );
+    }
     let Some(a) = inp
         .aggregate
         .filter(|a| cat.champion_key(inp.champion) == Some(a.champion_key))

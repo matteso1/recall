@@ -179,7 +179,9 @@ function renderMain(s) {
     return `<div id="live-warning" class="message warn">Waiting for fresh game data.${esc(age)}</div><p class="hint">Purchase and skill advice is paused until your live state is confirmed.</p>${renderPath(plan)}`;
   }
   const bans = s.phase === 'champselect' ? renderBans(s.lobby) : '';
-  if (!s.supported || !plan?.path?.length) return bans + `<div class="message warn">${esc(s.message || plan?.note || 'Loading this champion’s build data…')}</div><p class="hint">Only this champion’s own data is used; another champion’s build is never substituted.</p>`;
+  const championHint = s.phase === 'ingame' && plan?.champion_hint
+    ? `<p id="champion-hint" class="message warn">${esc(plan.champion_hint)}</p>` : '';
+  if (!s.supported || !plan?.path?.length) return bans + championHint + `<div class="message warn">${esc(s.message || plan?.note || 'Loading this champion’s build data…')}</div><p class="hint">Only this champion’s own data is used; another champion’s build is never substituted.</p>`;
   // A same-champion fallback (no data for the assigned role) is said out loud, above the action.
   const fallback = plan.source_position
     ? `<p id="fallback-note" class="message warn" title="${esc(plan.note || '')}">${esc(plan.note || `No ${plan.position} data; using the ${plan.source_position} build as a starting point.`)}</p>` : '';
@@ -187,7 +189,7 @@ function renderMain(s) {
     // An unspent skill point goes above everything else until it is spent; otherwise the next point sits at the bottom.
     const skill = renderSkill(plan, s.flash);
     const now = !!plan.skill?.point_available;
-    return fallback + (now ? skill : '') + renderNext(plan) + renderWhy(plan) + renderPath(plan) + (now ? '' : skill);
+    return fallback + (now ? skill : '') + championHint + renderNext(plan) + renderWhy(plan) + renderPath(plan) + (now ? '' : skill);
   }
   const enemies = s.lobby?.enemies || [];
   return `${bans}<div class="pregame-heading">Your loadout is ready</div>${fallback}${plan.matchup ? `<p class="matchup">${esc(plan.matchup)}</p>` : ''}

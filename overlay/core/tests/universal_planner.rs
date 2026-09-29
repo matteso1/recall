@@ -156,6 +156,87 @@ fn a_champions_aggregate_cannot_be_relabelled_as_another_champion() {
 }
 
 #[test]
+fn black_spear_reminder_uses_current_inventory_even_while_build_data_is_loading() {
+    let (mut cat, traits) = (catalog(), pack::load_traits().unwrap());
+    cat.items.insert(
+        3599,
+        recall_core::ddragon::Item {
+            id: 3599,
+            name: "Kalista's Black Spear".into(),
+            required_champion: Some("Kalista".into()),
+            ..Default::default()
+        },
+    );
+    for mode in ["CLASSIC", "SWIFTPLAY"] {
+        let mut snap = LiveSnapshot {
+            mode: mode.into(),
+            game_time: 320.0,
+            me: Some(Me {
+                player: Player {
+                    champion: "Kalista".into(),
+                    level: 6,
+                    items: vec![InvItem {
+                        id: 3599,
+                        count: 1,
+                        slot: 0,
+                        name: "Kalista's Black Spear".into(),
+                    }],
+                    ..Default::default()
+                },
+                abilities: Abilities {
+                    r: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let hint = |champion: &str, live: Option<&LiveSnapshot>| {
+            let plan = engine::plan(&Inputs {
+                champion,
+                pack: None,
+                aggregate: None,
+                traits: &traits,
+                catalog: &cat,
+                enemies: &[],
+                live,
+            });
+            serde_json::to_value(plan).unwrap()["champion_hint"].clone()
+        };
+        let message = hint("Kalista", Some(&snap));
+        assert!(
+            message
+                .as_str()
+                .is_some_and(|s| s.contains("Black Spear") && s.contains("R")),
+            "the unused setup item needs a visible explanation before build data arrives"
+        );
+        assert!(
+            hint("Xayah", Some(&snap)).is_null(),
+            "do not carry a hint across champions"
+        );
+        assert!(
+            hint("Kalista", None).is_null(),
+            "do not guess the pregame inventory"
+        );
+        snap.me.as_mut().unwrap().player.champion = "Xayah".into();
+        assert!(hint("Kalista", Some(&snap)).is_null());
+        snap.me.as_mut().unwrap().player.champion = "Kalista".into();
+        snap.me.as_mut().unwrap().player.items[0].count = 0;
+        assert!(hint("Kalista", Some(&snap)).is_null());
+        snap.me.as_mut().unwrap().player.items.clear();
+        assert!(
+            hint("Kalista", Some(&snap)).is_null(),
+            "consuming or selling the spear removes the reminder, without claiming a bond"
+        );
+        snap.me = None;
+        assert!(
+            hint("Kalista", Some(&snap)).is_null(),
+            "unknown identity cannot produce a personal reminder"
+        );
+    }
+}
+
+#[test]
 fn nonstandard_skill_champions_never_get_an_invented_level_six_ultimate() {
     let (cat, traits) = (catalog(), pack::load_traits().unwrap());
     for &(name, key, role, raw) in CASES.iter().filter(|c| c.0 == "Aphelios" || c.0 == "Udyr") {

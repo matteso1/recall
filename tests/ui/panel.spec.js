@@ -195,6 +195,27 @@ test('one purchase is primary and explanation is optional', async ({ page }) => 
   await page.screenshot({path:test.info().outputPath('action-panel.png')});
 });
 
+test('champion setup stays visible while builds load and disappears with stale or cleared evidence', async ({ page }) => {
+  const state = fixture();
+  state.champion = state.plan.champion = 'Kalista';
+  state.plan.champion_hint = 'Black Spear is in your inventory. Use it on your chosen ally to form the bond required for R.';
+  state.plan.skill.point_available = false;
+  await page.setViewportSize({ width: 320, height: 300 });
+  await openPanel(page, state);
+  await expect(page.locator('#champion-hint')).toBeVisible();
+  await expect(page.locator('#action-name')).toBeInViewport();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(overflow).toBe(false);
+
+  const loading = { ...state, supported: false, plan: { ...state.plan, path: [] } };
+  await page.evaluate(next => window.emitState(next), loading);
+  await expect(page.locator('#champion-hint')).toBeVisible();
+  await page.evaluate(next => window.emitState(next), { ...state, live_source: { ...state.live_source, stale: true } });
+  await expect(page.locator('#champion-hint')).toHaveCount(0);
+  await page.evaluate(next => window.emitState(next), { ...state, plan: { ...state.plan, champion_hint: null } });
+  await expect(page.locator('#champion-hint')).toHaveCount(0);
+});
+
 test('optional controls survive polling and send the exact local commands', async ({ page }) => {
   const state = fixture('Ahri');
   await openPanel(page, state);

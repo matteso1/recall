@@ -169,3 +169,17 @@
 - Priorities: coherent core/boots progression, justified defensive detours, reliable draft
   imports, and useful explanations. Updated the design and session guidance; corrected the
   design's stale statement that no fitted models existed. Documentation only, no app restart.
+
+## 2026-09-28 — Kalista setup reminder and fallback review
+
+- The Kalista recording retained Black Spear until 23:53 despite learning R at 5:18. Added a
+  main-panel reminder based on current inventory; it also works while build data loads and
+  hides when the item is gone or live data is stale. No bond/range inference or gameplay input.
+- Reproduced the fallback planner promoting Jak'Sho and Randuin's ahead of Rageblade after
+  deaths, despite the provider's damage core. All 184 observations were legal: legality did
+  not detect the build-quality problem. No item weights/order changed in this update.
+- `kalista-review.md` records the sanitized evidence and the broader fallback evaluation
+  needed before changing promotion policy; the standard-mode priority still applies.
+- Passed 314 core, 40 runtime and 24 browser tests, both Clippy targets and the Windows check.
+  Replay kept all 184 purchase/path results unchanged; the reminder appeared on the 166
+  observations where Black Spear was present. No legality violations before or after.

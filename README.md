@@ -89,6 +89,8 @@ Supported: Summoner's Rift (draft, blind, ranked), Swiftplay, Practice Tool. ARA
 unknown modes pause recommendations rather than reuse Rift builds.
 
 Recall never substitutes another champion's data. A small sample is shown as weak evidence.
+Kalista gets a visible Black Spear setup reminder while the item is in her live inventory;
+Recall cannot observe the ally bond or whether the bound ally is in range.
 Skill-point guidance is off for Aphelios, Udyr, Jayce, Elise, Nidalee and Karma until their
 levelling is modelled. There is no wave-state inference, cooldown tracking, positioning advice
 or trained win-probability model; the scoring weights are explicit, reviewable heuristics.
