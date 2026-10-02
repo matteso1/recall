@@ -104,6 +104,71 @@ fn planned(live: Option<&LiveSnapshot>, enemies: &[&str], with_aggregate: bool) 
 }
 
 #[test]
+fn visible_armor_can_change_the_next_item_despite_previous_core_order() {
+    let (cat, traits, agg) = (catalog(), pack::load_traits().unwrap(), aggregate());
+    let run = |snap: &LiveSnapshot, preferences: &engine::PlannerPreferences| {
+        engine::plan_with_preferences(
+            &Inputs {
+                champion: "Xayah",
+                pack: None,
+                aggregate: Some(&agg),
+                traits: &traits,
+                catalog: &cat,
+                enemies: &["Rammus".into(), "Nautilus".into()],
+                live: Some(snap),
+            },
+            preferences,
+        )
+    };
+    let mut snap = live(&[3032, 3031, 3006], 300.0);
+    snap.enemies.push(live::Player {
+        champion: "Rammus".into(),
+        level: 12,
+        ..Default::default()
+    });
+    let baseline = run(&snap, &Default::default());
+    assert_eq!(baseline.next.as_ref().map(|n| n.id), Some(6675));
+    snap.enemies[0].items = vec![
+        live::InvItem {
+            id: 3075,
+            count: 1,
+            slot: 0,
+            ..Default::default()
+        },
+        live::InvItem {
+            id: 3143,
+            count: 1,
+            slot: 1,
+            ..Default::default()
+        },
+    ];
+    let armor = run(&snap, &baseline.preferences);
+    let target = armor.next.as_ref().unwrap();
+    assert!(
+        cat.item(target.id)
+            .unwrap()
+            .effects
+            .percent_armor_pen
+            .is_some(),
+        "{target:?} chain {:?} scores {:?}",
+        armor.preferences.last_chain,
+        armor.score_trace
+    );
+    let repeated = run(&snap, &armor.preferences);
+    assert_eq!(repeated.next.as_ref().map(|n| n.id), Some(target.id));
+    assert_eq!(
+        repeated.preferences.last_chain,
+        armor.preferences.last_chain
+    );
+
+    // The same enemy equipment must not cause a first-item penetration rush.
+    let mut opening = live(&[1055, 3006], 300.0);
+    opening.enemies = snap.enemies;
+    let early = run(&opening, &Default::default());
+    assert_eq!(early.next.as_ref().map(|n| n.id), Some(3032));
+}
+
+#[test]
 fn finish_affordable_ie_instead_of_starting_navori_when_zero_three() {
     let snap = live(&[3032, 3006, 1038, 1037, 1018], 725.0);
     let p = planned(Some(&snap), &[], true);

@@ -93,9 +93,10 @@ const TAG_MARGIN: f64 = 0.15;
 /// Engine v3 (see nextprior.rs): the Master+ distribution already reacts to the enemy composition
 /// (measured lifts: healer, magic-heavy, tanky). The situational needs add what the composition alone
 /// cannot see, the live state (your measured armor/MR against their damage, their visible armor and
-/// healing items), as a nudge of `V3_NUDGE` nats per unit of need capped at `V3_NEED_CAP` (0.6 nats,
-/// under 2x the odds): enough to decide close choices, never to overturn a clear one (Guardian Angel
-/// second on Sivir: 0 of 469 Master+ players, a ~4.7-nat gap).
+/// healing items), as a nudge of `V3_NUDGE` nats per unit of need. Composition is capped at
+/// `V3_NEED_CAP` (0.6 nats); penetration justified by visible resistance can use the full need
+/// score (at most 1.5 nats). Neither erases a large prior gap (Guardian Angel second on Sivir:
+/// 0 of 469 Master+ players, a ~4.7-nat gap).
 const V3_NUDGE: f64 = 0.3;
 /// Chain hysteresis: a choice the previous plan made keeps its step unless another item scores this
 /// many nats more, so level and gold ticks do not reorder the path.
@@ -1727,8 +1728,17 @@ fn prior_chain(
             .filter(|(id, _)| !planned.contains(id) && compatible(*id, &planned))
             .filter_map(|&(id, p)| {
                 let item = cat.item(id)?;
-                let need = fit(item, inp, needs, archetype, &planned, mode).score;
-                Some((id, p, p.ln() + V3_NUDGE * need.clamp(0.0, V3_NEED_CAP)))
+                let need = fit(item, inp, needs, archetype, &planned, mode);
+                // Composition is already represented by the model. Visible resistance is new
+                // evidence: don't clip strong armor/MR to the same nudge as a modest need.
+                let cap = if need.evidence == Evidence::VisibleItems
+                    && matches!(need.kind, DecisionKind::ArmorPen | DecisionKind::MagicPen)
+                {
+                    MAX_NEED_SCORE
+                } else {
+                    V3_NEED_CAP
+                };
+                Some((id, p, p.ln() + V3_NUDGE * need.score.clamp(0.0, cap)))
             })
             .collect();
         let Some(top) = scored.iter().map(|s| s.2).max_by(f64::total_cmp) else {
