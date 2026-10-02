@@ -310,9 +310,12 @@ impl Journal {
         false
     }
 
-    /// The most recently finished match, with only its last eight significant decisions for UI.
+    /// Recent build steps, rather than every component of the last item. Keep the first
+    /// recommendation when a target changes; feedback still addresses the original record.
+    /// The stored history retains all component and reason-category changes.
     pub fn recap(&self) -> Option<Recap> {
         let mut recap = self.history.last()?.clone();
+        recap.decisions.dedup_by_key(|decision| decision.target_id);
         keep_recent(&mut recap.decisions, MAX_RECAP_DECISIONS);
         Some(recap)
     }
@@ -682,11 +685,49 @@ mod tests {
             &snapshot(106.0, &[]),
             &plan(3135, Some(1052), DecisionKind::Completion)
         ));
+        journal.finish().unwrap();
+        let history = &journal.history[0];
+        assert_eq!(history.decisions.len(), 4);
+        assert_eq!(history.decisions[1].buy_id, Some(1052));
+        assert_eq!(history.decisions[2].kind, DecisionKind::Completion);
+        assert_eq!(history.decisions[3].target_id, 3135);
+    }
+
+    #[test]
+    fn recap_groups_component_progress_before_limiting_the_number_of_build_steps() {
+        let mut journal = started();
+        journal.observe(&snapshot(100.0, &[]), &plan(3089, None, DecisionKind::Core));
+        for step in 0..10 {
+            journal.observe(
+                &snapshot(200.0 + step as f64, &[]),
+                &plan(3135, Some(1000 + step), DecisionKind::MagicPen),
+            );
+        }
+        journal.observe(
+            &snapshot(220.0, &[]),
+            &plan(3135, Some(3135), DecisionKind::Completion),
+        );
         let recap = journal.finish().unwrap();
-        assert_eq!(recap.decisions.len(), 4);
-        assert_eq!(recap.decisions[1].buy_id, Some(1052));
-        assert_eq!(recap.decisions[2].kind, DecisionKind::Completion);
-        assert_eq!(recap.decisions[3].target_id, 3135);
+        assert_eq!(
+            recap.decisions.len(),
+            2,
+            "components must not crowd out earlier targets"
+        );
+        assert_eq!(recap.decisions[0].target_id, 3089);
+        assert_eq!(recap.decisions[1].game_time, 200.0);
+        assert_eq!(recap.decisions[1].kind, DecisionKind::MagicPen);
+        assert_eq!(
+            journal.history[0].decisions.len(),
+            12,
+            "retain the audit trail"
+        );
+        let id = &recap.decisions[1].id;
+        assert!(journal.feedback(id, Feedback::Useful));
+        assert_eq!(
+            journal.recap().unwrap().decisions[1].feedback,
+            Some(Feedback::Useful)
+        );
+        assert_eq!(journal.history[0].decisions[1].id, *id);
     }
 
     #[test]

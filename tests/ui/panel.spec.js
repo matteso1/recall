@@ -293,6 +293,21 @@ test('long names and narrow viewports never create horizontal overflow', async (
   expect(await page.locator('#body').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
 });
 
+test('quest-slot boots and six normal items fit the build row', async ({ page }) => {
+  const state = fixture();
+  state.plan.path = [
+    [3032, 'Yun Tal Wildarrows'], [3031, 'Infinity Edge'], [6675, 'Navori Flickerblade'],
+    [3036, "Lord Dominik's Regards"], [3072, 'Bloodthirster'], [3026, 'Guardian Angel'],
+    [3006, "Berserker's Greaves"],
+  ].map(([id, name]) => ({ id, name, owned: true }));
+  state.plan.next = null;
+  await openPanel(page, state);
+  await expect(page.locator('.path li')).toHaveCount(7);
+  const bounds = await page.locator('.path li').last().boundingBox();
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize().width);
+  await expect(page.locator('#main-content')).toContainText('Build complete');
+});
+
 test('post-game recap records feedback without grading the player', async ({ page }) => {
   const state = fixture();
   await openPanel(page, state);
@@ -302,13 +317,13 @@ test('post-game recap records feedback without grading the player', async ({ pag
       source: 'op.gg', end_game_time: 1800, purchases: [], cs_at_10: 70, cs: 210,
       cs_benchmark: { label: 'Master+ Xayah ADC', games: 498, cs_at_10: 80, per_minute: 8.72 },
       decisions: [{ id: 'decision-1', game_time: 740,
-        target_id: 3031, target_name: 'Infinity Edge', buy_name: 'Infinity Edge', buy_id: 3031,
+        target_id: 3031, target_name: 'Infinity Edge', buy_name: 'Cloak of Agility', buy_id: 1018,
         buy_affordable: true, reason: 'IE: only 725g left with your components',
         lesson: 'Finish an affordable upgrade before starting a different item.', kind: 'completion',
         remaining_cost: 725, gold: 750, feedback: null }] },
   });
   await expect(page.locator('#recap')).toContainText('Last game');
-  await expect(page.locator('#recap')).toContainText('Infinity Edge');
+  await expect(page.locator('.recap-heading strong')).toHaveText('Infinity Edge');
   await expect(page.locator('#recap-cs')).toHaveText('70 CS at 10:00 (Master+ Xayah ADC: 80) · 7.0 CS/min (8.7)');
   await page.getByRole('button', { name: 'Useful', exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.calls.at(-1))).toEqual({ command: 'rate_decision', args: { decisionId: 'decision-1', feedback: 'useful' } });
