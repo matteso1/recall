@@ -107,11 +107,10 @@ fn boots_come_up_once_the_core_item_cannot_progress_right_now() {
 }
 
 #[test]
-fn a_declined_detour_is_never_the_target_again_even_when_its_need_alone_would_win() {
+fn a_deferred_detour_waits_for_the_next_completed_item() {
     // 9:55: Oblivion Orb affordable, Kayn heals, offered. The player then bought Rocketbelt
     // components (11:11) and finished the Rocketbelt (11:27). The recorded panel went back to the
-    // Orb five more times; now it stays declined although its anti-heal score beats the next
-    // core item's prior on its own.
+    // Orb five more times. Respect component progress, then reassess at the next finished item.
     // 9:55 with the gold of the recorded offer a few seconds later.
     let first = plan(
         &snapshot(AT_0955, Some(1250.0)),
@@ -126,13 +125,29 @@ fn a_declined_detour_is_never_the_target_again_even_when_its_need_alone_would_wi
     let second = plan(&snapshot(AT_1111, None), &first.preferences);
     assert_eq!(second.preferences.declined_detours, vec![OBLIVION_ORB]);
     assert_ne!(second.next.as_ref().unwrap().id, OBLIVION_ORB);
+    let saved: PlannerPreferences =
+        serde_json::from_value(serde_json::to_value(&second.preferences).unwrap()).unwrap();
+    assert_eq!(saved, second.preferences);
+    assert!(saved.declined_at_items.is_some());
     for gold in [10.0, 500.0, 1300.0] {
-        let later = plan(&snapshot(AT_1127, Some(gold)), &second.preferences);
+        let later = plan(&snapshot(AT_1111, Some(gold)), &second.preferences);
         let next = later.next.expect("a recommendation");
         assert_ne!(next.id, OBLIVION_ORB, "gold {gold}: {next:?}");
     }
     // It stays visible as a path item or option, not as the action.
     let later = plan(&snapshot(AT_1127, Some(1300.0)), &second.preferences);
+    assert!(later.preferences.declined_detours.is_empty());
+    assert_eq!(later.next.as_ref().unwrap().id, OBLIVION_ORB);
+    let repeated = plan(&snapshot(AT_1127, Some(1300.0)), &later.preferences);
+    assert_eq!(repeated.next.as_ref().map(|n| n.id), Some(OBLIVION_ORB));
+    // Preferences saved before stage tracking also acquire a finite deferral.
+    let mut legacy = serde_json::to_value(&saved).unwrap();
+    legacy.as_object_mut().unwrap().remove("declined_at_items");
+    let legacy: PlannerPreferences = serde_json::from_value(legacy).unwrap();
+    let migrated = plan(&snapshot(AT_1111, Some(1300.0)), &legacy);
+    assert_ne!(migrated.next.as_ref().unwrap().id, OBLIVION_ORB);
+    let completed = plan(&snapshot(AT_1127, Some(1300.0)), &migrated.preferences);
+    assert_eq!(completed.next.as_ref().unwrap().id, OBLIVION_ORB);
     assert!(
         later
             .path

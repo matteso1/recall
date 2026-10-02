@@ -80,13 +80,16 @@ pub struct PlannerPreferences {
     pub pinned_item: Option<u32>,
     /// A detour (an item outside the planned path, offered because it was affordable and met a
     /// verified need) and the inventory it was offered against. Buying something else instead
-    /// declines it: it is not re-offered every time gold crosses its price again.
+    /// defers it until the next finished non-boot item, rather than every gold threshold.
     #[serde(default)]
     pub offered_detour: Option<u32>,
     #[serde(default)]
     pub offered_inventory: Vec<u32>,
     #[serde(default)]
     pub declined_detours: Vec<u32>,
+    /// Completed non-boot inventory when detours were deferred. None accepts older preferences.
+    #[serde(default)]
+    pub declined_at_items: Option<Vec<u32>>,
     /// The target of the previous plan. While it stays affordable and on the path it is kept,
     /// so the panel does not trade two finishable items back and forth as gold moves.
     #[serde(default)]

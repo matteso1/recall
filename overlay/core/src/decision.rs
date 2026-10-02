@@ -1496,8 +1496,43 @@ fn builds_into(cat: &Catalog, part: u32, whole: u32) -> bool {
             .is_some_and(|item| item.from.iter().any(|&child| builds_into(cat, part, child)))
 }
 
-/// An offered detour the player answered by buying something else is declined for the rest of
-/// the game. Consumables and trinkets are not an answer; neither is a component that builds only
+fn completed_items(cat: &Catalog, ids: &[u32]) -> Vec<u32> {
+    let mut completed: Vec<u32> = ids
+        .iter()
+        .copied()
+        .filter(|&id| {
+            cat.item(id)
+                .is_some_and(|item| item.is_finished(cat) && !item.effects.boots)
+        })
+        .collect();
+    completed.sort_unstable();
+    completed.dedup();
+    completed
+}
+
+/// A different purchase means "finish this build stage first", not "never recommend this again".
+/// Refresh before constructing the candidate pool so the same poll sees the updated memory.
+fn refresh_deferred_detours(cat: &Catalog, ids: &[u32], preferences: &mut PlannerPreferences) {
+    let completed = completed_items(cat, ids);
+    if let Some(before) = &preferences.declined_at_items {
+        if completed.iter().any(|id| !before.contains(id)) {
+            preferences.declined_detours.clear();
+            preferences.declined_at_items = None;
+        }
+    } else if !preferences.declined_detours.is_empty() {
+        preferences.declined_at_items = Some(completed.clone());
+    }
+    if preferences.offered_detour.is_some() {
+        let before = completed_items(cat, &preferences.offered_inventory);
+        if completed.iter().any(|id| !before.contains(id)) {
+            preferences.offered_detour = None;
+            preferences.offered_inventory.clear();
+        }
+    }
+}
+
+/// An offered detour answered by another purchase is deferred until the next finished item.
+/// Consumables and trinkets are not an answer; neither is a component that builds only
 /// into the detour. A component shared with the planned path (a Long Sword when both an
 /// Executioner's Calling and a Black Cleaver want one) is an answer: it was bought for the path.
 fn note_declined_detour(
@@ -1541,6 +1576,7 @@ fn note_declined_detour(
     }
 }
 
+        preferences.declined_at_items = Some(completed_items(cat, ids));
 fn owned_ids(me: Option<&Me>) -> Vec<u32> {
     me.into_iter()
         .flat_map(|m| &m.player.items)
@@ -1792,6 +1828,7 @@ pub(crate) fn select(
     let mut path = commitment(inp, me);
     let capacity = path_capacity(inp);
     let full_committed = path.len() >= capacity;
+    refresh_deferred_detours(cat, &ids, &mut out.preferences);
     let committed_ids: Vec<_> = path.iter().map(|p| p.id).collect();
     let consuming_upgrade = |quote: &shop::ShopQuote| {
         !full_committed
@@ -2121,8 +2158,7 @@ pub(crate) fn select(
                 || completed_core >= 1 && situational_component
                 || completed_core >= 2 && item.is_finished(cat) && f.score > 0.25
         };
-        // A detour the player answered with another purchase is never the target again this
-        // game; it stays on the path and among the options.
+        // A deferred detour waits for the next completed non-boot item; it remains an option.
         if !eligible || out.preferences.declined_detours.contains(&id) {
             continue;
         }
