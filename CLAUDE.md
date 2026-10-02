@@ -79,13 +79,17 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   nudge from `decision.rs` needs (`V3_NUDGE`). With a complete enemy draft, covered standard-mode champions use
   `bootsprior.rs` / `data/pack/boots.json` for corpus boots conditioned on enemy magic count.
   op.gg still supplies runes, spells, skills, starters and fallback boots, and the
-  whole build for Swiftplay and champions the corpus does not cover. Kill-feed "answer" promotions are off where v3
-  applies: Master+ players do not buy defensively after deaths (-1.1 pp). Judge engine changes on the corpus and the
+  whole build for Swiftplay and champions the corpus does not cover. V3 preserves core progression after ordinary
+  deaths, with a defensive exception after two recent direct deaths to the same stronger threat and one completed
+  core. Visible armor/MR can also move penetration ahead of the learned order. Deferred detours are reconsidered
+  after the next completed non-boot item. See `docs/notes/live-adaptation-fix.md` for tests and tradeoffs.
+  Judge engine changes on the corpus and the
   recorded games (`games/*.jsonl` through `replay`), never on one game.
   `tools/priors/backtest.py` evaluates the full planner on player- and match-disjoint timelines;
   see `tools/priors/README.md` for the persistent Python environment and before/after command.
   `PlannerPreferences.last_chain` stores the conditional model's sequence before display
   reordering. Never use `last_path` as conditional-model memory: it caused identical-poll flips.
+  `last_unpromoted_path` similarly keeps defensive promotions out of flexible-tail selection memory.
   The measured fix is in `docs/notes/planner-stability.md`.
   Richer data candidates and verified coverage are in `docs/notes/data-source-audit.md`.
   The ~1.2% opponent coverage describes held-out cases after exclusions; raw recent-patch coverage

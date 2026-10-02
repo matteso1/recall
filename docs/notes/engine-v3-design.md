@@ -65,3 +65,10 @@ the Match-v5 key is no longer needed to start. What shipped, and what the resear
 
 Next: a Match-v5 pilot for per-patch freshness and exact kill/damage events; per-champion lifts where data allows;
 supports' quest items and Swiftplay still use op.gg.
+
+October 2 update: the blanket disable above was too restrictive. The
+[live adaptation follow-up](live-adaptation-fix.md) permits a bounded defensive exception after
+repeated direct deaths to a stronger enemy, lets visible resistance use the full penetration
+need score, and limits purchase-inferred detour suppression to the current build stage.
+The original aggregate purchase result does not establish that every individual defensive
+exception is wrong. These are explicit planner policies, not newly trained win predictions.

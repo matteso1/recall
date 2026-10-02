@@ -147,6 +147,8 @@ data and generated cases stay outside Git. The [engine review](docs/notes/engine
 records measurement limits and the remaining heuristic terms. The
 [stability follow-up](docs/notes/planner-stability.md) removes identical-observation target and
 path changes across the 181,106-frame validation/test comparison.
+The [live adaptation follow-up](docs/notes/live-adaptation-fix.md) adds tested exceptions for
+visible resistance and repeated threats, with finite detour deferral and measured tradeoffs.
 The [Match-v5 collector](tools/priors/README.md#complete-match-v5-collection) gathers complete
 historical timelines privately; new data is evaluated before entering production models.
 Use [frozen datasets](docs/notes/riot-expanded-evaluation.md) to keep comparisons reproducible

@@ -183,3 +183,15 @@
 - Passed 314 core, 40 runtime and 24 browser tests, both Clippy targets and the Windows check.
   Replay kept all 184 purchase/path results unchanged; the reminder appeared on the 166
   observations where Black Spear was present. No legality violations before or after.
+
+## 2026-10-02 — Live build adaptation
+
+- Let visible resistance influence the learned item order, reconsider inferred detour deferrals
+  after a completed non-boot item, and permit bounded defensive exceptions for repeated direct
+  deaths to a stronger threat. Separate path memory prevents promotion feedback on repeated polls.
+- Validated 4,134 held-out games / 92,265 observations plus seven recent normal-draft recordings:
+  zero illegal recommendations and zero identical-state target/path changes. Purchase agreement
+  improves slightly in Kaggle and falls in the smaller full-team Riot set; ordinary target changes
+  increase. See `live-adaptation-fix.md` and its aggregate report for exact counts and limitations.
+- 319 core tests, 40 runtime tests, 25 headless UI tests, Clippy and Windows release check pass.
+  The current game remains undisturbed; deployment uses the phase-guarded update script.
