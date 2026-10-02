@@ -194,4 +194,12 @@
   improves slightly in Kaggle and falls in the smaller full-team Riot set; ordinary target changes
   increase. See `live-adaptation-fix.md` and its aggregate report for exact counts and limitations.
 - 319 core tests, 40 runtime tests, 25 headless UI tests, Clippy and Windows release check pass.
-  The current game remains undisturbed; deployment uses the phase-guarded update script.
+  The guarded installer waited through the active game and built/relaunched in Lobby at 11:56
+  Pacific. One canonical Recall process is running. Installed SHA256:
+  `d5f32ef0a45f1fa70064739849fd7015f3e3acf1442f99ed75de93f6304d5f0a`.
+- The subsequent LeBlanc Mid Swiftplay review covers 140 recorded observations; archived and
+  updated replays both return zero shop violations. The recorded advice already promoted
+  Banshee's/Zhonya's through the fallback planner. This is separate from the standard-mode v3
+  exception; the new deferral logic reconsiders Orb after later completions. No further tuning
+  was made from this loss. The installed headless LeBlanc probe loads 870 items, 173 champions
+  and 62 runes from 16.19.1 and produces the expected Mid Swiftplay loadout.

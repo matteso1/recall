@@ -86,3 +86,13 @@ threat. Sparse champion/role backoff can also propose a poor damage family in un
 the Syndra ADC validation diagnostics expose that separate candidate-quality limitation.
 Neither issue is resolved by this change. The existing training population, model freshness,
 and incomplete opponent coverage also remain limits.
+
+## Installation and Swiftplay follow-up
+
+Installed October 2 after the game guard observed Lobby. The Windows release build and headless
+probe passed; one canonical Recall process relaunched. The LeBlanc Mid Swiftplay recording that
+ended during deployment preparation has 140 observations and no shop violations under either
+binary. Its recorded Banshee's/Zhonya's progression came from the existing fallback engine,
+not the new standard-mode exception. The new detour memory reconsiders Orb after later item
+completions. This game does not establish that the defensive progression was optimal, and no
+additional coefficients or rules were changed in response to the loss.
