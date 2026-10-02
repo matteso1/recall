@@ -970,7 +970,7 @@ fn keep_commitment(
     let mut entry = match path.iter().position(|p| p.id == id && !p.owned) {
         Some(index) => path.remove(index),
         None => {
-            if path.len() >= 6 {
+            if path.len() >= path_capacity(inp) {
                 // Make room with the last flexible item the player has not started.
                 let index = path.iter().rposition(|p| {
                     !p.owned && p.role != "boots" && started(cat, path, owned, p.id).is_none()
@@ -1079,7 +1079,7 @@ fn promote_answer(
         .filter(|(_, p)| !p.owned && p.role != "boots")
         .map(|(index, p)| (p.id, Some(index)))
         .collect();
-    if path.len() < 6 || weakest.is_some() {
+    if path.len() < path_capacity(inp) || weakest.is_some() {
         options.extend(pool.iter().map(|&id| (id, None)));
     }
     let mut candidates = Vec::new();
@@ -1212,7 +1212,7 @@ fn promote_answer(
         Some(index) => path.remove(index),
         None => {
             let entry = engine::item_by_id(cat, inp.pack, choice.id, None)?;
-            if path.len() >= 6 {
+            if path.len() >= path_capacity(inp) {
                 path.remove(weakest?);
             }
             entry
@@ -1233,7 +1233,7 @@ fn promote_answer(
         let entry = match path.iter().position(|p| p.id == second.id && !p.owned) {
             Some(index) => Some(path.remove(index)),
             None => {
-                let room = path.len() < 6
+                let room = path.len() < path_capacity(inp)
                     || path
                         .iter()
                         .enumerate()
@@ -1558,6 +1558,25 @@ fn fulfilled(inp: &Inputs, id: u32, me: Option<&Me>) -> bool {
     })
 }
 
+/// The quest slot holds boots in addition to six normal items. Require an observed,
+/// recognized boot there; the assigned role alone does not prove the quest is complete.
+fn path_capacity(inp: &Inputs) -> usize {
+    6 + usize::from(
+        inp.live
+            .and_then(|live| live.me.as_ref())
+            .is_some_and(|me| {
+                me.player.items.iter().any(|item| {
+                    item.slot == crate::roleslot::ROLE_SLOT
+                        && item.count > 0
+                        && inp
+                            .catalog
+                            .item(item.id)
+                            .is_some_and(|item| item.effects.boots)
+                })
+            }),
+    )
+}
+
 fn commitment(inp: &Inputs, me: Option<&Me>) -> Vec<PlanItem> {
     let mut items = me.map(|m| m.player.items.clone()).unwrap_or_default();
     items.sort_by_key(|i| i.slot);
@@ -1587,7 +1606,7 @@ fn commitment(inp: &Inputs, me: Option<&Me>) -> Vec<PlanItem> {
             p.owned = true;
             p
         })
-        .take(6)
+        .take(path_capacity(inp))
         .collect()
 }
 
@@ -1761,7 +1780,8 @@ pub(crate) fn select(
     let Some(agg) = inp.aggregate else { return out };
     let mut choices = pool(inp);
     let mut path = commitment(inp, me);
-    let full_committed = path.len() == 6;
+    let capacity = path_capacity(inp);
+    let full_committed = path.len() >= capacity;
     let committed_ids: Vec<_> = path.iter().map(|p| p.id).collect();
     let consuming_upgrade = |quote: &shop::ShopQuote| {
         !full_committed
@@ -1826,18 +1846,28 @@ pub(crate) fn select(
                 .copied()
                 .chain(chain.iter().map(|(id, _)| *id))
                 .collect();
+            let mut preceding = owned_legendaries.clone();
             let mut planned: Vec<PlanItem> = chain
                 .iter()
-                .filter_map(|&(id, p)| {
+                .filter_map(|&(id, _)| {
                     let short = engine::short_of(inp.pack, &cat.item(id)?.name);
+                    let step = if preceding.is_empty() {
+                        "as your first legendary".into()
+                    } else {
+                        let names: Vec<_> = preceding
+                            .iter()
+                            .filter_map(|id| cat.item(*id))
+                            .map(|item| engine::short_of(inp.pack, &item.name))
+                            .collect();
+                        format!("after {}", names.join(" + "))
+                    };
+                    preceding.push(id);
                     engine::item_by_id(
                         cat,
                         inp.pack,
                         id,
                         Some(format!(
-                            "{short}: {:.0}% of Master+ {} players buy it at this point",
-                            100.0 * p,
-                            inp.champion
+                            "{short}: recommended by the Master+ build model {step}"
                         )),
                     )
                 })
@@ -1870,7 +1900,7 @@ pub(crate) fn select(
         .iter()
         .filter(|i| core_ids.contains(&i.id) || i.role == "boots")
     {
-        if path.len() >= 6 {
+        if path.len() >= capacity {
             break;
         }
         let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
@@ -1899,7 +1929,7 @@ pub(crate) fn select(
     // Sword pulled Bloodthirster in and Mercurial Scimitar out a minute after Orianna's kill).
     if let Some(id) = preferences.promoted {
         let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
-        let keeps_place = path.len() < 6
+        let keeps_place = path.len() < capacity
             && !planned.contains(&id)
             && choices.contains_key(&id)
             && !fulfilled(inp, id, me)
@@ -1917,7 +1947,7 @@ pub(crate) fn select(
     }
     // Greedy marginal coverage for the small flexible tail. Effects already present
     // are discounted; mutually exclusive items are filtered before scoring.
-    while path.len() < 6 {
+    while path.len() < capacity {
         let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
         let mut ranked = Vec::new();
         for (&id, &pick) in &choices {
@@ -2315,7 +2345,7 @@ pub(crate) fn select(
             ));
             out.learning = Some(coaching::explain(kind, reason, evidence));
             // Reorder only unowned commitments. A component detour stays outside the
-            // six-item horizon, leaving the main build ready to resume afterwards.
+            // build horizon, leaving the main build ready to resume afterwards.
             if full_committed {
                 out.context.push(
                     "Upgrade an owned item; no extra inventory slot or automatic sale".into(),
@@ -2326,7 +2356,7 @@ pub(crate) fn select(
                     path.retain(|p| p.owned || compatible(p.id, &[target.id]));
                     let index = path.iter().take_while(|p| p.owned).count();
                     path.insert(index, target.clone());
-                    path.truncate(6);
+                    path.truncate(capacity);
                 }
             } else {
                 out.context.push(
@@ -2363,7 +2393,7 @@ pub(crate) fn select(
     } else if full_committed {
         out.preferences.pinned_item = None;
         out.context
-            .push("Full build; no automatic sales or seventh-item purchases".into());
+            .push("Full build; all available item slots are committed. No automatic sales".into());
     }
     out.options = choices
         .iter()

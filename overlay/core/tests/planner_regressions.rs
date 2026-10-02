@@ -591,6 +591,38 @@ fn verified_suppression_can_get_a_small_detour_then_resume_the_core() {
 }
 
 #[test]
+fn quest_slot_boots_leave_room_for_a_sixth_legendary() {
+    let mut snap = live(&[3032, 6675, 3031, 3036, 3072], 5000.0);
+    snap.me.as_mut().unwrap().player.items.push(live::InvItem {
+        id: 3006,
+        count: 1,
+        slot: recall_core::roleslot::ROLE_SLOT,
+        ..Default::default()
+    });
+    let p = planned(Some(&snap), &["Malzahar", "Zed", "Soraka"], true);
+    let next = p.next.as_ref().expect("the sixth normal slot is empty");
+    assert!(next.blocked.is_none(), "{:?}", next.blocked);
+    assert!(next.buy_now_affordable);
+    assert_eq!(p.path.len(), 7, "six bag items plus quest-slot boots");
+    assert!(p.path.iter().any(|item| item.id == 3006 && item.owned));
+    assert!(p.path.iter().any(|item| item.id == next.id && !item.owned));
+
+    // Buying the recommendation fills the last slot; the next poll must stop without
+    // dropping the hidden boots or suggesting an eighth item.
+    snap.me.as_mut().unwrap().player.items.push(live::InvItem {
+        id: next.id,
+        count: 1,
+        slot: 5,
+        ..Default::default()
+    });
+    let full = planned(Some(&snap), &["Malzahar", "Zed", "Soraka"], true);
+    assert!(full.next.is_none());
+    assert_eq!(full.path.len(), 7);
+    assert!(full.path.iter().all(|item| item.owned));
+    assert!(full.path.iter().any(|item| item.id == 3006));
+}
+
+#[test]
 fn a_full_completed_build_has_no_automatic_seventh_item() {
     let snap = live(&[3032, 3006, 6675, 3031, 3036, 3072], 5000.0);
     let p = planned(Some(&snap), &["Malzahar", "Zed", "Soraka"], true);
