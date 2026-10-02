@@ -145,6 +145,83 @@ const AFTER_LUDENS: [u32; 4] = [DORANS_RING, LUDENS, BOOTS, WARD];
 const DARIUS_FED: [u32; 3] = [1055, 3078, 3009];
 
 #[test]
+fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
+    let enemies = lineup(&DARIUS_FED, 8, 0);
+    let single = snapshot(
+        900.0,
+        11,
+        500.0,
+        &AFTER_LUDENS,
+        &enemies,
+        &[(880.0, 0, &[])],
+    );
+    let baseline = plan(&single);
+    assert_ne!(baseline.next.as_ref().map(|n| n.id), Some(ZHONYAS));
+    let repeated = snapshot(
+        900.0,
+        11,
+        500.0,
+        &AFTER_LUDENS,
+        &enemies,
+        &[(760.0, 0, &[]), (880.0, 0, &[])],
+    );
+    let protected = plan_with(&repeated, &baseline.preferences);
+    assert_eq!(
+        protected.next.as_ref().map(|n| n.id),
+        Some(ZHONYAS),
+        "{:?}",
+        protected.score_trace
+    );
+    let again = plan_with(&repeated, &protected.preferences);
+    assert_eq!(again.next.as_ref().map(|n| n.id), Some(ZHONYAS));
+    assert_eq!(again.path, protected.path);
+    let mut aging = repeated.clone();
+    aging.game_time = 1100.0;
+    let recent = plan_with(&aging, &protected.preferences);
+    aging.game_time = 1160.0;
+    let held = plan_with(&aging, &recent.preferences);
+    assert_eq!(
+        held.next.as_ref().map(|n| n.id),
+        Some(ZHONYAS),
+        "crossing the two-death boundary must not immediately withdraw the answer"
+    );
+
+    // The exception requires repeated direct, recent deaths and a completed core.
+    for deaths in [
+        vec![(500.0, 0, &[][..]), (880.0, 0, &[][..])],
+        vec![(760.0, 2, &[0][..]), (880.0, 2, &[0][..])],
+    ] {
+        let control = snapshot(900.0, 11, 500.0, &AFTER_LUDENS, &enemies, &deaths);
+        assert_ne!(plan(&control).next.as_ref().map(|n| n.id), Some(ZHONYAS));
+    }
+    let opening = snapshot(
+        900.0,
+        11,
+        500.0,
+        &[DORANS_RING, BOOTS, WARD],
+        &enemies,
+        &[(760.0, 0, &[]), (880.0, 0, &[])],
+    );
+    assert_ne!(plan(&opening).next.as_ref().map(|n| n.id), Some(ZHONYAS));
+
+    let old = snapshot(
+        1300.0,
+        11,
+        500.0,
+        &AFTER_LUDENS,
+        &enemies,
+        &[(760.0, 0, &[]), (880.0, 0, &[])],
+    );
+    assert_ne!(
+        plan_with(&old, &protected.preferences)
+            .next
+            .as_ref()
+            .map(|n| n.id),
+        Some(ZHONYAS)
+    );
+}
+
+#[test]
 fn the_kill_feed_names_who_killed_you() {
     let live = snapshot(
         840.0,

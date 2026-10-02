@@ -169,6 +169,114 @@ fn visible_armor_can_change_the_next_item_despite_previous_core_order() {
 }
 
 #[test]
+fn repeated_magic_deaths_allow_a_stable_answer_and_preserve_its_components() {
+    let (cat, traits, agg) = (catalog(), pack::load_traits().unwrap(), aggregate());
+    let run = |snap: &LiveSnapshot, preferences: &engine::PlannerPreferences| {
+        engine::plan_with_preferences(
+            &Inputs {
+                champion: "Xayah",
+                pack: None,
+                aggregate: Some(&agg),
+                traits: &traits,
+                catalog: &cat,
+                enemies: &["Ahri".into()],
+                live: Some(snap),
+            },
+            preferences,
+        )
+    };
+    let mut snap = live(&[3032, 3006], 500.0);
+    snap.me.as_mut().unwrap().player.items[1].slot = recall_core::roleslot::ROLE_SLOT;
+    snap.enemies.push(live::Player {
+        champion: "Ahri".into(),
+        level: 14,
+        kills: 13,
+        items: [6655, 3089, 4645]
+            .iter()
+            .enumerate()
+            .map(|(slot, id)| live::InvItem {
+                id: *id,
+                count: 1,
+                slot: slot as u32,
+                ..Default::default()
+            })
+            .collect(),
+        ..Default::default()
+    });
+    snap.my_deaths = [760.0, 880.0]
+        .iter()
+        .map(|time| live::Death {
+            time: *time,
+            killer: "Ahri".into(),
+            ..Default::default()
+        })
+        .collect();
+    let answer = run(&snap, &Default::default());
+    let target = answer.next.as_ref().unwrap().id;
+    assert!(
+        cat.item(target).unwrap().effects.magic_resist.is_some(),
+        "{:?}",
+        answer.next
+    );
+    let repeat = run(&snap, &answer.preferences);
+    assert_eq!(repeat.next, answer.next);
+    assert_eq!(repeat.path, answer.path);
+
+    let mut finish = live(&[3032, 3006, 1038, 1037, 1018], 725.0);
+    let building = run(&finish, &Default::default());
+    finish.enemies = snap.enemies.clone();
+    finish.my_deaths = snap.my_deaths.clone();
+    let complete = run(&finish, &building.preferences);
+    assert_eq!(complete.next.as_ref().map(|n| n.id), Some(3031));
+    assert!(complete.next.as_ref().unwrap().buy_now_affordable);
+
+    // Buying the suggested MR component must not release the defensive commitment when
+    // old deaths fade or the component itself lowers the measured need for more resistance.
+    snap.me.as_mut().unwrap().player.items.push(live::InvItem {
+        id: 1033,
+        count: 1,
+        slot: 2,
+        ..Default::default()
+    });
+    snap.game_time = 1300.0;
+    let invested = run(&snap, &answer.preferences);
+    assert_eq!(invested.next.as_ref().map(|n| n.id), Some(target));
+    let repeat = run(&snap, &invested.preferences);
+    assert_eq!(repeat.next, invested.next);
+    assert_eq!(repeat.path, invested.path);
+
+    // Promotions can replace a late item when quest boots leave a seventh path slot.
+    // Check both onset and release across partial builds: neither may alter the same
+    // observation's flexible tail on the next poll.
+    for owned in [
+        vec![3032, 3031],
+        vec![3032, 3031, 6675],
+        vec![3032, 3031, 3036],
+    ] {
+        for gold in [0.0, 500.0, 1500.0] {
+            let mut state = live(&owned, gold);
+            state.me.as_mut().unwrap().player.items.push(live::InvItem {
+                id: 3006,
+                count: 1,
+                slot: recall_core::roleslot::ROLE_SLOT,
+                ..Default::default()
+            });
+            state.enemies = snap.enemies.clone();
+            state.my_deaths = snap.my_deaths.clone();
+            let first = run(&state, &Default::default());
+            let again = run(&state, &first.preferences);
+            assert_eq!(again.next, first.next);
+            assert_eq!(again.path, first.path, "owned {owned:?}, gold {gold}");
+            state.game_time = 1500.0;
+            let released = run(&state, &first.preferences);
+            let again = run(&state, &released.preferences);
+            assert_eq!(again.next, released.next);
+            assert_eq!(again.path, released.path, "released {owned:?}, gold {gold}");
+        }
+    }
+}
+
+#[test]
 fn finish_affordable_ie_instead_of_starting_navori_when_zero_three() {
     let snap = live(&[3032, 3006, 1038, 1037, 1018], 725.0);
     let p = planned(Some(&snap), &[], true);

@@ -1021,6 +1021,7 @@ fn promote_answer(
     owned: &[u32],
     completed_core: usize,
     preferences: &PlannerPreferences,
+    allow_new: bool,
 ) -> Option<(u32, u32)> {
     struct Candidate {
         id: u32,
@@ -1085,6 +1086,9 @@ fn promote_answer(
     }
     let mut candidates = Vec::new();
     for (id, slot) in options {
+        if !allow_new && preferences.promoted != Some(id) {
+            continue;
+        }
         let Some(item) = cat.item(id) else { continue };
         if !item.is_finished(cat) {
             continue;
@@ -1107,14 +1111,15 @@ fn promote_answer(
         if !typed && !buffer && !held && !committed {
             continue;
         }
-        let met = (typed || buffer)
-            && f.score
-                >= if typed {
-                    TYPED_ANSWER_NEED
-                } else {
-                    DETOUR_NEED
-                }
-            || preferences.promoted == Some(id) && f.score >= PROMOTE_KEEP;
+        let met = allow_new
+            && ((typed || buffer)
+                && f.score
+                    >= if typed {
+                        TYPED_ANSWER_NEED
+                    } else {
+                        DETOUR_NEED
+                    }
+                || preferences.promoted == Some(id) && f.score >= PROMOTE_KEEP);
         if met || held || committed {
             candidates.push(Candidate {
                 id,
@@ -1571,12 +1576,12 @@ fn note_declined_detour(
         if !preferences.declined_detours.contains(&detour) {
             preferences.declined_detours.push(detour);
         }
+        preferences.declined_at_items = Some(completed_items(cat, ids));
         preferences.offered_detour = None;
         preferences.offered_inventory.clear();
     }
 }
 
-        preferences.declined_at_items = Some(completed_items(cat, ids));
 fn owned_ids(me: Option<&Me>) -> Vec<u32> {
     me.into_iter()
         .flat_map(|m| &m.player.items)
@@ -1823,12 +1828,12 @@ pub(crate) fn select(
         context: needs.context.clone(),
         ..Default::default()
     };
+    refresh_deferred_detours(cat, &ids, &mut out.preferences);
     let Some(agg) = inp.aggregate else { return out };
     let mut choices = pool(inp);
     let mut path = commitment(inp, me);
     let capacity = path_capacity(inp);
     let full_committed = path.len() >= capacity;
-    refresh_deferred_detours(cat, &ids, &mut out.preferences);
     let committed_ids: Vec<_> = path.iter().map(|p| p.id).collect();
     let consuming_upgrade = |quote: &shop::ShopQuote| {
         !full_committed
@@ -1974,7 +1979,10 @@ pub(crate) fn select(
     // it stays promoted (`promote_answer` decides that): a component bought for another item must
     // not push it out of the tail and hand its place to a weaker answer (the Xayah game: a B. F.
     // Sword pulled Bloodthirster in and Mercurial Scimitar out a minute after Orianna's kill).
-    if let Some(id) = preferences.promoted {
+    // v3 rebuilds its conditional path before applying the exception. Reserving a promoted
+    // item here would consume the flexible tail on the second identical poll, changing which
+    // learned item the same exception replaces (and leaving stale tags when it is released).
+    if let Some(id) = preferences.promoted.filter(|_| !v3) {
         let planned: Vec<u32> = path.iter().map(|p| p.id).collect();
         let keeps_place = path.len() < capacity
             && !planned.contains(&id)
@@ -2031,11 +2039,14 @@ pub(crate) fn select(
             .enumerate()
             .filter(|(_, r)| r.0 >= best - TAIL_MARGIN)
             .filter_map(|(i, r)| {
-                preferences
-                    .last_path
-                    .iter()
-                    .position(|p| *p == r.1)
-                    .map(|previous| (previous, i))
+                (if v3 && !preferences.last_unpromoted_path.is_empty() {
+                    &preferences.last_unpromoted_path
+                } else {
+                    &preferences.last_path
+                })
+                .iter()
+                .position(|p| *p == r.1)
+                .map(|previous| (previous, i))
             })
             .min()
             .map_or(0, |(_, i)| i);
@@ -2076,6 +2087,7 @@ pub(crate) fn select(
         }
     }
     order_defense(&mut path, inp, &needs, first, me, boots_locked, swiftplay);
+    out.preferences.last_unpromoted_path = path.iter().map(|p| p.id).collect();
     // Finished items from the champion's candidate pool that are not on the path, can be bought
     // with this inventory and were not declined: where a promoted resistance answer may come from.
     let on_path: Vec<u32> = path.iter().map(|p| p.id).collect();
@@ -2093,23 +2105,40 @@ pub(crate) fn select(
                     .is_some_and(|i| i.is_finished(cat) && !i.effects.boots)
         })
         .collect();
-    // v3: the corpus shows no defensive reaction to deaths (Master+ defensive share -1.1 pp after
-    // recent deaths), so kill-feed promotions are off where the backbone applies.
-    let promoted = if v3 {
-        None
-    } else {
-        promote_answer(
-            &mut path,
-            &pool_answers,
-            core_ids,
-            inp,
-            &needs,
-            archetype,
-            &ids,
-            completed_core,
-            preferences,
-        )
-    };
+    // An ordinary death preserves the learned progression. Repeated direct deaths to a stronger
+    // enemy can justify protection; aggregate purchase imitation cannot rule out that exception.
+    let repeated_threat = needs.hunter.as_ref().is_some_and(|hunter| {
+        needs.threats.iter().any(|(name, _, strength)| {
+            normalize(name) == normalize(&hunter.champion) && *strength > COMMIT_THREAT
+        }) && inp.live.is_some_and(|live| {
+            live.my_deaths
+                .iter()
+                .filter(|death| {
+                    normalize(&death.killer) == normalize(&hunter.champion)
+                        && (0.0..HUNT_MEMORY_SECONDS).contains(&(live.game_time - death.time))
+                })
+                .count()
+                >= 2
+        })
+    });
+    let promoted = promote_answer(
+        &mut path,
+        &pool_answers,
+        // Protect the opening core, not every hypothetical legendary through full build:
+        // a compatible defensive answer may replace an unstarted fourth/fifth item.
+        if v3 {
+            &core_ids[..core_ids.len().min(3)]
+        } else {
+            core_ids
+        },
+        inp,
+        &needs,
+        archetype,
+        &ids,
+        completed_core,
+        preferences,
+        !v3 || repeated_threat,
+    );
     out.preferences.promoted = promoted.map(|(id, _)| id);
     out.preferences.promoted_seen = promoted.map(|(_, seen)| seen);
     let pending: Vec<_> = path

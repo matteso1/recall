@@ -102,6 +102,10 @@ pub struct PlannerPreferences {
     /// Feeding the displayed path back into the model changes its conditioning on identical polls.
     #[serde(default)]
     pub last_chain: Vec<u32>,
+    /// Flexible-tail memory before defensive promotion and display reordering. A promoted item
+    /// must not become the tail's preferred choice on the next identical observation.
+    #[serde(default)]
+    pub last_unpromoted_path: Vec<u32>,
     #[serde(default)]
     pub last_tags: Vec<(u32, String)>,
     /// A defensive answer moved ahead of the core because an enemy has been killing you; kept
