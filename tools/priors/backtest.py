@@ -281,7 +281,9 @@ def compare_reports(before, after):
                                        ('cleanse_true_positive', 'cleanse_positive'),
                                        ('cleanse_false_positive', 'cleanse_negative'),
                                        ('path_top3_hits', 'legendary_decisions'), ('boots_hits', 'boots_decisions'),
-                                       ('flips', 'transitions'), ('repeat_flips', 'frames'),
+                                       ('flips', 'transitions'), ('flips_boots', 'transitions'),
+                                       ('flips_detour', 'transitions'), ('flips_finishable', 'transitions'),
+                                       ('flips_order', 'transitions'), ('repeat_flips', 'frames'),
                                        ('repeat_path_flips', 'frames'),
                                        ('invalid_frames', 'frames'), ('missing_target_candidates', 'frames')]:
             if not metrics.get(denominator) or not prior.get(denominator):

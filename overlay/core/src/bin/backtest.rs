@@ -224,11 +224,37 @@ fn run(cache: &Path, split: &str, catalog: &Path) -> Result<Value> {
                 "transitions",
                 same_inventory && consecutive,
             );
-            add(
-                &mut frame_counts,
-                "flips",
-                same_inventory && consecutive && changed,
-            );
+            let flip = same_inventory && consecutive && changed;
+            add(&mut frame_counts, "flips", flip);
+            // What kind of change: boots or a component detour entering or leaving, an item that
+            // gold now finishes, or two finished items trading places with nothing bought.
+            if flip {
+                let kind = |id: Option<u32>| {
+                    id.and_then(|id| cat.item(id)).map(|item| {
+                        if item.effects.boots {
+                            "boots"
+                        } else if item.is_finished(&cat) {
+                            "item"
+                        } else {
+                            "detour"
+                        }
+                    })
+                };
+                let kinds = [kind(previous.as_ref().and_then(|p| p.target)), kind(target)];
+                let finishes = plan.next.as_ref().is_some_and(|n| {
+                    n.buy_now_affordable && n.buy_now.as_ref().is_some_and(|b| b.id == n.id)
+                });
+                let name = if kinds.contains(&Some("boots")) {
+                    "flips_boots"
+                } else if kinds.contains(&Some("detour")) {
+                    "flips_detour"
+                } else if finishes {
+                    "flips_finishable"
+                } else {
+                    "flips_order"
+                };
+                add(&mut frame_counts, name, true);
+            }
             add(&mut frame_counts, "repeat_flips", target != repeat_target);
             add(
                 &mut frame_counts,
