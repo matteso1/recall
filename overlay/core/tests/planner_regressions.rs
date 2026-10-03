@@ -169,7 +169,7 @@ fn visible_armor_can_change_the_next_item_despite_previous_core_order() {
 }
 
 #[test]
-fn repeated_magic_deaths_allow_a_stable_answer_and_preserve_its_components() {
+fn repeated_magic_deaths_bring_an_answer_forward_only_where_marksmen_build_it() {
     let (cat, traits, agg) = (catalog(), pack::load_traits().unwrap(), aggregate());
     let run = |snap: &LiveSnapshot, preferences: &engine::PlannerPreferences| {
         engine::plan_with_preferences(
@@ -185,6 +185,7 @@ fn repeated_magic_deaths_allow_a_stable_answer_and_preserve_its_components() {
             preferences,
         )
     };
+    let resists_magic = |id: u32| cat.item(id).unwrap().effects.magic_resist.is_some();
     let mut snap = live(&[3032, 3006], 500.0);
     snap.me.as_mut().unwrap().player.items[1].slot = recall_core::roleslot::ROLE_SLOT;
     snap.enemies.push(live::Player {
@@ -203,6 +204,7 @@ fn repeated_magic_deaths_allow_a_stable_answer_and_preserve_its_components() {
             .collect(),
         ..Default::default()
     });
+    let calm = run(&snap, &Default::default());
     snap.my_deaths = [760.0, 880.0]
         .iter()
         .map(|time| live::Death {
@@ -212,12 +214,33 @@ fn repeated_magic_deaths_allow_a_stable_answer_and_preserve_its_components() {
         })
         .collect();
     let answer = run(&snap, &Default::default());
+    // A marksman's second item stays a damage item: under 0.1% of Master+ Xayah players finish a
+    // magic-resist item there, and the earlier promotion that made Mercurial Scimitar the target
+    // straight after Yun Tal is what put Zhonya's Hourglass on Yasuo.
     let target = answer.next.as_ref().unwrap().id;
+    assert!([3031, 6675].contains(&target), "{:?}", answer.next);
+    // The answer is on the path where they do build one, tagged, naming the enemy.
+    let slot = answer
+        .path
+        .iter()
+        .position(|p| resists_magic(p.id))
+        .expect("a magic-resist answer on the path");
+    assert_eq!(answer.path[slot].tag.as_deref(), Some("situational"));
     assert!(
-        cat.item(target).unwrap().effects.magic_resist.is_some(),
+        answer.path[slot].why.as_deref().unwrap().contains("Ahri"),
         "{:?}",
-        answer.next
+        answer.path[slot].why
     );
+    assert!(
+        calm.path
+            .iter()
+            .position(|p| resists_magic(p.id))
+            .is_none_or(|calm_slot| slot < calm_slot),
+        "calm {:?}, answer {:?}",
+        calm.path,
+        answer.path
+    );
+    let answer_id = answer.path[slot].id;
     let repeat = run(&snap, &answer.preferences);
     assert_eq!(repeat.next, answer.next);
     assert_eq!(repeat.path, answer.path);
@@ -230,8 +253,7 @@ fn repeated_magic_deaths_allow_a_stable_answer_and_preserve_its_components() {
     assert_eq!(complete.next.as_ref().map(|n| n.id), Some(3031));
     assert!(complete.next.as_ref().unwrap().buy_now_affordable);
 
-    // Buying the suggested MR component must not release the defensive commitment when
-    // old deaths fade or the component itself lowers the measured need for more resistance.
+    // A component bought toward the answer keeps it on the path after the deaths have faded.
     snap.me.as_mut().unwrap().player.items.push(live::InvItem {
         id: 1033,
         count: 1,
@@ -240,7 +262,11 @@ fn repeated_magic_deaths_allow_a_stable_answer_and_preserve_its_components() {
     });
     snap.game_time = 1300.0;
     let invested = run(&snap, &answer.preferences);
-    assert_eq!(invested.next.as_ref().map(|n| n.id), Some(target));
+    assert!(
+        invested.path.iter().any(|p| p.id == answer_id && !p.owned),
+        "{:?}",
+        invested.path
+    );
     let repeat = run(&snap, &invested.preferences);
     assert_eq!(repeat.next, invested.next);
     assert_eq!(repeat.path, invested.path);

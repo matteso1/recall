@@ -44,6 +44,16 @@ impl RoleSlotTracker {
         let Some(me) = snap.me.as_mut() else {
             return;
         };
+        // Only the bot-lane quest has the boots slot. In another known role a vanish is a sale,
+        // whatever the gold did: in the Yasuo game of 2026-10-02 a mid laner sold Boots while other
+        // gold arrived (+381, not the 70% refund), the boots stayed "slotted", and Berserker's
+        // Greaves were shown as affordable for 300 gold less than they cost.
+        if crate::aggregate::Position::parse(&me.player.position)
+            .is_some_and(|role| role != crate::aggregate::Position::Adc)
+        {
+            *self = Self::default();
+            return;
+        }
         let is_boots = |id: u32| cat.item(id).is_some_and(|i| i.effects.boots);
         let price = |id: u32| cat.item(id).map_or(0.0, |i| f64::from(i.total));
         let items: Vec<u32> = me
@@ -248,6 +258,23 @@ mod tests {
         t.apply(&cat, &mut snap(&[DAGGER], 1000.0, 900.0), &[]);
         t.apply(&cat, &mut snap(&[], 460.0, 902.0), &[BERSERKERS]);
         assert_eq!(t.slotted(), Some(BERSERKERS));
+    }
+
+    #[test]
+    fn other_roles_have_no_boots_slot() {
+        // The same vanish that is the quest in the bot lane is a sale for a mid laner.
+        let cat = catalog();
+        let mut t = RoleSlotTracker::default();
+        let mid = |items: &[u32], gold: f64, time: f64| {
+            let mut s = snap(items, gold, time);
+            s.me.as_mut().unwrap().player.position = "MIDDLE".into();
+            s
+        };
+        t.apply(&cat, &mut mid(&[ESSENCE_REAVER, BOOTS], 330.0, 920.0), &[]);
+        let mut s = mid(&[ESSENCE_REAVER], 711.0, 933.0);
+        t.apply(&cat, &mut s, &[]);
+        assert_eq!(t.slotted(), None);
+        assert!(!owns(&s, BOOTS));
     }
 
     #[test]

@@ -94,10 +94,16 @@ const TAG_MARGIN: f64 = 0.15;
 /// (measured lifts: healer, magic-heavy, tanky). The situational needs add what the composition alone
 /// cannot see, the live state (your measured armor/MR against their damage, their visible armor and
 /// healing items), as a nudge of `V3_NUDGE` nats per unit of need. Composition is capped at
-/// `V3_NEED_CAP` (0.6 nats); penetration justified by visible resistance can use the full need
-/// score (at most 1.5 nats). Neither erases a large prior gap (Guardian Angel second on Sivir:
-/// 0 of 469 Master+ players, a ~4.7-nat gap).
+/// `V3_NEED_CAP` (0.6 nats); penetration justified by visible resistance uses the full need score
+/// at `V3_VISIBLE_NUDGE` (at most 2 nats). Neither erases a large prior gap (Guardian Angel second
+/// on Sivir: 0 of 469 Master+ players, a ~4.7-nat gap).
 const V3_NUDGE: f64 = 0.3;
+/// Nats per unit of a penetration need that visible enemy armor or magic resist justifies. The
+/// champion's own counts weigh more than they did before the role backoff was restricted (Xayah
+/// after Yun Tal and Infinity Edge: Navori 65%, Lord Dominik's 24%), so the same behavior needs a
+/// slightly larger step: Lord Dominik's goes third against a tank with 180 armor from items
+/// (the Rammus game of 2026-10-01), not against 80.
+const V3_VISIBLE_NUDGE: f64 = 0.4;
 /// Chain hysteresis: a choice the previous plan made keeps its step unless another item scores this
 /// many nats more, so level and gold ticks do not reorder the path.
 const V3_TIE_MARGIN: f64 = 0.25;
@@ -107,6 +113,18 @@ const V3_LEGENDARIES: usize = 5;
 /// In v3 the chain already carries the needs, so the target ranking's situational term is capped
 /// below the gap between the first two planned items.
 const V3_SITUATION_CAP: f64 = 1.0;
+/// A repeated threat (`repeated_threat`: two recent direct deaths to an enemy stronger than you) makes
+/// one item that answers it this many nats more likely at each step of the learned sequence, about
+/// seven times its usual share, until one answer is placed. The answer moves forward only where this
+/// champion's Master+ players plausibly build it at that step, and is always an item they build:
+/// Zhonya's Hourglass third on Lux (10% -> ahead of Shadowflame's 39%) but not second (4% against
+/// Stormsurge's 53%); Mercurial Scimitar fifth on Xayah, never second (under 0.1%). It replaces the
+/// promotion that put any defensive item on the path straight after the first one, ahead of boots
+/// (the Yasuo game of 2026-10-02: Zhonya's Hourglass, an item no Master+ Yasuo builds, 2,850 gold of
+/// its components bought, one damage item at 26 minutes). Master+ players do not buy defensively
+/// after deaths (-1.1 pp), so this is a policy for a player who keeps dying to one enemy, not a
+/// measured effect; the bound keeps it inside what strong players do build.
+const THREAT_BONUS: f64 = 2.0;
 /// The kill feed is the confirmation a composition-only detour lacks: a resistance answer against
 /// the damage type of the enemy it blames is promoted at this need instead of `DETOUR_NEED`.
 const TYPED_ANSWER_NEED: f64 = 1.0;
@@ -989,9 +1007,18 @@ fn keep_commitment(
             .unwrap_or_default()
     ));
     entry.tag = Some("situational".into());
-    let front = path.iter().position(|p| !p.owned).unwrap_or(path.len());
+    let front = after_boots(path);
     path.insert(front, entry);
     Some((id, now as u32))
+}
+
+/// Where a promoted answer goes: the front of what is left to buy, after unfinished boots when
+/// they are next. Boots are the cheapest power on the path and every build finishes them early;
+/// an answer in front of them alternated with them as the target each time gold crossed the boots'
+/// price (five times in a minute in the Yasuo game of 2026-10-02).
+fn after_boots(path: &[PlanItem]) -> usize {
+    let front = path.iter().position(|p| !p.owned).unwrap_or(path.len());
+    front + usize::from(path.get(front).is_some_and(|p| p.role == "boots"))
 }
 
 /// With kill-feed evidence (an enemy has been killing you), a defensive answer moves to the front
@@ -1021,7 +1048,6 @@ fn promote_answer(
     owned: &[u32],
     completed_core: usize,
     preferences: &PlannerPreferences,
-    allow_new: bool,
 ) -> Option<(u32, u32)> {
     struct Candidate {
         id: u32,
@@ -1086,9 +1112,6 @@ fn promote_answer(
     }
     let mut candidates = Vec::new();
     for (id, slot) in options {
-        if !allow_new && preferences.promoted != Some(id) {
-            continue;
-        }
         let Some(item) = cat.item(id) else { continue };
         if !item.is_finished(cat) {
             continue;
@@ -1111,15 +1134,14 @@ fn promote_answer(
         if !typed && !buffer && !held && !committed {
             continue;
         }
-        let met = allow_new
-            && ((typed || buffer)
-                && f.score
-                    >= if typed {
-                        TYPED_ANSWER_NEED
-                    } else {
-                        DETOUR_NEED
-                    }
-                || preferences.promoted == Some(id) && f.score >= PROMOTE_KEEP);
+        let met = (typed || buffer)
+            && f.score
+                >= if typed {
+                    TYPED_ANSWER_NEED
+                } else {
+                    DETOUR_NEED
+                }
+            || preferences.promoted == Some(id) && f.score >= PROMOTE_KEEP;
         if met || held || committed {
             candidates.push(Candidate {
                 id,
@@ -1226,7 +1248,7 @@ fn promote_answer(
     };
     item.why = Some(reason);
     item.tag = Some("situational".into());
-    let front = path.iter().position(|p| !p.owned).unwrap_or(path.len());
+    let front = after_boots(path);
     path.insert(front, item);
     let promoted = path[front].id;
     // The answer for another enemy follows the committed one rather than replacing it.
@@ -1739,10 +1761,68 @@ fn enemy_names(inp: &Inputs) -> Vec<String> {
     names
 }
 
+/// The enemy a repeated threat names: two direct deaths to them within `HUNT_MEMORY_SECONDS`, and
+/// they are stronger than the player without counting the kill feed (`COMMIT_THREAT`). One death,
+/// old deaths and assists alone are an ordinary game.
+fn repeated_threat<'a>(inp: &Inputs, needs: &'a Needs) -> Option<&'a Hunter> {
+    let hunter = needs.hunter.as_ref()?;
+    let live = inp.live?;
+    let stronger = needs.threats.iter().any(|(name, _, strength)| {
+        normalize(name) == normalize(&hunter.champion) && *strength > COMMIT_THREAT
+    });
+    let direct = live
+        .my_deaths
+        .iter()
+        .filter(|death| {
+            normalize(&death.killer) == normalize(&hunter.champion)
+                && (0.0..HUNT_MEMORY_SECONDS).contains(&(live.game_time - death.time))
+        })
+        .count();
+    (stronger && direct >= 2).then_some(hunter)
+}
+
+/// Whether an item answers the blamed enemy: resistance against their damage type, stasis, or a
+/// spell shield against a mage. A lifeline or overheal shield (Immortal Shieldbow, Bloodthirster)
+/// is part of the champion's damage build and does not count: Yasuo with Shieldbow who keeps dying
+/// to physical damage still gets Death's Dance before Infinity Edge.
+fn answers(hunter: &Hunter, item: &Item) -> bool {
+    let e = &item.effects;
+    let magic = hunter.magic >= 0.5;
+    let resistance = if magic { e.magic_resist } else { e.armor };
+    resistance.is_some_and(|v| v > 0.0) || e.stasis || (magic && e.spell_shield)
+}
+
+/// What the learned sequence may move forward (`THREAT_BONUS`).
+#[derive(Clone, Copy)]
+struct Threat<'a> {
+    /// The enemy of a current repeated threat.
+    hunter: Option<&'a Hunter>,
+    /// The answer earlier plans carried, kept through its hold or the player's investment.
+    held: Option<u32>,
+    /// The player owns a component only the held answer explains: no other answer replaces it.
+    committed: bool,
+}
+
+impl Threat<'_> {
+    fn applies(&self, id: u32, item: &Item) -> bool {
+        match (self.committed, self.hunter) {
+            (false, Some(hunter)) => answers(hunter, item),
+            _ => self.held == Some(id),
+        }
+    }
+}
+
+/// The learned sequence: (item, probability) per planned step, and the answer a threat moved
+/// forward, if any.
+struct Chain {
+    steps: Vec<(u32, f64)>,
+    answer: Option<u32>,
+}
+
 /// The v3 backbone: greedily chain the Master+ next-legendary distribution from the owned legendary
 /// items, each step scored as ln P(item | champion, role, owned + planned) plus a bounded need nudge,
 /// among items compatible with what is owned and planned. None when the corpus does not cover the
-/// champion and role. Returns (item, probability) per planned step.
+/// champion and role.
 #[allow(clippy::too_many_arguments)]
 fn prior_chain(
     inp: &Inputs,
@@ -1756,30 +1836,66 @@ fn prior_chain(
     compatible: &dyn Fn(u32, &[u32]) -> bool,
     comp: nextprior::Comp,
     last_chain: &[u32],
-) -> Option<Vec<(u32, f64)>> {
+    threat: Threat,
+) -> Option<Chain> {
     let cat = inp.catalog;
     let mut legendaries = owned_legendaries.to_vec();
     let mut planned = owned.to_vec();
     let mut chain = Vec::new();
+    // One answer, after the first legendary: a finished item that already answers the enemy, or
+    // the answer placed below, ends the exception.
+    let mut open = !owned_legendaries.is_empty()
+        && match threat.hunter {
+            Some(hunter) => !owned_legendaries
+                .iter()
+                .filter_map(|id| cat.item(*id))
+                .any(|item| answers(hunter, item)),
+            None => threat.held.is_some(),
+        };
+    let mut answer = None;
+    let first_family = |id: u32| {
+        inp.aggregate
+            .is_none_or(|a| a.core.ids.contains(&id) || coherent_with(archetype, cat, id))
+    };
     while legendaries.len() < V3_LEGENDARIES {
         let dist = nextprior::distribution(key, role, &legendaries, Some(comp))?;
-        let scored: Vec<(u32, f64, f64)> = dist
+        // One champion can have two families of builds (Master+ Katarina opens Lich Bane 48%,
+        // Kraken Slayer 40%). The first legendary is of the provider's family, whose runes and
+        // skill order the player has; after it, nothing that no Master+ player built together
+        // with an item owned or planned, while the tables know any such item (Sejuani top opens
+        // with an item no recorded set contains: her sequence continues by the model alone
+        // rather than stopping there and leaving the rest to the provider's tail).
+        let mut candidates: Vec<(u32, f64)> = dist
             .iter()
             .take(12)
+            .copied()
             .filter(|(id, _)| !planned.contains(id) && compatible(*id, &planned))
+            .filter(|(id, _)| !legendaries.is_empty() || first_family(*id))
+            .collect();
+        let built_with_owned = |id: u32| {
+            legendaries.is_empty()
+                || nextprior::built_with(key, role, id, &legendaries) != Some(false)
+        };
+        if candidates.iter().any(|(id, _)| built_with_owned(*id)) {
+            candidates.retain(|(id, _)| built_with_owned(*id));
+        }
+        let scored: Vec<(u32, f64, f64, bool)> = candidates
+            .iter()
             .filter_map(|&(id, p)| {
                 let item = cat.item(id)?;
                 let need = fit(item, inp, needs, archetype, &planned, mode);
                 // Composition is already represented by the model. Visible resistance is new
                 // evidence: don't clip strong armor/MR to the same nudge as a modest need.
-                let cap = if need.evidence == Evidence::VisibleItems
+                let nudge = if need.evidence == Evidence::VisibleItems
                     && matches!(need.kind, DecisionKind::ArmorPen | DecisionKind::MagicPen)
                 {
-                    MAX_NEED_SCORE
+                    V3_VISIBLE_NUDGE * need.score.clamp(0.0, MAX_NEED_SCORE)
                 } else {
-                    V3_NEED_CAP
+                    V3_NUDGE * need.score.clamp(0.0, V3_NEED_CAP)
                 };
-                Some((id, p, p.ln() + V3_NUDGE * need.score.clamp(0.0, cap)))
+                let answering = open && threat.applies(id, item);
+                let bonus = if answering { THREAT_BONUS } else { 0.0 };
+                Some((id, p, p.ln() + nudge + bonus, answering))
             })
             .collect();
         let Some(top) = scored.iter().map(|s| s.2).max_by(f64::total_cmp) else {
@@ -1787,7 +1903,7 @@ fn prior_chain(
         };
         // Among near-ties, the previous model sequence keeps its order. The displayed
         // path can be reordered by defense or affordability and is not model memory.
-        let Some(&(id, p, _)) = scored
+        let Some(&(id, p, _, answering)) = scored
             .iter()
             .filter(|s| s.2 >= top - V3_TIE_MARGIN)
             .min_by_key(|s| {
@@ -1803,11 +1919,18 @@ fn prior_chain(
         else {
             break;
         };
+        if answering {
+            open = false;
+            answer = Some(id);
+        }
         chain.push((id, p));
         legendaries.push(id);
         planned.push(id);
     }
-    Some(chain)
+    Some(Chain {
+        steps: chain,
+        answer,
+    })
 }
 
 pub(crate) fn select(
@@ -1853,17 +1976,51 @@ pub(crate) fn select(
         swiftplay,
     };
     let compatible = |id, owned: &[u32]| shop::compatible_with_context(cat, id, owned, &context);
-    // Engine v3: what Master+ players on this champion and role buy next with the items owned. Swiftplay
-    // (another shop) and champions the corpus does not cover keep the op.gg build below.
+    // Engine v3: what Master+ players on this champion and role buy next with the items owned, in
+    // Swiftplay too (its starting items differ, its legendary items do not; the provider fallback
+    // there kept promoting defense after every death: Banshee's Veil and Zhonya's Hourglass second
+    // and third on LeBlanc, Jak'Sho and Randuin's before Guinsoo's on Kalista). Champions the
+    // corpus does not cover keep the op.gg build below.
     let owned_now: Vec<u32> = path.iter().map(|p| p.id).collect();
     let owned_legendaries: Vec<u32> = owned_now
         .iter()
         .copied()
         .filter(|&id| nextprior::is_legendary(cat, id))
         .collect();
-    let v3_chain = (!swiftplay)
-        .then(|| cat.champion_key(inp.champion))
-        .flatten()
+    // The answer a repeated threat moves forward in the learned sequence. It stays through
+    // `PROMOTE_HOLD_SECONDS` after the evidence lapses (the two-death window closing must not
+    // withdraw it at once), and for as long as the player owns a component only it explains and
+    // some enemy still calls for it: switching would strand that gold.
+    let now = inp.live.map_or(0.0, |l| l.game_time.max(0.0));
+    let hunter = repeated_threat(inp, &needs);
+    let invested = |answer: u32| {
+        cat.item(answer)
+            .is_some_and(|item| still_answers(&needs, item))
+            && ids.iter().any(|&component| {
+                component != answer
+                    && builds_into(cat, component, answer)
+                    && !preferences.last_chain.iter().any(|&other| {
+                        other != answer
+                            && !ids.contains(&other)
+                            && builds_into(cat, component, other)
+                    })
+            })
+    };
+    let held = preferences.promoted.filter(|&id| {
+        !fulfilled(inp, id, me)
+            && (hunter.is_some()
+                || invested(id)
+                || preferences.promoted_seen.is_some_and(|seen| {
+                    (0.0..=PROMOTE_HOLD_SECONDS).contains(&(now - f64::from(seen)))
+                }))
+    });
+    let threat = Threat {
+        hunter,
+        held,
+        committed: held.is_some_and(invested),
+    };
+    let v3_chain = cat
+        .champion_key(inp.champion)
         .and_then(|key| {
             prior_chain(
                 inp,
@@ -1877,10 +2034,13 @@ pub(crate) fn select(
                 &compatible,
                 nextprior::Comp::of(inp.traits, &enemy_names(inp)),
                 &preferences.last_chain,
+                threat,
             )
         })
-        .filter(|chain| !chain.is_empty() || owned_legendaries.len() >= V3_LEGENDARIES);
+        .filter(|chain| !chain.steps.is_empty() || owned_legendaries.len() >= V3_LEGENDARIES);
     let v3 = v3_chain.is_some();
+    let v3_answer = v3_chain.as_ref().and_then(|chain| chain.answer);
+    let v3_chain = v3_chain.map(|chain| chain.steps);
     out.preferences.last_chain = v3_chain
         .as_ref()
         .map(|chain| chain.iter().map(|(id, _)| *id).collect())
@@ -1914,14 +2074,36 @@ pub(crate) fn select(
                         format!("after {}", names.join(" + "))
                     };
                     preceding.push(id);
-                    engine::item_by_id(
-                        cat,
-                        inp.pack,
-                        id,
-                        Some(format!(
-                            "{short}: recommended by the Master+ build model {step}"
-                        )),
-                    )
+                    if v3_answer != Some(id) {
+                        return engine::item_by_id(
+                            cat,
+                            inp.pack,
+                            id,
+                            Some(format!(
+                                "{short}: recommended by the Master+ build model {step}"
+                            )),
+                        );
+                    }
+                    // The answer says who it is for; held past the evidence, what it still does.
+                    let item = cat.item(id)?;
+                    let f = fit(item, inp, &needs, archetype, &ids, preferences.mode);
+                    let why = match hunter.filter(|_| f.evidence != Evidence::KillFeed) {
+                        Some(hunter) => format!(
+                            "{short}: {} ({}/{}) keeps killing you; its {} cuts that damage",
+                            hunter.champion,
+                            hunter.kills,
+                            hunter.deaths,
+                            if hunter.magic >= 0.5 {
+                                "magic resist"
+                            } else {
+                                "armor"
+                            }
+                        ),
+                        None => f.reason,
+                    };
+                    let mut entry = engine::item_by_id(cat, inp.pack, id, Some(why))?;
+                    entry.tag = Some("situational".into());
+                    Some(entry)
                 })
                 .collect();
             // Boots right after the first legendary: Master+ players finish tier-2 boots at a
@@ -2105,40 +2287,31 @@ pub(crate) fn select(
                     .is_some_and(|i| i.is_finished(cat) && !i.effects.boots)
         })
         .collect();
-    // An ordinary death preserves the learned progression. Repeated direct deaths to a stronger
-    // enemy can justify protection; aggregate purchase imitation cannot rule out that exception.
-    let repeated_threat = needs.hunter.as_ref().is_some_and(|hunter| {
-        needs.threats.iter().any(|(name, _, strength)| {
-            normalize(name) == normalize(&hunter.champion) && *strength > COMMIT_THREAT
-        }) && inp.live.is_some_and(|live| {
-            live.my_deaths
-                .iter()
-                .filter(|death| {
-                    normalize(&death.killer) == normalize(&hunter.champion)
-                        && (0.0..HUNT_MEMORY_SECONDS).contains(&(live.game_time - death.time))
-                })
-                .count()
-                >= 2
+    // v3 carries a repeated threat inside the learned sequence (`THREAT_BONUS`), where the answer
+    // is an item the champion builds and boots keep their place. The promotion below, which puts
+    // any defensive path item straight after the first one, stays for the provider fallback only.
+    let promoted = if v3 {
+        v3_answer.map(|id| {
+            let seen = if hunter.is_some() {
+                now as u32
+            } else {
+                preferences.promoted_seen.unwrap_or(now as u32)
+            };
+            (id, seen)
         })
-    });
-    let promoted = promote_answer(
-        &mut path,
-        &pool_answers,
-        // Protect the opening core, not every hypothetical legendary through full build:
-        // a compatible defensive answer may replace an unstarted fourth/fifth item.
-        if v3 {
-            &core_ids[..core_ids.len().min(3)]
-        } else {
-            core_ids
-        },
-        inp,
-        &needs,
-        archetype,
-        &ids,
-        completed_core,
-        preferences,
-        !v3 || repeated_threat,
-    );
+    } else {
+        promote_answer(
+            &mut path,
+            &pool_answers,
+            core_ids,
+            inp,
+            &needs,
+            archetype,
+            &ids,
+            completed_core,
+            preferences,
+        )
+    };
     out.preferences.promoted = promoted.map(|(id, _)| id);
     out.preferences.promoted_seen = promoted.map(|(_, seen)| seen);
     let pending: Vec<_> = path
@@ -2147,6 +2320,12 @@ pub(crate) fn select(
         .map(|p| p.id)
         .collect();
     let baseline = pending.first().copied();
+    // Unfinished boots that are next come before any answer to the enemy: the fallback's promoted
+    // item (which `after_boots` placed behind them, and whose need otherwise outscored them whenever
+    // they were not affordable, so the two alternated as the target) and an anti-heal or cleanse
+    // component, which used to be offered for the seconds its price was in the purse (Oblivion Orb at
+    // 6:01 on LeBlanc, before Sorcerer's Shoes).
+    let boots_next = baseline.is_some_and(|id| cat.item(id).is_some_and(|item| item.effects.boots));
     note_declined_detour(cat, &ids, &pending, &mut out.preferences);
     let baseline_quote = baseline.map(|id| remaining(inp, id, me, boots_locked, swiftplay));
     let baseline_cost = baseline_quote
@@ -2163,7 +2342,11 @@ pub(crate) fn select(
     let mut ranked = Vec::new();
     for (&id, &pick) in &choices {
         let Some(item) = cat.item(id) else { continue };
-        if fulfilled(inp, id, me) || (boots_locked && item.effects.boots) || !compatible(id, &ids) {
+        if fulfilled(inp, id, me)
+            || (boots_locked && item.effects.boots)
+            || !compatible(id, &ids)
+            || (boots_next && !v3 && out.preferences.promoted == Some(id))
+        {
             continue;
         }
         let q = remaining(inp, id, me, boots_locked, swiftplay);
@@ -2184,7 +2367,7 @@ pub(crate) fn select(
             Some(id) == baseline
                 || ordinal.is_some_and(|o| o <= 1)
                 || credit > 0.0 && item.is_finished(cat)
-                || completed_core >= 1 && situational_component
+                || completed_core >= 1 && situational_component && !boots_next
                 || completed_core >= 2 && item.is_finished(cat) && f.score > 0.25
         };
         // A deferred detour waits for the next completed non-boot item; it remains an option.
@@ -2294,7 +2477,7 @@ pub(crate) fn select(
                 // A promoted answer is evidence-driven, not a near-tie: it takes over unless the old
                 // target can be finished right now.
                 let finishable = ranked[index].2.affordable && pending.contains(&last);
-                let promoted_first = out.preferences.promoted == Some(ranked[0].0.id);
+                let promoted_first = !v3 && out.preferences.promoted == Some(ranked[0].0.id);
                 let close =
                     !promoted_first && ranked[0].0.total - ranked[index].0.total < TARGET_MARGIN;
                 let keep = index > 0 && ranked[index].2.blocked.is_none() && (finishable || close);
@@ -2309,7 +2492,7 @@ pub(crate) fn select(
         // game and the target flipped until the next death.
         let kept_last = preferences.last_target.is_some()
             && ranked.first().map(|r| r.0.id) == preferences.last_target;
-        if let Some(promoted) = out.preferences.promoted.filter(|_| !kept_last) {
+        if let Some(promoted) = out.preferences.promoted.filter(|_| !v3 && !kept_last) {
             if let Some(index) = ranked.iter().position(|r| r.0.id == promoted) {
                 if index > 0
                     && ranked[index].2.blocked.is_none()

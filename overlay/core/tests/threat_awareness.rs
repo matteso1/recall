@@ -145,7 +145,7 @@ const AFTER_LUDENS: [u32; 4] = [DORANS_RING, LUDENS, BOOTS, WARD];
 const DARIUS_FED: [u32; 3] = [1055, 3078, 3009];
 
 #[test]
-fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
+fn repeated_recent_deaths_bring_protection_one_step_forward_after_a_completed_core() {
     let enemies = lineup(&DARIUS_FED, 8, 0);
     let single = snapshot(
         900.0,
@@ -156,7 +156,7 @@ fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
         &[(880.0, 0, &[])],
     );
     let baseline = plan(&single);
-    assert_ne!(baseline.next.as_ref().map(|n| n.id), Some(ZHONYAS));
+    let usual = position(&baseline, ZHONYAS).expect("Lux builds Zhonya's late");
     let repeated = snapshot(
         900.0,
         11,
@@ -166,14 +166,27 @@ fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
         &[(760.0, 0, &[]), (880.0, 0, &[])],
     );
     let protected = plan_with(&repeated, &baseline.preferences);
-    assert_eq!(
-        protected.next.as_ref().map(|n| n.id),
-        Some(ZHONYAS),
-        "{:?}",
-        protected.score_trace
+    // Zhonya's moves forward to where Master+ Lux players do build it (third: 10% of them, against
+    // 4% second), tagged and naming Darius. It is not the next purchase: boots and the second
+    // damage item keep their places, which is what the promotion straight after the first item
+    // got wrong (Zhonya's ahead of boots on Yasuo, 2026-10-02).
+    let moved = position(&protected, ZHONYAS).unwrap();
+    assert!(moved < usual, "{:?}", protected.path);
+    let entry = &protected.path[moved];
+    assert_eq!(entry.tag.as_deref(), Some("situational"));
+    assert!(
+        entry.why.as_deref().unwrap().contains("Darius"),
+        "{entry:?}"
     );
+    assert_ne!(protected.next.as_ref().map(|n| n.id), Some(ZHONYAS));
+    let boots = protected
+        .path
+        .iter()
+        .position(|p| p.role == "boots")
+        .unwrap();
+    assert!(boots < moved, "{:?}", protected.path);
     let again = plan_with(&repeated, &protected.preferences);
-    assert_eq!(again.next.as_ref().map(|n| n.id), Some(ZHONYAS));
+    assert_eq!(again.next, protected.next);
     assert_eq!(again.path, protected.path);
     let mut aging = repeated.clone();
     aging.game_time = 1100.0;
@@ -181,8 +194,8 @@ fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
     aging.game_time = 1160.0;
     let held = plan_with(&aging, &recent.preferences);
     assert_eq!(
-        held.next.as_ref().map(|n| n.id),
-        Some(ZHONYAS),
+        position(&held, ZHONYAS),
+        Some(moved),
         "crossing the two-death boundary must not immediately withdraw the answer"
     );
 
@@ -192,7 +205,11 @@ fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
         vec![(760.0, 2, &[0][..]), (880.0, 2, &[0][..])],
     ] {
         let control = snapshot(900.0, 11, 500.0, &AFTER_LUDENS, &enemies, &deaths);
-        assert_ne!(plan(&control).next.as_ref().map(|n| n.id), Some(ZHONYAS));
+        assert_eq!(
+            position(&plan(&control), ZHONYAS),
+            Some(usual),
+            "{deaths:?}"
+        );
     }
     let opening = snapshot(
         900.0,
@@ -202,7 +219,12 @@ fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
         &enemies,
         &[(760.0, 0, &[]), (880.0, 0, &[])],
     );
-    assert_ne!(plan(&opening).next.as_ref().map(|n| n.id), Some(ZHONYAS));
+    let calm_opening = snapshot(900.0, 11, 500.0, &[DORANS_RING, BOOTS, WARD], &enemies, &[]);
+    assert_eq!(
+        position(&plan(&opening), ZHONYAS),
+        position(&plan(&calm_opening), ZHONYAS),
+        "the first item is never displaced"
+    );
 
     let old = snapshot(
         1300.0,
@@ -212,12 +234,9 @@ fn repeated_recent_deaths_allow_protection_after_a_completed_core() {
         &enemies,
         &[(760.0, 0, &[]), (880.0, 0, &[])],
     );
-    assert_ne!(
-        plan_with(&old, &protected.preferences)
-            .next
-            .as_ref()
-            .map(|n| n.id),
-        Some(ZHONYAS)
+    assert_eq!(
+        position(&plan_with(&old, &protected.preferences), ZHONYAS),
+        Some(usual)
     );
 }
 

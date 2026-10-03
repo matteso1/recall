@@ -1,5 +1,9 @@
 # Live adaptation follow-up — October 2, 2026
 
+> Superseded in part the same day: the defensive exception below no longer promotes an item to the front of
+> the path. See [the Yasuo game review](yasuo-zhonyas-review.md). The visible-resistance and detour-deferral
+> changes stand.
+
 The [recent-game review](recent-games-case-review.md) found three constraints that made the
 learned build too rigid. This change adjusts those constraints without retraining the model.
 

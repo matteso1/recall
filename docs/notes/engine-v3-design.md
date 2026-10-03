@@ -72,3 +72,7 @@ repeated direct deaths to a stronger enemy, lets visible resistance use the full
 need score, and limits purchase-inferred detour suppression to the current build stage.
 The original aggregate purchase result does not establish that every individual defensive
 exception is wrong. These are explicit planner policies, not newly trained win predictions.
+
+Later on October 2: that exception, as a promotion straight after the first item, put Zhonya's Hourglass on
+Yasuo ahead of boots. It now acts inside the learned sequence, and the sequence itself no longer proposes
+items the champion does not build. See the [Yasuo game review](yasuo-zhonyas-review.md).

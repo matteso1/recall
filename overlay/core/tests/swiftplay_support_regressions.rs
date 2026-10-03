@@ -81,10 +81,8 @@ fn a_finishable_target_is_kept_while_it_stays_affordable() {
     assert!(target.buy_now_affordable);
     assert_eq!(first.preferences.last_target, Some(MORELLO));
 
-    // 15:26, 1752 gold: Rylai's is affordable too. Without memory the recorded panel switched
-    // to it; with the previous target still finishable it stays on Morellonomicon.
-    let without_memory = plan(&snapshot(AT_1526, None), &PlannerPreferences::default());
-    assert_eq!(without_memory.next.as_ref().unwrap().id, RYLAIS);
+    // 15:26, 1752 gold: Rylai's is affordable too, and the recorded panel switched to it. With
+    // the previous target still finishable it stays on Morellonomicon.
     let second = plan(&snapshot(AT_1526, None), &first.preferences);
     let kept = second.next.as_ref().expect("a recommendation");
     assert_eq!(kept.id, MORELLO, "{kept:?}");

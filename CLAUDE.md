@@ -79,10 +79,19 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   nudge from `decision.rs` needs (`V3_NUDGE`). With a complete enemy draft, covered standard-mode champions use
   `bootsprior.rs` / `data/pack/boots.json` for corpus boots conditioned on enemy magic count.
   op.gg still supplies runes, spells, skills, starters and fallback boots, and the
-  whole build for Swiftplay and champions the corpus does not cover. V3 preserves core progression after ordinary
-  deaths, with a defensive exception after two recent direct deaths to the same stronger threat and one completed
-  core. Visible armor/MR can also move penetration ahead of the learned order. Deferred detours are reconsidered
-  after the next completed non-boot item. See `docs/notes/live-adaptation-fix.md` for tests and tradeoffs.
+  whole build for champions the corpus does not cover. Swiftplay uses v3 too since 2026-10-02 (same legendary
+  shop; the fallback there kept promoting defense after every death). The model never proposes an item the
+  champion's Master+ players do not build: the role backoff is restricted to the champion's own items, an owned
+  set the table lacks is smoothed through the sets one item smaller, the first legendary is of the provider's
+  build family (its runes), and later items must have been built with something owned or planned
+  (`tools/priors/eval_next.py` is the held-out comparison). V3 preserves core progression after ordinary deaths.
+  After two recent direct deaths to the same stronger enemy and one completed legendary, one item that answers
+  that enemy is `THREAT_BONUS` nats more likely in the learned sequence: it moves forward only where the
+  champion's Master+ players plausibly build it, never ahead of boots. Do not bring back a promotion that places
+  a defensive item straight after the first one: it put Zhonya's Hourglass on Yasuo ahead of boots
+  (`docs/notes/yasuo-zhonyas-review.md`). Visible armor/MR can also move penetration ahead of the learned
+  order. Deferred detours are reconsidered after the next completed non-boot item
+  (`docs/notes/live-adaptation-fix.md`).
   Judge engine changes on the corpus and the
   recorded games (`games/*.jsonl` through `replay`), never on one game.
   `tools/priors/backtest.py` evaluates the full planner on player- and match-disjoint timelines;
@@ -113,6 +122,7 @@ status table in `README.md` and `docs/notes/m0-log.md` when milestones move.
   agreement; do not promote those weights. See `docs/notes/answer-model-evaluation.md`.
 - The bot-lane role quest hides the player's boots from the Live Client item list (16.x). `core/src/roleslot.rs`
   keeps them owned (a vanish without a 70% sale refund or an undo) and follows their upgrade, as a virtual slot 9.
+  Only for a bot-lane carry or an unknown role: in another known role a vanish is a sale.
 - Base builds (runes, spells, skill order, items) are not hand-tuned: `core/aggregate.rs` fetches op.gg's
   champion API per champion + position at champ select (cached 6 h under `%LOCALAPPDATA%\Recall\aggregate`).
   A real response is the fixture `m0/tests/fixtures/opgg_xayah_adc.json`. The pack is rules + offline fallback.

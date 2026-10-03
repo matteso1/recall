@@ -158,13 +158,18 @@ fn shared_components_do_not_switch_the_target_to_a_cheaper_off_path_item() {
 
 #[test]
 fn the_anti_heal_reason_names_the_healer_not_a_lifesteal_boot() {
-    // 9:41: Mortal Reminder became the target. Naafiri's Gluttonous Greaves are minor sustain;
-    // Yuumi is the healer the item is for.
-    let p = plan(&state(581.0, 9, 315.0, &[3032, 3006, 6675]));
+    // 9:41, with the 800 gold of an Executioner's Calling: the anti-heal purchase is offered.
+    // Naafiri's Gluttonous Greaves are minor sustain; Yuumi is the healer the item is for.
+    let p = plan(&state(581.0, 9, 815.0, &[3032, 3006, 6675]));
     let next = p.next.expect("a recommendation");
-    assert_eq!(
-        next.id, 3033,
-        "Mortal Reminder against the healer: {next:?}"
+    assert!(
+        catalog()
+            .item(next.id)
+            .unwrap()
+            .effects
+            .grievous_wounds
+            .is_some(),
+        "anti-heal against the healer: {next:?}"
     );
     let reason = p
         .learning

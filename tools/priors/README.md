@@ -98,6 +98,9 @@ Metrics are reported overall, per role and for Xayah:
 - `boots_hits`: the planned boots match the first recorded tier-two boots.
 - `flips/transitions`: target changes across consecutive minute frames with identical inventory.
   A target change can be justified by gold or state changes; this is a diagnostic, not inherently a bug.
+  Each is one of `flips_boots` (boots become or stop being the target), `flips_detour` (an anti-heal or
+  cleanse component does), `flips_finishable` (gold now finishes the new target) and `flips_order` (two
+  finished items trade places with nothing bought: the kind that needs a reason).
 - `repeat_flips/frames`: target changes when the identical state is immediately repeated with the
   returned preferences. `repeat_path_flips` similarly checks the whole path.
 - `invalid_frames`: path incompatibilities, false ownership, wrong prices or unaffordable purchases,
@@ -123,6 +126,25 @@ so training purchase aggregates supply its interface. Skill advice, rune choices
 flips are outside this benchmark. Use real recordings for those integration checks. The default
 scoring patches are 16.17–16.18 with the compatible 16.19 catalog. This measures imitation and
 runtime constraints; it does not establish win-rate improvement or optimal detour timing.
+
+## Next-legendary smoothing
+
+`eval_next.py <dec.parquet> [tune|report|all]` compares the smoothing variants of `nextprior.rs` on held-out
+players (15%, split in two by hash: constants are chosen on `tune`, `report` is the half that choice did not
+see). It rebuilds the count tables from the other 85% exactly as `export_next.py` does and reports, per
+variant, how often the next completed legendary is the first choice, among the first three, and the mean log
+loss, overall, by build step, and for owned sets the champion's table lacks. On `report` (24,013 decisions):
+
+| Variant | Top-1 | Top-3 | Log loss | Top-1, set not in the table |
+|---|---:|---:|---:|---:|
+| previous (role backoff unrestricted) | 53.4% | 79.1% | 1.705 | 21.0% |
+| role backoff restricted to the champion's items | 54.0% | 80.6% | 1.626 | 27.7% |
+| + smaller-set view | 54.3% | 80.9% | 1.550 | 28.6% |
+| current (+ built-with weight, `A_NTH` 50) | 55.0% | 81.5% | 1.524 | 30.9% |
+
+The previous model put 11.3% of its probability on items the champion never builds, and its first choice was
+such an item in 4.3% of decisions. A change to the constants in `nextprior.rs` goes through this script first,
+then through `backtest.py` for the whole planner.
 
 ## Corpus boots
 
